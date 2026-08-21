@@ -1,0 +1,40 @@
+<section id="especialidades" class="especialidades">
+  <div class="container">
+    <div class="section__header" appReveal="up">
+      <span class="section__eyebrow">Especialidades</span>
+      <h2 class="section__title">Especialidades oftalmológicas</h2>
+      <p class="section__subtitle">Atención especializada en las principales áreas del cuidado de la salud visual.</p>
+    </div>
+
+    <div class="especialidades__grid">
+      @for (especialidad of especialidades; track especialidad.titulo; let i = $index) {
+        <article
+          class="especialidades__card"
+          [class.especialidades__card--featured]="i === 0 || i === 3"
+          appReveal="up"
+          [revealDelay]="(i % 3) * 120"
+        >
+          <div class="especialidades__card-image-wrap">
+            <img
+              class="especialidades__card-image"
+              [src]="especialidad.imagen"
+              [alt]="'Imagen de la especialidad: ' + especialidad.titulo"
+              loading="lazy"
+            />
+          </div>
+          <div class="especialidades__card-body">
+            <h3 class="especialidades__card-title">{{ especialidad.titulo }}</h3>
+            <p class="especialidades__card-text">{{ especialidad.descripcion }}</p>
+            <a class="especialidades__card-link" href="#contacto">
+              Más información
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M5 12h14" />
+                <path d="m12 5 7 7-7 7" />
+              </svg>
+            </a>
+          </div>
+        </article>
+      }
+    </div>
+  </div>
+</section>

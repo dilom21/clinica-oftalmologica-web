@@ -1,0 +1,34 @@
+<section id="tecnologia" class="tecnologia">
+  <div class="container">
+    <div class="section__header" appReveal="up">
+      <span class="section__eyebrow">Tecnología</span>
+      <h2 class="section__title">Tecnología para cuidar tu visión</h2>
+      <p class="section__subtitle">Complementamos la evaluación clínica con herramientas de diagnóstico oftalmológico que ayudan a obtener información detallada y favorecer una valoración precisa.</p>
+    </div>
+
+    <div class="tecnologia__list">
+      @for (item of tecnologias; track item.titulo; let i = $index) {
+        <div
+          class="tecnologia__block"
+          [class.tecnologia__block--reversed]="item.alternado"
+        >
+          <div class="tecnologia__image-wrap" [appReveal]="item.alternado ? 'right' : 'left'">
+            <img
+              class="tecnologia__image"
+              [src]="item.imagen"
+              [alt]="'Equipo de diagnóstico: ' + item.titulo"
+              loading="lazy"
+            />
+          </div>
+          <div class="tecnologia__content" [appReveal]="item.alternado ? 'left' : 'right'">
+            <span class="tecnologia__index" aria-hidden="true">
+              {{ (i + 1).toString().padStart(2, '0') }}
+            </span>
+            <h3 class="tecnologia__title">{{ item.titulo }}</h3>
+            <p class="tecnologia__text">{{ item.descripcion }}</p>
+          </div>
+        </div>
+      }
+    </div>
+  </div>
+</section>

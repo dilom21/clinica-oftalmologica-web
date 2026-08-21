@@ -1,0 +1,117 @@
+.inicio {
+  min-height: 100dvh;
+  display: flex;
+  flex-direction: column;
+  background:
+    radial-gradient(800px 400px at 80% 20%, rgba(56, 189, 248, 0.1), transparent 60%),
+    linear-gradient(180deg, #f4fafe 0%, var(--color-white) 100%);
+}
+
+.inicio__topbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  padding: 0.9rem 1.5rem;
+  background: var(--color-white);
+  border-bottom: 1px solid var(--color-border-soft);
+  box-shadow: var(--shadow-xs);
+}
+
+.inicio__brand {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.inicio__logo {
+  width: 40px;
+  height: 40px;
+  object-fit: contain;
+  border-radius: 10px;
+  background: var(--color-background-mist);
+  padding: 4px;
+}
+
+.inicio__brand-name {
+  font-size: 0.95rem;
+  font-weight: 700;
+  color: var(--color-primary-dark);
+  letter-spacing: -0.01em;
+}
+
+.inicio__logout {
+  padding: 0.6rem 1.3rem;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-sm);
+  background: var(--color-white);
+  color: var(--color-primary);
+  font-size: 0.875rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition:
+    background 0.25s ease,
+    color 0.25s ease,
+    border-color 0.25s ease;
+}
+
+.inicio__logout:hover {
+  background: var(--color-background-sky);
+  border-color: var(--color-border);
+}
+
+.inicio__content {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 2rem 1.5rem;
+}
+
+.inicio__card {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  gap: 0.75rem;
+  max-width: 420px;
+  width: 100%;
+  padding: 3.5rem 2.5rem;
+  background: var(--color-white);
+  border: 1px solid var(--color-border-soft);
+  border-radius: var(--radius-xl);
+  box-shadow: var(--shadow-md);
+}
+
+.inicio__icon {
+  width: 64px;
+  height: 64px;
+  object-fit: contain;
+  border-radius: 16px;
+  background: var(--color-background-sky);
+  padding: 8px;
+  margin-bottom: 0.5rem;
+}
+
+.inicio__title {
+  font-size: 1.75rem;
+  font-weight: 800;
+  color: var(--color-primary-dark);
+  letter-spacing: -0.02em;
+}
+
+.inicio__text {
+  font-size: 0.9375rem;
+  color: var(--color-text-soft);
+}
+
+.inicio__success {
+  margin-top: 1rem;
+  padding: 0.5rem 1rem;
+  border-radius: var(--radius-pill);
+  background: var(--color-background-sky);
+  border: 1px solid var(--color-border);
+  color: var(--color-primary);
+  font-size: 0.8125rem;
+  font-weight: 600;
+}

@@ -1,0 +1,143 @@
+.especialistas {
+  padding-block: 96px;
+  background:
+    radial-gradient(700px 350px at 15% 10%, rgba(56, 189, 248, 0.09), transparent 60%),
+    linear-gradient(180deg, var(--color-white) 0%, var(--color-background-faint) 100%);
+}
+
+.especialistas__panel {
+  background: #eff8ff;
+  border: 1px solid var(--color-border-soft);
+  border-radius: 32px;
+  padding: 56px;
+  position: relative;
+  overflow: hidden;
+}
+
+.especialistas__panel::before {
+  content: '';
+  position: absolute;
+  top: -60px;
+  right: -40px;
+  width: 220px;
+  height: 220px;
+  border-radius: 50%;
+  border: 2px solid rgba(56, 189, 248, 0.14);
+  pointer-events: none;
+}
+
+.especialistas__panel::after {
+  content: '';
+  position: absolute;
+  bottom: -70px;
+  left: -50px;
+  width: 200px;
+  height: 200px;
+  border-radius: 50%;
+  background: radial-gradient(circle, rgba(56, 189, 248, 0.1) 0%, transparent 70%);
+  pointer-events: none;
+}
+
+.especialistas__grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 2rem;
+  max-width: 1080px;
+  margin-inline: auto;
+  position: relative;
+  z-index: 1;
+}
+
+.especialistas__card {
+  background: var(--color-white);
+  border: 1px solid var(--color-border-soft);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-sm);
+  overflow: hidden;
+  transition:
+    transform 0.35s ease,
+    box-shadow 0.35s ease;
+}
+
+.especialistas__card:hover {
+  transform: translateY(-7px);
+  box-shadow: var(--shadow-md);
+}
+
+.especialistas__card-image-wrap {
+  position: relative;
+  overflow: hidden;
+  aspect-ratio: 4 / 4.4;
+  max-height: 330px;
+}
+
+.especialistas__card-image-wrap::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(180deg, transparent 60%, rgba(16, 42, 67, 0.06) 100%);
+  pointer-events: none;
+}
+
+.especialistas__card-image {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  transition: transform 0.5s ease;
+}
+
+.especialistas__card:hover .especialistas__card-image {
+  transform: scale(1.05);
+}
+
+.especialistas__card-body {
+  padding: 1.5rem 1.5rem 1.75rem;
+  text-align: center;
+  position: relative;
+}
+
+.especialistas__card-name {
+  font-size: 1.125rem;
+  font-weight: 700;
+  color: var(--color-primary-dark);
+  margin-bottom: 0.5rem;
+}
+
+.especialistas__card-role {
+  display: inline-block;
+  padding: 0.32rem 1rem;
+  border-radius: var(--radius-pill);
+  background: linear-gradient(135deg, var(--color-background-sky), var(--color-background-faint));
+  color: var(--color-primary);
+  border: 1px solid var(--color-border);
+  font-size: 0.8125rem;
+  font-weight: 600;
+  box-shadow: var(--shadow-xs);
+}
+
+@media (max-width: 960px) {
+  .especialistas {
+    padding-block: 64px;
+  }
+
+  .especialistas__panel {
+    padding: 40px 28px;
+    border-radius: 24px;
+  }
+
+  .especialistas__grid {
+    grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+    max-width: 640px;
+  }
+}
+
+@media (max-width: 640px) {
+  .especialistas__panel {
+    padding: 28px 20px;
+  }
+
+  .especialistas__grid {
+    grid-template-columns: 1fr;
+    max-width: 420px;
+  }
+}

@@ -1,0 +1,177 @@
+.contacto {
+  padding-block: 96px;
+  background:
+    radial-gradient(700px 350px at 90% 100%, rgba(56, 189, 248, 0.1), transparent 60%),
+    linear-gradient(180deg, var(--color-background-mist) 0%, var(--color-background-sky) 100%);
+}
+
+.contacto__panel {
+  display: grid;
+  grid-template-columns: 1.2fr 1fr;
+  gap: 2.5rem;
+  max-width: 1080px;
+  margin-inline: auto;
+  background: #eff8ff;
+  border: 1px solid var(--color-border-soft);
+  border-radius: 32px;
+  padding: 48px 56px;
+  position: relative;
+  overflow: hidden;
+}
+
+.contacto__panel::before {
+  content: '';
+  position: absolute;
+  top: -70px;
+  right: -50px;
+  width: 220px;
+  height: 220px;
+  border-radius: 50%;
+  border: 2px solid rgba(56, 189, 248, 0.16);
+  pointer-events: none;
+}
+
+.contacto__info {
+  position: relative;
+  z-index: 1;
+}
+
+.contacto__name {
+  font-size: 1.25rem;
+  font-weight: 700;
+  color: var(--color-primary-dark);
+  margin-bottom: 1.75rem;
+}
+
+.contacto__items {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+
+.contacto__item {
+  display: flex;
+  align-items: flex-start;
+  gap: 1rem;
+}
+
+.contacto__item-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 48px;
+  height: 48px;
+  flex-shrink: 0;
+  border-radius: 50%;
+  background: linear-gradient(135deg, var(--color-background-sky), var(--color-background-faint));
+  color: var(--color-primary);
+  border: 1px solid var(--color-border);
+  box-shadow: var(--shadow-xs);
+}
+
+.contacto__item-icon svg {
+  width: 22px;
+  height: 22px;
+}
+
+.contacto__item-info {
+  display: flex;
+  flex-direction: column;
+}
+
+.contacto__item-title {
+  font-size: 0.9375rem;
+  font-weight: 700;
+  color: var(--color-primary-dark);
+  margin-bottom: 0.2rem;
+}
+
+.contacto__item-text {
+  font-size: 0.9rem;
+  color: var(--color-text-soft);
+  line-height: 1.55;
+  white-space: pre-line;
+}
+
+.contacto__horarios {
+  background: #123f63;
+  border-radius: 24px;
+  padding: 2rem;
+  color: var(--color-white);
+  position: relative;
+  z-index: 1;
+  box-shadow: var(--shadow-md);
+}
+
+.contacto__horarios-title {
+  font-size: 1.15rem;
+  font-weight: 700;
+  color: var(--color-white);
+  margin-bottom: 1.5rem;
+}
+
+.contacto__horarios-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.contacto__horario {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  padding: 0.9rem 1.1rem;
+  background: rgba(56, 189, 248, 0.12);
+  border: 1px solid rgba(56, 189, 248, 0.18);
+  border-radius: 12px;
+  transition: background 0.25s ease;
+}
+
+.contacto__horario:hover {
+  background: rgba(56, 189, 248, 0.2);
+}
+
+.contacto__horario-dias {
+  font-size: 0.9375rem;
+  font-weight: 600;
+  color: rgba(255, 255, 255, 0.92);
+}
+
+.contacto__horario-hora {
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: #7dd3fc;
+  white-space: nowrap;
+}
+
+@media (max-width: 960px) {
+  .contacto {
+    padding-block: 64px;
+  }
+
+  .contacto__panel {
+    grid-template-columns: 1fr;
+    padding: 40px 32px;
+    border-radius: 24px;
+    gap: 2rem;
+  }
+}
+
+@media (max-width: 640px) {
+  .contacto__panel {
+    padding: 28px 20px;
+  }
+
+  .contacto__horario {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.25rem;
+  }
+}
