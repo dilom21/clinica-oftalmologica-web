@@ -15,6 +15,20 @@ export const routes: Routes = [
       ),
   },
   {
+    path: 'password/recuperar',
+    loadComponent: () =>
+      import(
+        './features/autenticacion-seguridad/Auth/pages/recuperar-password/recuperar-password'
+      ).then((m) => m.RecuperarPassword),
+  },
+  {
+    path: 'password/restablecer',
+    loadComponent: () =>
+      import(
+        './features/autenticacion-seguridad/Auth/pages/restablecer-password/restablecer-password'
+      ).then((m) => m.RestablecerPassword),
+  },
+  {
     path: 'inicio',
     loadComponent: () =>
       import('./features/autenticacion-seguridad/Auth/pages/inicio/inicio').then(
