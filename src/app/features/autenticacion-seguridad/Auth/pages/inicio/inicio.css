@@ -1,43 +1,64 @@
 .inicio {
-  min-height: 100dvh;
+  height: 100dvh;
   display: flex;
-  flex-direction: column;
   background:
     radial-gradient(800px 400px at 80% 20%, rgba(56, 189, 248, 0.1), transparent 60%),
     linear-gradient(180deg, #f4fafe 0%, var(--color-white) 100%);
 }
 
-.inicio__topbar {
+.inicio__body {
+  flex: 1;
+  display: flex;
+  min-width: 0;
+  min-height: 0;
+}
+
+.inicio__main {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  min-height: 0;
+}
+
+.inicio__main-header {
+  flex: 0 0 auto;
   display: flex;
   align-items: center;
-  justify-content: space-between;
-  gap: 1rem;
+  justify-content: flex-end;
+  gap: 0.75rem;
   padding: 0.9rem 1.5rem;
   background: var(--color-white);
   border-bottom: 1px solid var(--color-border-soft);
   box-shadow: var(--shadow-xs);
 }
 
-.inicio__brand {
-  display: flex;
+.inicio__hamburger {
+  display: none;
   align-items: center;
-  gap: 0.75rem;
-}
-
-.inicio__logo {
+  justify-content: center;
   width: 40px;
   height: 40px;
-  object-fit: contain;
-  border-radius: 10px;
-  background: var(--color-background-mist);
-  padding: 4px;
+  padding: 0;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-sm);
+  background: var(--color-white);
+  color: var(--color-primary-dark);
+  cursor: pointer;
+  transition:
+    background 0.2s ease,
+    color 0.2s ease,
+    border-color 0.2s ease;
 }
 
-.inicio__brand-name {
-  font-size: 0.95rem;
-  font-weight: 700;
-  color: var(--color-primary-dark);
-  letter-spacing: -0.01em;
+.inicio__hamburger:hover {
+  background: var(--color-background-sky);
+  color: var(--color-primary);
+}
+
+.inicio__hamburger svg {
+  width: 20px;
+  height: 20px;
 }
 
 .inicio__logout {
@@ -62,10 +83,23 @@
 
 .inicio__content {
   flex: 1;
+  min-height: 0;
+  overflow-y: auto;
   display: flex;
   align-items: center;
   justify-content: center;
   padding: 2rem 1.5rem;
+}
+
+.inicio__backdrop {
+  display: none;
+  position: fixed;
+  inset: 0;
+  padding: 0;
+  border: none;
+  background: rgba(16, 42, 67, 0.5);
+  cursor: pointer;
+  z-index: 35;
 }
 
 .inicio__card {
@@ -114,4 +148,28 @@
   color: var(--color-primary);
   font-size: 0.8125rem;
   font-weight: 600;
+}
+
+/* ---- Modo táctil / móvil ---- */
+@media (hover: none), (max-width: 768px) {
+  .inicio__hamburger {
+    display: inline-flex;
+  }
+
+  .inicio__backdrop {
+    display: block;
+  }
+
+  .inicio__main-header {
+    justify-content: space-between;
+    padding-inline: 1rem;
+  }
+
+  .inicio__content {
+    padding: 1.5rem 1rem;
+  }
+
+  .inicio__card {
+    padding: 2.75rem 1.5rem;
+  }
 }
