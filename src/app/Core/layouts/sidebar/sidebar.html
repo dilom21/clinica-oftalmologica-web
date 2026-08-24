@@ -1,0 +1,152 @@
+<aside
+  class="sidebar"
+  [class.sidebar--open]="mobileOpen()"
+  aria-label="Menú de navegación principal"
+>
+  <!-- Sprite de iconos SVG (oculto visualmente) -->
+  <svg class="sidebar__sprite" aria-hidden="true" xmlns="http://www.w3.org/2000/svg">
+    <defs>
+      <symbol id="icono-inicio" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path>
+        <polyline points="9 22 9 12 15 12 15 22"></polyline>
+      </symbol>
+      <symbol id="icono-seguridad" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path>
+      </symbol>
+      <symbol id="icono-agenda" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect>
+        <line x1="16" y1="2" x2="16" y2="6"></line>
+        <line x1="8" y1="2" x2="8" y2="6"></line>
+        <line x1="3" y1="10" x2="21" y2="10"></line>
+      </symbol>
+      <symbol id="icono-pacientes" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path>
+        <circle cx="9" cy="7" r="4"></circle>
+        <path d="M23 21v-2a4 4 0 0 0-3-3.87"></path>
+        <path d="M16 3.13a4 4 0 0 1 0 7.75"></path>
+      </symbol>
+      <symbol id="icono-inventario" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <line x1="16.5" y1="9.4" x2="7.5" y2="4.21"></line>
+        <path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"></path>
+        <polyline points="3.27 6.96 12 12.01 20.73 6.96"></polyline>
+        <line x1="12" y1="22.08" x2="12" y2="12"></line>
+      </symbol>
+      <symbol id="icono-pagos" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <rect x="1" y="4" width="22" height="16" rx="2" ry="2"></rect>
+        <line x1="1" y1="10" x2="23" y2="10"></line>
+      </symbol>
+      <symbol id="icono-reportes" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <line x1="18" y1="20" x2="18" y2="10"></line>
+        <line x1="12" y1="20" x2="12" y2="4"></line>
+        <line x1="6" y1="20" x2="6" y2="14"></line>
+      </symbol>
+      <symbol id="icono-modulo" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <rect x="3" y="3" width="7" height="7"></rect>
+        <rect x="14" y="3" width="7" height="7"></rect>
+        <rect x="14" y="14" width="7" height="7"></rect>
+        <rect x="3" y="14" width="7" height="7"></rect>
+      </symbol>
+      <symbol id="icono-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <polyline points="6 9 12 15 18 9"></polyline>
+      </symbol>
+      <symbol id="icono-cerrar" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <line x1="18" y1="6" x2="6" y2="18"></line>
+        <line x1="6" y1="6" x2="18" y2="18"></line>
+      </symbol>
+    </defs>
+  </svg>
+
+  <button
+    type="button"
+    class="sidebar__close"
+    (click)="cerrarMovil()"
+    aria-label="Cerrar menú"
+  >
+    <svg class="sidebar__svg"><use href="#icono-cerrar"></use></svg>
+  </button>
+
+  <a
+    routerLink="/inicio"
+    class="sidebar__brand"
+    title="Centro Oftalmológico Visión Clara"
+    (click)="navegarInicio()"
+  >
+    <img
+      class="sidebar__brand-logo"
+      src="/images/logo/logo-clinica.png"
+      alt="Logo Centro Oftalmológico Visión Clara"
+      width="36"
+      height="36"
+    />
+    <span class="sidebar__brand-name">Centro Oftalmológico Visión Clara</span>
+  </a>
+
+  <nav class="sidebar__nav">
+    <ul class="sidebar__list">
+      <li class="sidebar__item">
+        <a
+          class="sidebar__link"
+          routerLink="/inicio"
+          routerLinkActive="sidebar__link--active"
+          title="Inicio"
+          (click)="navegarInicio()"
+        >
+          <span class="sidebar__icon">
+            <svg class="sidebar__svg"><use href="#icono-inicio"></use></svg>
+          </span>
+          <span class="sidebar__label">Inicio</span>
+        </a>
+      </li>
+
+      @for (modulo of modulos(); track modulo.id) {
+        <li class="sidebar__item" [class.sidebar__item--open]="openModuleId() === modulo.id">
+          <button
+            type="button"
+            class="sidebar__link sidebar__link--button"
+            [class.sidebar__link--active]="selectedModuleId() === modulo.id"
+            [title]="modulo.nombre"
+            [attr.aria-expanded]="openModuleId() === modulo.id"
+            (click)="alternarModulo(modulo.id)"
+          >
+            <span class="sidebar__icon">
+              <svg class="sidebar__svg"><use [attr.href]="'#icono-' + iconoPara(modulo)"></use></svg>
+            </span>
+            <span class="sidebar__label">{{ modulo.nombre }}</span>
+            @if (modulo.funciones.length > 0) {
+              <span class="sidebar__chevron">
+                <svg class="sidebar__svg"><use href="#icono-chevron"></use></svg>
+              </span>
+            }
+          </button>
+
+          @if (modulo.funciones.length > 0) {
+            <ul class="sidebar__submenu">
+              @for (funcion of modulo.funciones; track funcion.id) {
+                <li
+                  class="sidebar__submenu-item"
+                  [class.sidebar__submenu-item--active]="selectedFuncionId() === funcion.id"
+                >
+                  <a
+                    class="sidebar__submenu-link"
+                    [title]="funcion.nombre"
+                    (click)="seleccionarFuncion(modulo.id, funcion.id)"
+                  >
+                    <span class="sidebar__submenu-dot"></span>
+                    <span class="sidebar__submenu-label">{{ funcion.nombre }}</span>
+                  </a>
+                </li>
+              }
+            </ul>
+          }
+        </li>
+      }
+    </ul>
+  </nav>
+
+  @if (menuError()) {
+    <p class="sidebar__error" role="status">
+      No se pudo cargar el menú. Intenta nuevamente.
+    </p>
+  }
+</aside>
+

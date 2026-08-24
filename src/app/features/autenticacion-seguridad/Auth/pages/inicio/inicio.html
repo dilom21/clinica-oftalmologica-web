@@ -1,32 +1,54 @@
 <main class="inicio">
-  <div class="inicio__topbar">
-    <div class="inicio__brand">
-      <img
-        class="inicio__logo"
-        src="/images/logo/logo-clinica.png"
-        alt="Logo Centro Oftalmológico Visión Clara"
-        width="40"
-        height="40"
-      />
-      <span class="inicio__brand-name">Centro Oftalmológico Visión Clara</span>
+  <div class="inicio__body">
+    <app-sidebar
+      [mobileOpen]="sidebarMovilAbierto()"
+      (mobileClose)="cerrarSidebar()"
+    />
+
+    <div class="inicio__main">
+      <header class="inicio__main-header">
+        <button
+          type="button"
+          class="inicio__hamburger"
+          [attr.aria-expanded]="sidebarMovilAbierto()"
+          [attr.aria-label]="sidebarMovilAbierto() ? 'Cerrar menú' : 'Abrir menú'"
+          (click)="alternarSidebar()"
+        >
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <line x1="3" y1="6" x2="21" y2="6"></line>
+            <line x1="3" y1="12" x2="21" y2="12"></line>
+            <line x1="3" y1="18" x2="21" y2="18"></line>
+          </svg>
+        </button>
+        <button type="button" class="inicio__logout" (click)="cerrarSesion()">
+          Cerrar sesión
+        </button>
+      </header>
+
+      <div class="inicio__content">
+        <div class="inicio__card">
+          <img
+            class="inicio__icon"
+            src="/images/logo/logo-clinica.png"
+            alt=""
+            width="64"
+            height="64"
+          />
+          <h1 class="inicio__title">Sistema en construcción</h1>
+          <p class="inicio__text">Módulo principal en construcción</p>
+          <p class="inicio__success">Has iniciado sesión correctamente.</p>
+        </div>
+      </div>
     </div>
-    <button type="button" class="inicio__logout" (click)="cerrarSesion()">
-      Cerrar sesión
-    </button>
   </div>
 
-  <div class="inicio__content">
-    <div class="inicio__card">
-      <img
-        class="inicio__icon"
-        src="/images/logo/logo-clinica.png"
-        alt=""
-        width="64"
-        height="64"
-      />
-      <h1 class="inicio__title">Sistema en construcción</h1>
-      <p class="inicio__text">Módulo principal en construcción</p>
-      <p class="inicio__success">Has iniciado sesión correctamente.</p>
-    </div>
-  </div>
+  @if (sidebarMovilAbierto()) {
+    <button
+      type="button"
+      class="inicio__backdrop"
+      (click)="cerrarSidebar()"
+      aria-label="Cerrar menú"
+    ></button>
+  }
 </main>
+
