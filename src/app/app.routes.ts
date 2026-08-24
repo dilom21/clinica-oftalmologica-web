@@ -44,6 +44,14 @@ export const routes: Routes = [
       ).then((m) => m.GestionRoles),
     canActivate: [authGuard],
   },
+ {
+  path: 'pacientes',
+  loadComponent: () =>
+    import(
+  './features/gestion-pacientes/casos-uso/cu07-gestionar-pacientes/pages/gestion-pacientes/gestion-pacientes'
+    ).then((m) => m.GestionPacientes),
+  canActivate: [authGuard],
+},
   {
     path: '**',
     redirectTo: '',
