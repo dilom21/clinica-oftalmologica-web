@@ -126,14 +126,27 @@
                   class="sidebar__submenu-item"
                   [class.sidebar__submenu-item--active]="selectedFuncionId() === funcion.id"
                 >
-                  <a
-                    class="sidebar__submenu-link"
-                    [title]="funcion.nombre"
-                    (click)="seleccionarFuncion(modulo.id, funcion.id)"
-                  >
-                    <span class="sidebar__submenu-dot"></span>
-                    <span class="sidebar__submenu-label">{{ funcion.nombre }}</span>
-                  </a>
+                  @if (rutaDeFuncion(funcion.nombre); as ruta) {
+                    <a
+                      class="sidebar__submenu-link"
+                      [routerLink]="ruta"
+                      routerLinkActive="sidebar__submenu-item--active"
+                      [title]="funcion.nombre"
+                      (click)="seleccionarFuncion(modulo.id, funcion.id)"
+                    >
+                      <span class="sidebar__submenu-dot"></span>
+                      <span class="sidebar__submenu-label">{{ funcion.nombre }}</span>
+                    </a>
+                  } @else {
+                    <a
+                      class="sidebar__submenu-link sidebar__submenu-link--sin-ruta"
+                      [title]="funcion.nombre"
+                      (click)="seleccionarFuncion(modulo.id, funcion.id)"
+                    >
+                      <span class="sidebar__submenu-dot"></span>
+                      <span class="sidebar__submenu-label">{{ funcion.nombre }}</span>
+                    </a>
+                  }
                 </li>
               }
             </ul>

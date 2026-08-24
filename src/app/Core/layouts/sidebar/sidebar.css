@@ -248,6 +248,15 @@
   color: var(--color-white);
 }
 
+.sidebar__submenu-link--sin-ruta {
+  cursor: default;
+}
+
+.sidebar__submenu-link--sin-ruta:hover {
+  background: transparent;
+  color: rgba(255, 255, 255, 0.68);
+}
+
 .sidebar__submenu-dot {
   flex: 0 0 auto;
   width: 6px;

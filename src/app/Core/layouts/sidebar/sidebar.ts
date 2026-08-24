@@ -19,6 +19,10 @@ export class Sidebar implements OnInit {
   protected readonly selectedModuleId = signal<number | null>(null);
   protected readonly selectedFuncionId = signal<number | null>(null);
 
+  private readonly rutasFunciones: ReadonlyMap<string, string> = new Map([
+    ['gestionar roles y permisos', '/roles'],
+  ]);
+
   private readonly iconosPorNombre: ReadonlyArray<{
     clave: string;
     nombres: ReadonlyArray<string>;
@@ -46,6 +50,17 @@ export class Sidebar implements OnInit {
       grupo.nombres.some((clave) => nombre.includes(clave)),
     );
     return coincidencia?.clave ?? 'modulo';
+  }
+
+  rutaDeFuncion(nombre: string): string | null {
+    const clave = nombre.toLowerCase().trim();
+    if (this.rutasFunciones.has(clave)) {
+      return this.rutasFunciones.get(clave)!;
+    }
+    if (clave.includes('roles') && clave.includes('permisos')) {
+      return '/roles';
+    }
+    return null;
   }
 
   alternarModulo(id: number): void {

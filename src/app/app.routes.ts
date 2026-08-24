@@ -37,6 +37,14 @@ export const routes: Routes = [
     canActivate: [authGuard],
   },
   {
+    path: 'roles',
+    loadComponent: () =>
+      import(
+        './features/autenticacion-seguridad/casos-uso/cu05-gestionar-roles/pages/gestion-roles/gestion-roles'
+      ).then((m) => m.GestionRoles),
+    canActivate: [authGuard],
+  },
+  {
     path: '**',
     redirectTo: '',
   },
