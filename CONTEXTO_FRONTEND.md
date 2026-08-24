@@ -188,6 +188,11 @@ PUT    /pacientes/{paciente_id}
 DELETE /pacientes/{paciente_id}
 ```
 
+La consulta de bitácora utiliza paginación del backend con `page` y
+`page_size` (20 registros por página). La respuesta paginada contiene
+`items`, `total`, `page`, `page_size` y `total_pages`, además de conservar
+los filtros opcionales existentes.
+
 JWT para CU01 y recuperación de contraseña CU03 todavía deben integrarse completamente antes de considerarlos terminados.
 
 ---

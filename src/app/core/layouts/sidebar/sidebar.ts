@@ -21,6 +21,7 @@ export class Sidebar implements OnInit {
 
   private readonly rutasFunciones: ReadonlyMap<string, string> = new Map([
     ['gestionar roles y permisos', '/roles'],
+    ['consultar bitácora', '/bitacora'],
   ]);
 
   private readonly iconosPorNombre: ReadonlyArray<{
@@ -59,6 +60,9 @@ export class Sidebar implements OnInit {
     }
     if (clave.includes('roles') && clave.includes('permisos')) {
       return '/roles';
+    }
+    if (clave.includes('bitácora') || clave.includes('bitacora')) {
+      return '/bitacora';
     }
     return null;
   }
