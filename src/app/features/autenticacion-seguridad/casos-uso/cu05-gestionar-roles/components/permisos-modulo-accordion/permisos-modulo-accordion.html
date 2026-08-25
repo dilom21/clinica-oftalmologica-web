@@ -1,0 +1,93 @@
+<div class="acordeon">
+  @for (modulo of modulos(); track modulo.id) {
+    <section
+      class="acordeon__modulo"
+      [class.acordeon__modulo--abierto]="estaAbierto(modulo.id)"
+    >
+      <header class="acordeon__header">
+        <button
+          type="button"
+          class="acordeon__toggle"
+          [attr.aria-expanded]="estaAbierto(modulo.id)"
+          (click)="alternarModulo(modulo.id)"
+        >
+          <svg
+            class="acordeon__chevron"
+            xmlns="http://www.w3.org/2000/svg"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+            aria-hidden="true"
+          >
+            <polyline points="6 9 12 15 18 9"></polyline>
+          </svg>
+          <span class="acordeon__titulo">{{ modulo.nombre }}</span>
+          @if (modulo.funciones.length > 0) {
+            <span class="acordeon__contador">
+              {{ contadorSeleccionadas(modulo.id) }}/{{ modulo.funciones.length }}
+            </span>
+          }
+        </button>
+
+        @if (modulo.funciones.length > 0) {
+          <label class="acordeon__todo">
+            <input
+              type="checkbox"
+              [checked]="moduloCompleto(modulo)"
+              [disabled]="deshabilitado()"
+              (change)="onToggleTodo(modulo, $event)"
+            />
+            <span>Seleccionar todo</span>
+          </label>
+        }
+      </header>
+
+      @if (estaAbierto(modulo.id)) {
+        <div class="acordeon__cuerpo">
+          @if (modulo.funciones.length === 0) {
+            <p class="acordeon__sin-funciones">Este módulo no tiene funciones.</p>
+          } @else {
+            <ul class="acordeon__lista">
+              @for (funcion of modulo.funciones; track funcion.id) {
+                <li class="acordeon__item">
+                  <label class="acordeon__item-check">
+                    <input
+                      type="checkbox"
+                      [checked]="accionDe(funcion.id) != null"
+                      [disabled]="deshabilitado()"
+                      (change)="onToggleFuncion(funcion.id, $event)"
+                    />
+                    <span class="acordeon__item-nombre">{{ funcion.nombre }}</span>
+                  </label>
+
+                  @if (funcion.descripcion) {
+                    <p class="acordeon__item-descripcion">{{ funcion.descripcion }}</p>
+                  }
+
+                  @if (accionDe(funcion.id) != null) {
+                    <label class="acordeon__item-accion">
+                      <span class="acordeon__item-accion-label">Nivel de acceso</span>
+                      <select
+                        class="acordeon__select"
+                        [value]="accionDe(funcion.id)"
+                        [disabled]="deshabilitado()"
+                        (change)="onCambiarAccion(funcion.id, $event)"
+                      >
+                        @for (accion of acciones(); track accion.id) {
+                          <option [value]="accion.id">{{ accion.nombre }}</option>
+                        }
+                      </select>
+                    </label>
+                  }
+                </li>
+              }
+            </ul>
+          }
+        </div>
+      }
+    </section>
+  }
+</div>

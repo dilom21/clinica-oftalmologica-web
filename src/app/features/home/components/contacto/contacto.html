@@ -1,0 +1,58 @@
+<section id="contacto" class="contacto">
+  <div class="container">
+    <div class="section__header" appReveal="up">
+      <span class="section__eyebrow">Contacto</span>
+      <h2 class="section__title">Contáctanos</h2>
+      <p class="section__subtitle">Estamos para atenderte en nuestras instalaciones o a través de nuestros canales de contacto.</p>
+    </div>
+
+    <div class="contacto__panel" appReveal="up">
+      <div class="contacto__info">
+        <h3 class="contacto__name">Centro Oftalmológico Visión Clara</h3>
+        <ul class="contacto__items">
+          @for (item of items; track item.titulo) {
+            <li class="contacto__item">
+              <span class="contacto__item-icon" aria-hidden="true">
+                @switch (item.icono) {
+                  @case ('ubicacion') {
+                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                      <path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0Z" />
+                      <circle cx="12" cy="10" r="3" />
+                    </svg>
+                  }
+                  @case ('telefono') {
+                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                      <path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z" />
+                    </svg>
+                  }
+                  @case ('correo') {
+                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                      <rect x="2" y="4" width="20" height="16" rx="2" />
+                      <path d="m22 7-10 6L2 7" />
+                    </svg>
+                  }
+                }
+              </span>
+              <div class="contacto__item-info">
+                <strong class="contacto__item-title">{{ item.titulo }}</strong>
+                <span class="contacto__item-text">{{ item.descripcion }}</span>
+              </div>
+            </li>
+          }
+        </ul>
+      </div>
+
+      <div class="contacto__horarios">
+        <h3 class="contacto__horarios-title">Horarios de atención</h3>
+        <ul class="contacto__horarios-list">
+          @for (horario of horarios; track horario.dias) {
+            <li class="contacto__horario">
+              <span class="contacto__horario-dias">{{ horario.dias }}</span>
+              <span class="contacto__horario-hora">{{ horario.horario }}</span>
+            </li>
+          }
+        </ul>
+      </div>
+    </div>
+  </div>
+</section>

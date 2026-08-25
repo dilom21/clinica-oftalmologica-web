@@ -1,0 +1,46 @@
+<section id="nosotros" class="nosotros">
+  <div class="container nosotros__grid">
+    <div class="nosotros__images" appReveal="left">
+      <span class="nosotros__deco" aria-hidden="true"></span>
+      <img
+        class="nosotros__image-main"
+        src="/images/clinica/sala-espera.png"
+        alt="Sala de espera del centro oftalmológico"
+        loading="lazy"
+      />
+      <img
+        class="nosotros__image-secondary"
+        src="/images/clinica/consultorio.png"
+        alt="Consultorio oftalmológico del centro"
+        loading="lazy"
+      />
+    </div>
+
+    <div class="nosotros__content" appReveal="right">
+      <span class="section__eyebrow">Sobre nosotros</span>
+      <h2 class="section__title nosotros__title">Cuidamos tu visión con atención especializada</h2>
+      <p class="nosotros__text">
+        En Centro Oftalmológico Visión Clara brindamos atención integral orientada a la prevención, diagnóstico, tratamiento y seguimiento de la salud visual. Nuestro enfoque combina atención profesional, tecnología oftalmológica y un trato cercano para responder a las necesidades de cada paciente.
+      </p>
+      <p class="nosotros__text">
+        Contamos con espacios preparados para la atención oftalmológica y recursos de diagnóstico que permiten realizar evaluaciones precisas y brindar un seguimiento adecuado en las distintas etapas del cuidado visual.
+      </p>
+
+      <ul class="nosotros__fortalezas">
+        @for (fortaleza of fortalezas; track fortaleza.titulo; let i = $index) {
+          <li class="nosotros__fortaleza" appReveal="up" [revealDelay]="i * 120">
+            <span class="nosotros__fortaleza-icon" aria-hidden="true">
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M12 2L15.09 8.26L22 9.27L17 14.14L18.18 21.02L12 17.77L5.82 21.02L7 14.14L2 9.27L8.91 8.26L12 2Z" />
+              </svg>
+            </span>
+            <span>
+              <strong class="nosotros__fortaleza-titulo">{{ fortaleza.titulo }}</strong>
+              <span class="nosotros__fortaleza-texto">{{ fortaleza.descripcion }}</span>
+            </span>
+          </li>
+        }
+      </ul>
+    </div>
+  </div>
+</section>

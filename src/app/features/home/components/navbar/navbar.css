@@ -1,0 +1,224 @@
+.navbar {
+  position: fixed;
+  inset: 0 0 auto;
+  z-index: 100;
+  background: rgba(255, 255, 255, 0.92);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border-bottom: 1px solid transparent;
+  height: 78px;
+  display: flex;
+  align-items: center;
+  transition:
+    box-shadow 0.3s ease,
+    border-color 0.3s ease,
+    background 0.3s ease;
+}
+
+.navbar--scrolled {
+  border-color: var(--color-border-soft);
+  box-shadow: var(--shadow-sm);
+  background: rgba(255, 255, 255, 0.97);
+}
+
+.navbar__container {
+  width: 100%;
+  max-width: 1200px;
+  margin-inline: auto;
+  padding-inline: 24px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1.25rem;
+  box-sizing: border-box;
+}
+
+.navbar__brand {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  text-decoration: none;
+  color: var(--color-primary-dark);
+  line-height: 1.15;
+  font-weight: 700;
+  font-size: 0.95rem;
+  letter-spacing: -0.01em;
+  flex-shrink: 0;
+}
+
+.navbar__logo {
+  width: 44px;
+  height: 44px;
+  object-fit: contain;
+  flex-shrink: 0;
+  border-radius: 12px;
+  background: var(--color-background-mist);
+  padding: 4px;
+}
+
+.navbar__menu {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.navbar__links {
+  display: flex;
+  align-items: center;
+  gap: 0.15rem;
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.navbar__link {
+  display: inline-block;
+  padding: 0.55rem 0.9rem;
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: var(--color-text);
+  text-decoration: none;
+  border-radius: var(--radius-pill);
+  position: relative;
+  transition:
+    color 0.25s ease,
+    background 0.25s ease;
+}
+
+.navbar__link:hover {
+  color: var(--color-primary);
+  background: var(--color-background-sky);
+}
+
+.navbar__link:focus-visible {
+  outline: 2px solid var(--color-primary);
+  outline-offset: 2px;
+}
+
+.navbar__login {
+  padding: 0.65rem 1.5rem;
+  border-radius: var(--radius-pill);
+  font-size: 0.875rem;
+  white-space: nowrap;
+  background: linear-gradient(135deg, var(--color-primary) 0%, #1d4ed8 100%);
+}
+
+.navbar__track {
+  display: flex;
+  gap: 0.5rem;
+  align-items: center;
+}
+
+.navbar__toggle {
+  display: none;
+  width: 44px;
+  height: 44px;
+  padding: 0.65rem;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  background: var(--color-white);
+  cursor: pointer;
+  flex-direction: column;
+  justify-content: center;
+  gap: 5px;
+  transition:
+    border-color 0.25s ease,
+    background 0.25s ease;
+}
+
+.navbar__toggle:hover {
+  border-color: var(--color-primary);
+  background: var(--color-background-sky);
+}
+
+.navbar__toggle-bar {
+  display: block;
+  height: 2px;
+  border-radius: 2px;
+  background: var(--color-primary-dark);
+  transition:
+    transform 0.3s ease,
+    opacity 0.3s ease;
+}
+
+.navbar__toggle[aria-expanded='true'] .navbar__toggle-bar:nth-child(1) {
+  transform: translateY(7px) rotate(45deg);
+}
+
+.navbar__toggle[aria-expanded='true'] .navbar__toggle-bar:nth-child(2) {
+  opacity: 0;
+}
+
+.navbar__toggle[aria-expanded='true'] .navbar__toggle-bar:nth-child(3) {
+  transform: translateY(-7px) rotate(-45deg);
+}
+
+@media (max-width: 960px) {
+  .navbar__toggle {
+    display: flex;
+  }
+
+  .navbar {
+    height: 68px;
+  }
+
+  .navbar__menu {
+    position: absolute;
+    top: 100%;
+    left: 0;
+    right: 0;
+    flex-direction: column;
+    align-items: stretch;
+    gap: 0.5rem;
+    padding: 1.25rem 24px 1.5rem;
+    background: var(--color-white);
+    border-bottom: 1px solid var(--color-border-soft);
+    box-shadow: var(--shadow-md);
+    transform: translateY(-8px);
+    opacity: 0;
+    visibility: hidden;
+    pointer-events: none;
+    transition:
+      opacity 0.3s ease,
+      transform 0.3s ease,
+      visibility 0.3s;
+  }
+
+  .navbar__menu--open {
+    opacity: 1;
+    transform: translateY(0);
+    visibility: visible;
+    pointer-events: auto;
+  }
+
+  .navbar__links {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 0.2rem;
+  }
+
+  .navbar__link {
+    padding: 0.8rem 1rem;
+    border-radius: var(--radius-md);
+  }
+
+  .navbar__login {
+    text-align: center;
+    width: 100%;
+  }
+}
+
+@media (max-width: 480px) {
+  .navbar__container {
+    padding-inline: 16px;
+  }
+
+  .navbar__brand {
+    font-size: 0.85rem;
+  }
+
+  .navbar__logo {
+    width: 40px;
+    height: 40px;
+  }
+}
