@@ -53,6 +53,14 @@ export const routes: Routes = [
   canActivate: [authGuard],
 },
   {
+    path: 'bitacora',
+    loadComponent: () =>
+      import(
+        './features/autenticacion-seguridad/casos-uso/cu06-consultar-bitacora/pages/consultar-bitacora/consultar-bitacora'
+      ).then((m) => m.ConsultarBitacora),
+    canActivate: [authGuard],
+  },
+  {
     path: '**',
     redirectTo: '',
   },

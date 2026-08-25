@@ -22,6 +22,7 @@ export class Sidebar implements OnInit {
   private readonly rutasFunciones: ReadonlyMap<string, string> = new Map([
     ['gestionar roles y permisos', '/roles'],
     ['gestionar pacientes', '/pacientes'],
+    ['consultar bitácora', '/bitacora'],
   ]);
 
   private readonly iconosPorNombre: ReadonlyArray<{
@@ -53,19 +54,27 @@ export class Sidebar implements OnInit {
     return coincidencia?.clave ?? 'modulo';
   }
 
-  rutaDeFuncion(nombre: string): string | null {
-    const clave = nombre.toLowerCase().trim();
-    if (this.rutasFunciones.has(clave)) {
-      return this.rutasFunciones.get(clave)!;
-    }
-    if (clave.includes('roles') && clave.includes('permisos')) {
-      return '/roles';
-    }
-    if (clave.includes('pacientes')) {
-      return '/pacientes';
-    }
-    return null;
+ rutaDeFuncion(nombre: string): string | null {
+  const clave = nombre.toLowerCase().trim();
+
+  if (this.rutasFunciones.has(clave)) {
+    return this.rutasFunciones.get(clave)!;
   }
+
+  if (clave.includes('roles') && clave.includes('permisos')) {
+    return '/roles';
+  }
+
+  if (clave.includes('pacientes')) {
+    return '/pacientes';
+  }
+
+  if (clave.includes('bitácora') || clave.includes('bitacora')) {
+    return '/bitacora';
+  }
+
+  return null;
+}
 
   alternarModulo(id: number): void {
     this.openModuleId.update((abierto) => (abierto === id ? null : id));
