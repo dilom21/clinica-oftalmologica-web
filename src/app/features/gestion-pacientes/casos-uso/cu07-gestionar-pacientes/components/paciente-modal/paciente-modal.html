@@ -1,0 +1,206 @@
+@if (open()) {
+  <div class="paciente-modal__backdrop" (click)="cerrar()"></div>
+
+  <div class="paciente-modal__dialog" role="dialog" aria-modal="true" aria-labelledby="modal-titulo">
+    <div class="paciente-modal__header">
+      <h2 id="modal-titulo" class="paciente-modal__titulo">
+        @if (paciente(); as p) {
+          Editar Paciente: {{ p.nombres }} {{ p.apellidos }}
+        } @else {
+          Registrar nuevo paciente
+        }
+      </h2>
+      <button
+        type="button"
+        class="paciente-modal__close"
+        (click)="cerrar()"
+        aria-label="Cerrar modal"
+        [disabled]="guardando()"
+      >
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+          <line x1="18" y1="6" x2="6" y2="18"></line>
+          <line x1="6" y1="6" x2="18" y2="18"></line>
+        </svg>
+      </button>
+    </div>
+
+    <form [formGroup]="pacienteForm" (ngSubmit)="onSubmit()" class="paciente-modal__form">
+      @if (errorServer()) {
+        <div class="paciente-modal__error-server" role="alert">
+          {{ errorServer() }}
+        </div>
+      }
+
+      <div class="paciente-modal__grid">
+        <!-- Nombres -->
+        <div class="paciente-modal__group">
+          <label for="nombres" class="paciente-modal__label">
+            Nombres <span class="paciente-modal__required">*</span>
+          </label>
+          <input
+            id="nombres"
+            type="text"
+            formControlName="nombres"
+            class="paciente-modal__input"
+            [class.paciente-modal__input--error]="hasError('nombres', 'required')"
+            placeholder="Ej: Juan Carlos"
+          />
+          @if (hasError('nombres', 'required')) {
+            <p class="paciente-modal__error">{{ getErrorMessage('nombres') }}</p>
+          }
+        </div>
+
+        <!-- Apellidos -->
+        <div class="paciente-modal__group">
+          <label for="apellidos" class="paciente-modal__label">
+            Apellidos <span class="paciente-modal__required">*</span>
+          </label>
+          <input
+            id="apellidos"
+            type="text"
+            formControlName="apellidos"
+            class="paciente-modal__input"
+            [class.paciente-modal__input--error]="hasError('apellidos', 'required')"
+            placeholder="Ej: Pérez García"
+          />
+          @if (hasError('apellidos', 'required')) {
+            <p class="paciente-modal__error">{{ getErrorMessage('apellidos') }}</p>
+          }
+        </div>
+
+        <!-- CI -->
+        <div class="paciente-modal__group">
+          <label for="ci" class="paciente-modal__label">
+            Cédula de Identidad <span class="paciente-modal__required">*</span>
+          </label>
+          <input
+            id="ci"
+            type="text"
+            formControlName="ci"
+            class="paciente-modal__input"
+            [class.paciente-modal__input--error]="hasError('ci', 'required')"
+            placeholder="Ej: 12345678"
+          />
+          @if (hasError('ci', 'required')) {
+            <p class="paciente-modal__error">{{ getErrorMessage('ci') }}</p>
+          }
+        </div>
+
+        <!-- Fecha de Nacimiento -->
+        <div class="paciente-modal__group">
+          <label for="fecha_nacimiento" class="paciente-modal__label">
+            Fecha de Nacimiento <span class="paciente-modal__required">*</span>
+          </label>
+          <input
+            id="fecha_nacimiento"
+            type="date"
+            formControlName="fecha_nacimiento"
+            class="paciente-modal__input"
+            [class.paciente-modal__input--error]="hasError('fecha_nacimiento', 'required')"
+          />
+          @if (hasError('fecha_nacimiento', 'required')) {
+            <p class="paciente-modal__error">{{ getErrorMessage('fecha_nacimiento') }}</p>
+          }
+        </div>
+
+        <!-- Sexo -->
+        <div class="paciente-modal__group">
+          <label for="sexo" class="paciente-modal__label">
+            Sexo <span class="paciente-modal__required">*</span>
+          </label>
+          <select
+            id="sexo"
+            formControlName="sexo"
+            class="paciente-modal__input"
+            [class.paciente-modal__input--error]="hasError('sexo', 'required')"
+          >
+            <option value="">-- Seleccionar --</option>
+            <option value="M">Masculino</option>
+            <option value="F">Femenino</option>
+            <option value="O">Otro</option>
+          </select>
+          @if (hasError('sexo', 'required')) {
+            <p class="paciente-modal__error">{{ getErrorMessage('sexo') }}</p>
+          }
+        </div>
+
+        <!-- Teléfono -->
+        <div class="paciente-modal__group">
+          <label for="telefono" class="paciente-modal__label">
+            Teléfono <span class="paciente-modal__required">*</span>
+          </label>
+          <input
+            id="telefono"
+            type="tel"
+            formControlName="telefono"
+            class="paciente-modal__input"
+            [class.paciente-modal__input--error]="hasError('telefono', 'required')"
+            placeholder="Ej: +591 76123456"
+          />
+          @if (hasError('telefono', 'required')) {
+            <p class="paciente-modal__error">{{ getErrorMessage('telefono') }}</p>
+          }
+        </div>
+
+        <!-- Contacto de Emergencia -->
+        <div class="paciente-modal__group">
+          <label for="contacto_emergencia" class="paciente-modal__label">
+            Contacto de Emergencia <span class="paciente-modal__required">*</span>
+          </label>
+          <input
+            id="contacto_emergencia"
+            type="text"
+            formControlName="contacto_emergencia"
+            class="paciente-modal__input"
+            [class.paciente-modal__input--error]="hasError('contacto_emergencia', 'required')"
+            placeholder="Ej: +591 76987654"
+          />
+          @if (hasError('contacto_emergencia', 'required')) {
+            <p class="paciente-modal__error">{{ getErrorMessage('contacto_emergencia') }}</p>
+          }
+        </div>
+
+        <!-- Dirección -->
+        <div class="paciente-modal__group paciente-modal__group--full">
+          <label for="direccion" class="paciente-modal__label">
+            Dirección
+          </label>
+          <input
+            id="direccion"
+            type="text"
+            formControlName="direccion"
+            class="paciente-modal__input"
+            placeholder="Ej: Calle Principal 123, Apt 4B"
+          />
+        </div>
+      </div>
+
+      <div class="paciente-modal__acciones">
+        <button
+          type="button"
+          class="paciente-modal__btn paciente-modal__btn--cancel"
+          (click)="cerrar()"
+          [disabled]="guardando()"
+        >
+          Cancelar
+        </button>
+        <button
+          type="submit"
+          class="paciente-modal__btn paciente-modal__btn--primary"
+          [disabled]="guardando()"
+        >
+          @if (guardando()) {
+            <span class="paciente-modal__spinner" aria-hidden="true"></span>
+            Guardando...
+          } @else {
+            @if (paciente()) {
+              Actualizar
+            } @else {
+              Registrar
+            }
+          }
+        </button>
+      </div>
+    </form>
+  </div>
+}
