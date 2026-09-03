@@ -1,0 +1,92 @@
+@if (usuario(); as usuario) {
+  <div class="usuario-estado-dialog">
+    <div
+      class="usuario-estado-dialog__backdrop"
+      (click)="cancelar()"
+      aria-hidden="true"
+    ></div>
+    <div
+      class="usuario-estado-dialog__ventana"
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="confirmar-estado-titulo"
+    >
+      <div
+        class="usuario-estado-dialog__icono"
+        [class.usuario-estado-dialog__icono--habilitar]="objetivo()"
+        [class.usuario-estado-dialog__icono--deshabilitar]="!objetivo()"
+        aria-hidden="true"
+      >
+        @if (objetivo()) {
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+          >
+            <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path>
+            <polyline points="22 4 12 14.01 9 11.01"></polyline>
+          </svg>
+        } @else {
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+          >
+            <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"></path>
+            <line x1="12" y1="9" x2="12" y2="13"></line>
+            <line x1="12" y1="17" x2="12.01" y2="17"></line>
+          </svg>
+        }
+      </div>
+      <h2 id="confirmar-estado-titulo" class="usuario-estado-dialog__titulo">
+        {{ objetivo() ? '¿Habilitar este usuario?' : '¿Deshabilitar este usuario?' }}
+      </h2>
+      <p class="usuario-estado-dialog__texto">
+        <strong>{{ usuario.correo }}</strong>
+        @if (objetivo()) {
+          podrá volver a iniciar sesión en el sistema.
+        } @else {
+          ya no podrá iniciar sesión hasta que vuelva a ser habilitado.
+        }
+      </p>
+      @if (error()) {
+        <p class="usuario-estado-dialog__error" role="alert">
+          {{ error() }}
+        </p>
+      }
+      <div class="usuario-estado-dialog__acciones">
+        <button
+          type="button"
+          class="usuario-estado-dialog__btn usuario-estado-dialog__btn--cancel"
+          (click)="cancelar()"
+          [disabled]="procesando()"
+        >
+          Cancelar
+        </button>
+        <button
+          type="button"
+          class="usuario-estado-dialog__btn"
+          [class.usuario-estado-dialog__btn--deshabilitar]="!objetivo()"
+          [class.usuario-estado-dialog__btn--habilitar]="objetivo()"
+          (click)="confirm.emit()"
+          [disabled]="procesando()"
+        >
+          @if (procesando()) {
+            <span class="usuario-estado-dialog__spinner" aria-hidden="true"></span>
+            {{ objetivo() ? 'Habilitando...' : 'Deshabilitando...' }}
+          } @else {
+            {{ objetivo() ? 'Habilitar' : 'Deshabilitar' }}
+          }
+        </button>
+      </div>
+    </div>
+  </div>
+}

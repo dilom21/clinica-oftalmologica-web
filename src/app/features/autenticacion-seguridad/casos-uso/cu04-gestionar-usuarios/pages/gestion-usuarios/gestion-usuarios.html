@@ -1,0 +1,230 @@
+<main class="usuarios-page">
+  <div class="usuarios-page__body">
+    <app-sidebar
+      [mobileOpen]="sidebarMovilAbierto()"
+      (mobileClose)="cerrarSidebar()"
+    />
+
+    <div class="usuarios-page__main">
+      <header class="usuarios-page__main-header">
+        <button
+          type="button"
+          class="usuarios-page__hamburger"
+          [attr.aria-expanded]="sidebarMovilAbierto()"
+          [attr.aria-label]="sidebarMovilAbierto() ? 'Cerrar menú' : 'Abrir menú'"
+          (click)="alternarSidebar()"
+        >
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+            aria-hidden="true"
+          >
+            <line x1="3" y1="6" x2="21" y2="6"></line>
+            <line x1="3" y1="12" x2="21" y2="12"></line>
+            <line x1="3" y1="18" x2="21" y2="18"></line>
+          </svg>
+        </button>
+        <button type="button" class="usuarios-page__logout" (click)="cerrarSesion()">
+          Cerrar sesión
+        </button>
+      </header>
+
+      <div class="usuarios-page__content">
+        <div class="usuarios-page__cabecera">
+          <div>
+            <p class="usuarios-page__eyebrow">Autenticación y seguridad</p>
+            <h1 class="usuarios-page__titulo">Gestión de usuarios</h1>
+            <p class="usuarios-page__subtitulo">
+              Administra las cuentas de acceso del personal del sistema.
+            </p>
+          </div>
+          <div class="usuarios-page__cabecera-acciones">
+            <div class="usuarios-page__contador">
+              <strong>{{ usuarios().length }}</strong>
+              <span>usuarios registrados</span>
+            </div>
+            <button
+              type="button"
+              class="usuarios-page__crear"
+              (click)="abrirCrear()"
+              [disabled]="roles().length === 0 || cargando() || rolesCargando()"
+              [title]="roles().length === 0 ? 'Los roles aún no están disponibles' : 'Crear un nuevo usuario'"
+            >
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                aria-hidden="true"
+              >
+                <line x1="12" y1="5" x2="12" y2="19"></line>
+                <line x1="5" y1="12" x2="19" y2="12"></line>
+              </svg>
+              Crear usuario
+            </button>
+          </div>
+        </div>
+
+        @if (rolesError()) {
+          <div class="usuarios-page__roles-error" role="alert">
+            <p>
+              No se pudieron cargar los roles del sistema. Para crear o editar
+              usuarios necesitas que el catálogo de roles esté disponible.
+            </p>
+            <button type="button" class="usuarios-page__reintentar" (click)="cargarRoles()">
+              Reintentar
+            </button>
+          </div>
+        }
+
+        <div class="usuarios-page__herramientas">
+          <label class="usuarios-page__busqueda">
+            <svg
+              class="usuarios-page__busqueda-icono"
+              xmlns="http://www.w3.org/2000/svg"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              aria-hidden="true"
+            >
+              <circle cx="11" cy="11" r="8"></circle>
+              <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+            </svg>
+            <input
+              type="search"
+              class="usuarios-page__busqueda-input"
+              [value]="buscarTermino()"
+              (input)="actualizarBusqueda($event)"
+              placeholder="Buscar por correo..."
+              aria-label="Buscar por correo"
+            />
+            @if (buscarTermino()) {
+              <button
+                type="button"
+                class="usuarios-page__limpiar"
+                (click)="limpiarBusqueda()"
+                aria-label="Limpiar búsqueda"
+                title="Limpiar búsqueda"
+              >
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  stroke-width="2"
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  aria-hidden="true"
+                >
+                  <line x1="18" y1="6" x2="6" y2="18"></line>
+                  <line x1="6" y1="6" x2="18" y2="18"></line>
+                </svg>
+              </button>
+            }
+          </label>
+
+          <div class="usuarios-page__filtros" role="group" aria-label="Filtrar usuarios por estado">
+            <button
+              type="button"
+              class="usuarios-page__filtro"
+              [class.usuarios-page__filtro--activo]="filtroEstado() === 'todos'"
+              (click)="seleccionarFiltro('todos')"
+            >
+              Todos
+            </button>
+            <button
+              type="button"
+              class="usuarios-page__filtro"
+              [class.usuarios-page__filtro--activo]="filtroEstado() === 'activos'"
+              (click)="seleccionarFiltro('activos')"
+            >
+              Activos
+            </button>
+            <button
+              type="button"
+              class="usuarios-page__filtro"
+              [class.usuarios-page__filtro--activo]="filtroEstado() === 'inactivos'"
+              (click)="seleccionarFiltro('inactivos')"
+            >
+              Inactivos
+            </button>
+          </div>
+        </div>
+        @if (cargando()) {
+          <div class="usuarios-page__estado" role="status">
+            <span class="usuarios-page__spinner usuarios-page__spinner--grande" aria-hidden="true"></span>
+            <p>Cargando usuarios...</p>
+          </div>
+        } @else if (errorCarga()) {
+          <div class="usuarios-page__estado usuarios-page__estado--error" role="alert">
+            <p>
+              No se pudieron cargar los usuarios. Verifica tu conexión e
+              inténtalo nuevamente.
+            </p>
+            <button type="button" class="usuarios-page__reintentar usuarios-page__reintentar--estado" (click)="cargarUsuarios()">
+              Reintentar
+            </button>
+          </div>
+        } @else {
+          <app-usuarios-table
+            [usuarios]="usuariosFiltrados()"
+            [usuarioActualId]="usuarioActualId()"
+            [mensajeVacio]="mensajeVacio()"
+            (editar)="abrirEdicion($event)"
+            (cambiarEstado)="pedirCambioEstado($event)"
+          />
+        }
+      </div>
+    </div>
+  </div>
+
+  @if (sidebarMovilAbierto()) {
+    <button
+      type="button"
+      class="usuarios-page__backdrop"
+      (click)="cerrarSidebar()"
+      aria-label="Cerrar menú"
+    ></button>
+  }
+
+  <app-usuario-modal
+    [open]="modalAbierto()"
+    [usuario]="usuarioEnEdicion()"
+    [roles]="rolesSelector()"
+    [guardando]="guardando()"
+    [errorServer]="errorModal()"
+    (close)="cerrarModal()"
+    (save)="guardarUsuario($event)"
+  />
+
+  <app-usuario-estado-dialog
+    [usuario]="usuarioEstado()"
+    [procesando]="procesandoEstado()"
+    [error]="errorEstado()"
+    (close)="cancelarCambioEstado()"
+    (confirm)="confirmarCambioEstado()"
+  />
+
+  @if (exito(); as mensaje) {
+    <div class="usuarios-page__toast usuarios-page__toast--exito" role="status">
+      {{ mensaje }}
+    </div>
+  }
+
+  @if (error(); as mensaje) {
+    <div class="usuarios-page__toast usuarios-page__toast--error" role="alert">
+      {{ mensaje }}
+    </div>
+  }
+</main>

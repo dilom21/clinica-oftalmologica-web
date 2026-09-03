@@ -44,6 +44,14 @@ export const routes: Routes = [
       ).then((m) => m.GestionRoles),
     canActivate: [authGuard],
   },
+  {
+    path: 'usuarios',
+    loadComponent: () =>
+      import(
+        './features/autenticacion-seguridad/casos-uso/cu04-gestionar-usuarios/pages/gestion-usuarios/gestion-usuarios'
+      ).then((m) => m.GestionUsuarios),
+    canActivate: [authGuard],
+  },
  {
   path: 'pacientes',
   loadComponent: () =>

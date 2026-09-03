@@ -20,6 +20,7 @@ export class Sidebar implements OnInit {
   protected readonly selectedFuncionId = signal<number | null>(null);
 
   private readonly rutasFunciones: ReadonlyMap<string, string> = new Map([
+    ['gestionar usuarios', '/usuarios'],
     ['gestionar roles y permisos', '/roles'],
     ['gestionar pacientes', '/pacientes'],
     ['consultar bitácora', '/bitacora'],
@@ -63,6 +64,10 @@ export class Sidebar implements OnInit {
 
   if (clave.includes('roles') && clave.includes('permisos')) {
     return '/roles';
+  }
+
+  if (clave.includes('usuario')) {
+    return '/usuarios';
   }
 
   if (clave.includes('pacientes')) {
