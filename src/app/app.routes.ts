@@ -77,6 +77,14 @@ export const routes: Routes = [
     canActivate: [authGuard],
   },
   {
+    path: 'configurar-disponibilidad',
+    loadComponent: () =>
+      import(
+        './features/agenda-citas/casos-uso/cu11-configurar-disponibilidad/pages/configurar-disponibilidad/configurar-disponibilidad'
+      ).then((m) => m.ConfigurarDisponibilidad),
+    canActivate: [authGuard],
+  },
+  {
     path: '**',
     redirectTo: '',
   },
