@@ -1,0 +1,188 @@
+.usuario-estado-dialog {
+  position: fixed;
+  inset: 0;
+  z-index: 110;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 1rem;
+}
+
+.usuario-estado-dialog__backdrop {
+  position: absolute;
+  inset: 0;
+  background: rgba(16, 42, 67, 0.55);
+  animation: estado-dialog-fade 0.2s ease;
+}
+
+.usuario-estado-dialog__ventana {
+  position: relative;
+  width: 100%;
+  max-width: 460px;
+  display: flex;
+  flex-direction: column;
+  gap: 0.85rem;
+  padding: 1.6rem 1.6rem 1.4rem;
+  background: var(--color-white);
+  border: 1px solid var(--color-border-soft);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-lg);
+  animation: estado-dialog-rise 0.22s ease;
+}
+
+.usuario-estado-dialog__icono {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 52px;
+  height: 52px;
+  border-radius: 50%;
+}
+
+.usuario-estado-dialog__icono svg {
+  width: 24px;
+  height: 24px;
+}
+
+.usuario-estado-dialog__icono--habilitar {
+  background: #ecfdf5;
+  color: #059669;
+  border: 1px solid #a7f3d0;
+}
+
+.usuario-estado-dialog__icono--deshabilitar {
+  background: #fef2f2;
+  color: #dc2626;
+  border: 1px solid #fecaca;
+}
+
+.usuario-estado-dialog__titulo {
+  font-size: 1.25rem;
+  font-weight: 800;
+  color: var(--color-primary-dark);
+  letter-spacing: -0.02em;
+}
+
+.usuario-estado-dialog__texto {
+  font-size: 0.9375rem;
+  color: var(--color-text-soft);
+  line-height: 1.6;
+}
+
+.usuario-estado-dialog__texto strong {
+  color: var(--color-primary-dark);
+}
+
+.usuario-estado-dialog__error {
+  font-size: 0.875rem;
+  color: #ef4444;
+  background: #fef2f2;
+  border: 1px solid #fecaca;
+  border-radius: var(--radius-sm);
+  padding: 0.7rem 1rem;
+}
+
+.usuario-estado-dialog__acciones {
+  display: flex;
+  justify-content: flex-end;
+  gap: 0.75rem;
+  padding-top: 0.4rem;
+}
+
+.usuario-estado-dialog__btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  padding: 0.65rem 1.4rem;
+  border-radius: var(--radius-pill);
+  font-size: 0.875rem;
+  font-weight: 700;
+  cursor: pointer;
+  border: 1px solid transparent;
+  transition:
+    transform 0.2s ease,
+    box-shadow 0.2s ease,
+    background 0.2s ease,
+    color 0.2s ease;
+}
+
+.usuario-estado-dialog__btn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.usuario-estado-dialog__btn--cancel {
+  background: var(--color-white);
+  border-color: var(--color-border);
+  color: var(--color-text-soft);
+}
+
+.usuario-estado-dialog__btn--cancel:hover:not(:disabled) {
+  color: var(--color-primary);
+  background: var(--color-background-sky);
+}
+
+.usuario-estado-dialog__btn--deshabilitar {
+  background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
+  color: var(--color-white);
+  box-shadow: 0 8px 24px rgba(239, 68, 68, 0.3);
+}
+
+.usuario-estado-dialog__btn--deshabilitar:hover:not(:disabled) {
+  transform: translateY(-2px);
+  box-shadow: 0 12px 32px rgba(239, 68, 68, 0.4);
+}
+
+.usuario-estado-dialog__btn--habilitar {
+  background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+  color: var(--color-white);
+  box-shadow: 0 8px 24px rgba(16, 185, 129, 0.3);
+}
+
+.usuario-estado-dialog__btn--habilitar:hover:not(:disabled) {
+  transform: translateY(-2px);
+  box-shadow: 0 12px 32px rgba(16, 185, 129, 0.4);
+}
+
+.usuario-estado-dialog__spinner {
+  width: 15px;
+  height: 15px;
+  border: 2px solid rgba(255, 255, 255, 0.4);
+  border-top-color: var(--color-white);
+  border-radius: 50%;
+  animation: estado-dialog-girar 0.7s linear infinite;
+}
+
+@keyframes estado-dialog-girar {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+@keyframes estado-dialog-fade {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes estado-dialog-rise {
+  from {
+    opacity: 0;
+    transform: translateY(12px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .usuario-estado-dialog__ventana,
+  .usuario-estado-dialog__backdrop {
+    animation-duration: 0.01ms !important;
+  }
+}

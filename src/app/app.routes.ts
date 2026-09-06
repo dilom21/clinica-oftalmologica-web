@@ -45,6 +45,46 @@ export const routes: Routes = [
     canActivate: [authGuard],
   },
   {
+    path: 'usuarios',
+    loadComponent: () =>
+      import(
+        './features/autenticacion-seguridad/casos-uso/cu04-gestionar-usuarios/pages/gestion-usuarios/gestion-usuarios'
+      ).then((m) => m.GestionUsuarios),
+    canActivate: [authGuard],
+  },
+ {
+  path: 'pacientes',
+  loadComponent: () =>
+    import(
+  './features/gestion-pacientes/casos-uso/cu07-gestionar-pacientes/pages/gestion-pacientes/gestion-pacientes'
+    ).then((m) => m.GestionPacientes),
+  canActivate: [authGuard],
+},
+  {
+    path: 'bitacora',
+    loadComponent: () =>
+      import(
+        './features/autenticacion-seguridad/casos-uso/cu06-consultar-bitacora/pages/consultar-bitacora/consultar-bitacora'
+      ).then((m) => m.ConsultarBitacora),
+    canActivate: [authGuard],
+  },
+  {
+    path: 'agenda-disponibilidad',
+    loadComponent: () =>
+      import(
+        './features/agenda-citas/casos-uso/cu09-consultar-agenda-disponibilidad/pages/consultar-agenda-disponibilidad/consultar-agenda-disponibilidad'
+      ).then((m) => m.ConsultarAgendaDisponibilidad),
+    canActivate: [authGuard],
+  },
+  {
+    path: 'configurar-disponibilidad',
+    loadComponent: () =>
+      import(
+        './features/agenda-citas/casos-uso/cu11-configurar-disponibilidad/pages/configurar-disponibilidad/configurar-disponibilidad'
+      ).then((m) => m.ConfigurarDisponibilidad),
+    canActivate: [authGuard],
+  },
+  {
     path: '**',
     redirectTo: '',
   },

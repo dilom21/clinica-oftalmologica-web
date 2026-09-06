@@ -20,7 +20,12 @@ export class Sidebar implements OnInit {
   protected readonly selectedFuncionId = signal<number | null>(null);
 
   private readonly rutasFunciones: ReadonlyMap<string, string> = new Map([
+    ['gestionar usuarios', '/usuarios'],
     ['gestionar roles y permisos', '/roles'],
+    ['gestionar pacientes', '/pacientes'],
+    ['consultar bitácora', '/bitacora'],
+    ['consultar agenda y disponibilidad médica', '/agenda-disponibilidad'],
+    ['configurar disponibilidad del oftalmólogo', '/configurar-disponibilidad'],
   ]);
 
   private readonly iconosPorNombre: ReadonlyArray<{
@@ -52,16 +57,39 @@ export class Sidebar implements OnInit {
     return coincidencia?.clave ?? 'modulo';
   }
 
-  rutaDeFuncion(nombre: string): string | null {
-    const clave = nombre.toLowerCase().trim();
-    if (this.rutasFunciones.has(clave)) {
-      return this.rutasFunciones.get(clave)!;
-    }
-    if (clave.includes('roles') && clave.includes('permisos')) {
-      return '/roles';
-    }
-    return null;
+ rutaDeFuncion(nombre: string): string | null {
+  const clave = nombre.toLowerCase().trim();
+
+  if (this.rutasFunciones.has(clave)) {
+    return this.rutasFunciones.get(clave)!;
   }
+
+  if (clave.includes('roles') && clave.includes('permisos')) {
+    return '/roles';
+  }
+
+  if (clave.includes('usuario')) {
+    return '/usuarios';
+  }
+
+  if (clave.includes('pacientes')) {
+    return '/pacientes';
+  }
+
+  if (clave.includes('bitácora') || clave.includes('bitacora')) {
+    return '/bitacora';
+  }
+
+  if (clave.includes('agenda') && clave.includes('disponibilidad')) {
+    return '/agenda-disponibilidad';
+  }
+
+  if (clave.includes('disponibilidad') && clave.includes('configurar')) {
+    return '/configurar-disponibilidad';
+  }
+
+  return null;
+}
 
   alternarModulo(id: number): void {
     this.openModuleId.update((abierto) => (abierto === id ? null : id));

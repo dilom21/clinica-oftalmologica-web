@@ -1,0 +1,215 @@
+.pacientes-table__vacio {
+  padding: 3rem 1.5rem;
+  border: 1px dashed var(--color-border);
+  border-radius: var(--radius-lg);
+  background: var(--color-background-mist);
+  text-align: center;
+}
+
+.pacientes-table__vacio-texto {
+  font-size: 0.9375rem;
+  color: var(--color-text-soft);
+}
+
+.pacientes-table--desktop {
+  overflow: hidden;
+  border: 1px solid var(--color-border-soft);
+  border-radius: var(--radius-md);
+  background: var(--color-white);
+  box-shadow: var(--shadow-xs);
+}
+
+.pacientes-table__tabla {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.875rem;
+}
+
+.pacientes-table__tabla thead th {
+  padding: 0.8rem 1rem;
+  background: var(--color-background-soft);
+  color: var(--color-text-soft);
+  font-size: 0.75rem;
+  font-weight: 700;
+  text-align: left;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  border-bottom: 1px solid var(--color-border-soft);
+}
+
+.pacientes-table__tabla tbody td {
+  padding: 0.8rem 1rem;
+  border-bottom: 1px solid var(--color-border-soft);
+  color: var(--color-text);
+  vertical-align: middle;
+}
+
+.pacientes-table__tabla tbody tr:last-child td {
+  border-bottom: none;
+}
+
+.pacientes-table__tabla tbody tr:hover {
+  background: var(--color-background-mist);
+}
+
+.pacientes-table__id {
+  font-weight: 600;
+  color: var(--color-text-soft);
+  white-space: nowrap;
+}
+
+.pacientes-table__nombre {
+  display: inline-flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 0.45rem;
+  font-weight: 700;
+  color: var(--color-primary-dark);
+}
+
+.pacientes-table__ci {
+  color: var(--color-text-soft);
+  white-space: nowrap;
+}
+
+.pacientes-table__telefono {
+  color: var(--color-text);
+  white-space: nowrap;
+}
+
+.pacientes-table__badge {
+  display: inline-flex;
+  align-items: center;
+  padding: 0.2rem 0.65rem;
+  border-radius: var(--radius-pill);
+  font-size: 0.75rem;
+  font-weight: 700;
+  line-height: 1.4;
+  white-space: nowrap;
+}
+
+.pacientes-table__badge--activo {
+  background: #ecfdf5;
+  color: #059669;
+  border: 1px solid #a7f3d0;
+}
+
+.pacientes-table__badge--inactivo {
+  background: #f1f5f9;
+  color: #64748b;
+  border: 1px solid var(--color-border);
+}
+
+.pacientes-table__acciones-th {
+  text-align: right;
+}
+
+.pacientes-table__acciones {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 0.5rem;
+}
+
+.pacientes-table__btn {
+  padding: 0.45rem 0.95rem;
+  border-radius: var(--radius-pill);
+  font-size: 0.8125rem;
+  font-weight: 700;
+  cursor: pointer;
+  border: 1px solid transparent;
+  transition:
+    background 0.2s ease,
+    color 0.2s ease,
+    border-color 0.2s ease,
+    transform 0.2s ease;
+}
+
+.pacientes-table__btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.pacientes-table__btn--editar {
+  background: var(--color-background-sky);
+  border-color: var(--color-border);
+  color: var(--color-primary);
+}
+
+.pacientes-table__btn--editar:hover:not(:disabled) {
+  background: var(--color-background-deep);
+}
+
+/* ---- Móvil: cards (oculta en desktop) ---- */
+.pacientes-table--movil {
+  display: none;
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  flex-direction: column;
+  gap: 0.85rem;
+}
+
+.pacientes-table__card {
+  display: flex;
+  flex-direction: column;
+  gap: 0.6rem;
+  padding: 1rem 1.1rem;
+  background: var(--color-white);
+  border: 1px solid var(--color-border-soft);
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow-xs);
+}
+
+.pacientes-table__card-cabecera {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+}
+
+.pacientes-table__card-id {
+  flex: 0 0 auto;
+  padding: 0.15rem 0.5rem;
+  border-radius: var(--radius-pill);
+  background: var(--color-background-soft);
+  border: 1px solid var(--color-border-soft);
+  color: var(--color-text-soft);
+  font-size: 0.75rem;
+  font-weight: 700;
+}
+
+.pacientes-table__card-detalle {
+  margin: 0;
+  font-size: 0.875rem;
+  color: var(--color-text-soft);
+  line-height: 1.5;
+}
+
+.pacientes-table__card-pie {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  padding-top: 0.6rem;
+  border-top: 1px solid var(--color-border-soft);
+}
+
+@media (max-width: 820px) {
+  .pacientes-table--desktop {
+    display: none;
+  }
+
+  .pacientes-table--movil {
+    display: flex;
+  }
+
+  .pacientes-table__card-pie {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .pacientes-table__acciones {
+    justify-content: flex-start;
+    width: 100%;
+  }
+}

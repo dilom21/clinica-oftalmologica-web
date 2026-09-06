@@ -1,0 +1,138 @@
+@if (usuarios().length === 0) {
+  <div class="usuarios-table__vacio">
+    <p class="usuarios-table__vacio-texto">{{ mensajeVacio() }}</p>
+  </div>
+} @else {
+  <!-- Escritorio: tabla completa -->
+  <div class="usuarios-table usuarios-table--desktop">
+    <div class="usuarios-table__scroll">
+      <table class="usuarios-table__tabla">
+        <thead>
+          <tr>
+            <th scope="col">Usuario</th>
+            <th scope="col">Rol</th>
+            <th scope="col">Estado</th>
+            <th scope="col">Fecha de creación</th>
+            <th scope="col" class="usuarios-table__acciones-th">Acciones</th>
+          </tr>
+        </thead>
+        <tbody>
+          @for (usuario of usuarios(); track usuario.id) {
+            <tr class="usuarios-table__fila">
+              <td>
+                <div class="usuarios-table__correo">
+                  <span class="usuarios-table__correo-texto">{{ usuario.correo }}</span>
+                  <span class="usuarios-table__correo-id">ID #{{ usuario.id }}</span>
+                </div>
+              </td>
+              <td>
+                <span class="usuarios-table__rol">
+                  {{ usuario.rol?.nombre ?? 'Sin rol' }}
+                </span>
+              </td>
+              <td>
+                <span
+                  class="usuarios-table__badge"
+                  [class.usuarios-table__badge--activo]="usuario.estado"
+                  [class.usuarios-table__badge--inactivo]="!usuario.estado"
+                >
+                  <span class="usuarios-table__dot" aria-hidden="true"></span>
+                  {{ usuario.estado ? 'Activo' : 'Inactivo' }}
+                </span>
+              </td>
+              <td class="usuarios-table__fecha">
+                {{ formatearFecha(usuario.fecha_creacion) }}
+              </td>
+              <td class="usuarios-table__acciones">
+                <button
+                  type="button"
+                  class="usuarios-table__icono-btn"
+                  (click)="editar.emit(usuario)"
+                  title="Editar usuario"
+                  aria-label="Editar usuario {{ usuario.correo }}"
+                >
+                  <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    stroke-width="2"
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    aria-hidden="true"
+                  >
+                    <path d="M17 3a2.828 2.828 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5L17 3z"></path>
+                  </svg>
+                </button>
+                <button
+                  type="button"
+                  class="usuarios-table__btn"
+                  [class.usuarios-table__btn--deshabilitar]="usuario.estado"
+                  [class.usuarios-table__btn--habilitar]="!usuario.estado"
+                  [disabled]="usuario.estado && esUsuarioActual(usuario)"
+                  [title]="estadoTooltip(usuario)"
+                  (click)="cambiarEstado.emit(usuario)"
+                >
+                  {{ usuario.estado ? 'Deshabilitar' : 'Habilitar' }}
+                </button>
+              </td>
+            </tr>
+          }
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- Móvil: tarjetas -->
+  <ul class="usuarios-table usuarios-table--movil">
+    @for (usuario of usuarios(); track usuario.id) {
+      <li class="usuarios-table__card">
+        <div class="usuarios-table__card-cabecera">
+          <div class="usuarios-table__correo">
+            <span class="usuarios-table__correo-texto">{{ usuario.correo }}</span>
+            <span class="usuarios-table__correo-id">ID #{{ usuario.id }}</span>
+          </div>
+          <span
+            class="usuarios-table__badge"
+            [class.usuarios-table__badge--activo]="usuario.estado"
+            [class.usuarios-table__badge--inactivo]="!usuario.estado"
+          >
+            <span class="usuarios-table__dot" aria-hidden="true"></span>
+            {{ usuario.estado ? 'Activo' : 'Inactivo' }}
+          </span>
+        </div>
+        <div class="usuarios-table__card-detalles">
+          <span>
+            <strong>Rol</strong>
+            {{ usuario.rol?.nombre ?? 'Sin rol' }}
+          </span>
+          <span>
+            <strong>Creado</strong>
+            {{ formatearFecha(usuario.fecha_creacion) }}
+          </span>
+        </div>
+        <div class="usuarios-table__card-pie">
+          <div class="usuarios-table__acciones">
+            <button
+              type="button"
+              class="usuarios-table__btn usuarios-table__btn--editar-movil"
+              (click)="editar.emit(usuario)"
+            >
+              Editar
+            </button>
+            <button
+              type="button"
+              class="usuarios-table__btn"
+              [class.usuarios-table__btn--deshabilitar]="usuario.estado"
+              [class.usuarios-table__btn--habilitar]="!usuario.estado"
+              [disabled]="usuario.estado && esUsuarioActual(usuario)"
+              (click)="cambiarEstado.emit(usuario)"
+            >
+              {{ usuario.estado ? 'Deshabilitar' : 'Habilitar' }}
+            </button>
+          </div>
+        </div>
+      </li>
+    }
+  </ul>
+}

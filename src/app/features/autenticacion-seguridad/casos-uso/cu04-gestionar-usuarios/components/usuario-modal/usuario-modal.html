@@ -1,0 +1,268 @@
+@if (open()) {
+  <div class="usuario-modal">
+    <div
+      class="usuario-modal__backdrop"
+      (click)="cerrar()"
+      aria-hidden="true"
+    ></div>
+
+    <div
+      class="usuario-modal__dialog"
+      role="dialog"
+      aria-modal="true"
+      [attr.aria-labelledby]="esEdicion() ? 'usuario-modal-titulo-editar' : 'usuario-modal-titulo-crear'"
+    >
+      <header class="usuario-modal__header">
+        <div>
+          <h2
+            [id]="esEdicion() ? 'usuario-modal-titulo-editar' : 'usuario-modal-titulo-crear'"
+            class="usuario-modal__titulo"
+          >
+            {{ esEdicion() ? 'Editar usuario' : 'Crear usuario' }}
+          </h2>
+          <p class="usuario-modal__subtitulo">
+            {{
+              esEdicion()
+                ? 'Actualiza los datos de acceso del usuario.'
+                : 'Registra una nueva cuenta de acceso para el personal.'
+            }}
+          </p>
+        </div>
+        <button
+          type="button"
+          class="usuario-modal__close"
+          (click)="cerrar()"
+          [disabled]="guardando()"
+          aria-label="Cerrar"
+        >
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+            aria-hidden="true"
+          >
+            <line x1="18" y1="6" x2="6" y2="18"></line>
+            <line x1="6" y1="6" x2="18" y2="18"></line>
+          </svg>
+        </button>
+      </header>
+
+      <form [formGroup]="usuarioForm" (ngSubmit)="onSubmit()" novalidate>
+        <div class="usuario-modal__body">
+          <div class="usuario-modal__field">
+            <label class="usuario-modal__label" for="usuario-correo">
+              Correo electrónico *
+            </label>
+            <input
+              id="usuario-correo"
+              class="usuario-modal__input"
+              [class.usuario-modal__input--error]="correoErrorMessage() !== ''"
+              type="email"
+              formControlName="correo"
+              placeholder="Ej. nombre@visionclara.com"
+              autocomplete="off"
+              [attr.aria-invalid]="correoErrorMessage() !== ''"
+              [attr.aria-describedby]="correoErrorMessage() ? 'usuario-correo-error' : null"
+            />
+            @if (correoErrorMessage()) {
+              <span id="usuario-correo-error" class="usuario-modal__error">
+                {{ correoErrorMessage() }}
+              </span>
+            }
+          </div>
+
+          <div class="usuario-modal__field">
+            <label class="usuario-modal__label" for="usuario-rol">
+              Rol en el sistema *
+            </label>
+            <select
+              id="usuario-rol"
+              class="usuario-modal__select"
+              [class.usuario-modal__input--error]="rolErrorMessage() !== ''"
+              formControlName="rolId"
+              [attr.aria-invalid]="rolErrorMessage() !== ''"
+              [attr.aria-describedby]="rolErrorMessage() ? 'usuario-rol-error' : null"
+            >
+              <option [ngValue]="null" disabled>Selecciona un rol</option>
+              @for (rol of roles(); track rol.id) {
+                <option [ngValue]="rol.id">{{ rol.nombre }}</option>
+              }
+            </select>
+            @if (rolErrorMessage()) {
+              <span id="usuario-rol-error" class="usuario-modal__error">
+                {{ rolErrorMessage() }}
+              </span>
+            }
+          </div>
+          <div class="usuario-modal__field">
+            <label class="usuario-modal__label" for="usuario-password">
+              {{
+                esEdicion() ? 'Nueva contraseña (opcional)' : 'Contraseña *'
+              }}
+            </label>
+            <div class="usuario-modal__password">
+              <input
+                id="usuario-password"
+                class="usuario-modal__input usuario-modal__input--password"
+                [class.usuario-modal__input--error]="passwordErrorMessage() !== ''"
+                [type]="tipoPassword()"
+                formControlName="password"
+                placeholder="••••••••"
+                autocomplete="new-password"
+                [attr.aria-invalid]="passwordErrorMessage() !== ''"
+                [attr.aria-describedby]="passwordErrorMessage() ? 'usuario-password-error' : null"
+              />
+              <button
+                type="button"
+                class="usuario-modal__ojo"
+                (click)="alternarPassword()"
+                [attr.aria-label]="mostrarPassword() ? 'Ocultar contraseña' : 'Mostrar contraseña'"
+                [attr.aria-pressed]="mostrarPassword()"
+                [title]="mostrarPassword() ? 'Ocultar contraseña' : 'Mostrar contraseña'"
+              >
+                @if (mostrarPassword()) {
+                  <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    stroke-width="2"
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    aria-hidden="true"
+                  >
+                    <path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"></path>
+                    <line x1="1" y1="1" x2="23" y2="23"></line>
+                  </svg>
+                } @else {
+                  <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    stroke-width="2"
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    aria-hidden="true"
+                  >
+                    <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path>
+                    <circle cx="12" cy="12" r="3"></circle>
+                  </svg>
+                }
+              </button>
+            </div>
+            @if (mostrarAyudaPassword()) {
+              <span class="usuario-modal__ayuda">
+                Mínimo 8 caracteres, con una mayúscula, una minúscula y un
+                número.
+              </span>
+            }
+            @if (passwordErrorMessage()) {
+              <span id="usuario-password-error" class="usuario-modal__error">
+                {{ passwordErrorMessage() }}
+              </span>
+            }
+          </div>
+          <div class="usuario-modal__field">
+            <label class="usuario-modal__label" for="usuario-confirmar">
+              {{
+                esEdicion()
+                  ? 'Confirmar nueva contraseña'
+                  : 'Confirmar contraseña *'
+              }}
+            </label>
+            <div class="usuario-modal__password">
+              <input
+                id="usuario-confirmar"
+                class="usuario-modal__input usuario-modal__input--password"
+                [class.usuario-modal__input--error]="confirmarErrorMessage() !== ''"
+                [type]="tipoConfirmacion()"
+                formControlName="confirmarPassword"
+                placeholder="••••••••"
+                autocomplete="new-password"
+                [attr.aria-invalid]="confirmarErrorMessage() !== ''"
+                [attr.aria-describedby]="confirmarErrorMessage() ? 'usuario-confirmar-error' : null"
+              />
+              <button
+                type="button"
+                class="usuario-modal__ojo"
+                (click)="alternarConfirmacion()"
+                [attr.aria-label]="mostrarConfirmacion() ? 'Ocultar contraseña' : 'Mostrar contraseña'"
+                [attr.aria-pressed]="mostrarConfirmacion()"
+                [title]="mostrarConfirmacion() ? 'Ocultar contraseña' : 'Mostrar contraseña'"
+              >
+                @if (mostrarConfirmacion()) {
+                  <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    stroke-width="2"
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    aria-hidden="true"
+                  >
+                    <path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"></path>
+                    <line x1="1" y1="1" x2="23" y2="23"></line>
+                  </svg>
+                } @else {
+                  <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    stroke-width="2"
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    aria-hidden="true"
+                  >
+                    <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path>
+                    <circle cx="12" cy="12" r="3"></circle>
+                  </svg>
+                }
+              </button>
+            </div>
+            @if (confirmarErrorMessage()) {
+              <span id="usuario-confirmar-error" class="usuario-modal__error">
+                {{ confirmarErrorMessage() }}
+              </span>
+            }
+          </div>
+
+          @if (errorServer()) {
+            <p class="usuario-modal__server-error" role="alert">
+              {{ errorServer() }}
+            </p>
+          }
+        </div>
+
+        <footer class="usuario-modal__footer">
+          <button
+            type="button"
+            class="usuario-modal__btn usuario-modal__btn--cancel"
+            (click)="cerrar()"
+            [disabled]="guardando()"
+          >
+            Cancelar
+          </button>
+          <button
+            type="submit"
+            class="usuario-modal__btn usuario-modal__btn--primary"
+            [disabled]="guardando() || usuarioForm.invalid"
+          >
+            @if (guardando()) {
+              <span class="usuario-modal__spinner" aria-hidden="true"></span>
+              {{ esEdicion() ? 'Guardando...' : 'Creando...' }}
+            } @else {
+              {{ esEdicion() ? 'Guardar cambios' : 'Crear usuario' }}
+            }
+          </button>
+        </footer>
+      </form>
+    </div>
+  </div>
+}
