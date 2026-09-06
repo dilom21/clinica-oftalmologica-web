@@ -1,0 +1,30 @@
+<section id="especialistas" class="especialistas">
+  <div class="container">
+    <div class="especialistas__panel">
+      <div class="section__header" appReveal="up">
+        <span class="section__eyebrow">Especialistas</span>
+        <h2 class="section__title">Nuestros especialistas</h2>
+        <p class="section__subtitle">Profesionales enfocados en brindar una atención cercana y especializada para el cuidado de tu salud visual.</p>
+      </div>
+
+      <div class="especialistas__grid">
+        @for (especialista of especialistas; track especialista.nombre; let i = $index) {
+          <article class="especialistas__card" appReveal="up" [revealDelay]="i * 140">
+            <div class="especialistas__card-image-wrap">
+              <img
+                class="especialistas__card-image"
+                [src]="especialista.imagen"
+                [alt]="'Fotografía de ' + especialista.nombre"
+                loading="lazy"
+              />
+            </div>
+            <div class="especialistas__card-body">
+              <h3 class="especialistas__card-name">{{ especialista.nombre }}</h3>
+              <p class="especialistas__card-role">{{ especialista.especialidad }}</p>
+            </div>
+          </article>
+        }
+      </div>
+    </div>
+  </div>
+</section>

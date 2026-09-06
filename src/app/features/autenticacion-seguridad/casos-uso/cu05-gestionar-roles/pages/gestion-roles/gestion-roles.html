@@ -1,0 +1,200 @@
+<main class="roles-page">
+  <div class="roles-page__body">
+    <app-sidebar
+      [mobileOpen]="sidebarMovilAbierto()"
+      (mobileClose)="cerrarSidebar()"
+    />
+
+    <div class="roles-page__main">
+      <header class="roles-page__main-header">
+        <button
+          type="button"
+          class="roles-page__hamburger"
+          [attr.aria-expanded]="sidebarMovilAbierto()"
+          [attr.aria-label]="sidebarMovilAbierto() ? 'Cerrar menú' : 'Abrir menú'"
+          (click)="alternarSidebar()"
+        >
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+            aria-hidden="true"
+          >
+            <line x1="3" y1="6" x2="21" y2="6"></line>
+            <line x1="3" y1="12" x2="21" y2="12"></line>
+            <line x1="3" y1="18" x2="21" y2="18"></line>
+          </svg>
+        </button>
+        <button type="button" class="roles-page__logout" (click)="cerrarSesion()">
+          Cerrar sesión
+        </button>
+      </header>
+
+      <div class="roles-page__content">
+        <div class="roles-page__cabecera">
+          <div>
+            <h1 class="roles-page__titulo">Gestión de Roles y Permisos</h1>
+            <p class="roles-page__subtitulo">
+              Administra los roles del sistema y el nivel de acceso de cada
+              función.
+            </p>
+          </div>
+          <button
+            type="button"
+            class="roles-page__crear"
+            (click)="abrirCrear()"
+            [disabled]="cargando() || !catalogoListo()"
+            [title]="!catalogoListo() ? 'El catálogo de acciones aún no está disponible' : ''"
+          >
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              aria-hidden="true"
+            >
+              <line x1="12" y1="5" x2="12" y2="19"></line>
+              <line x1="5" y1="12" x2="19" y2="12"></line>
+            </svg>
+            Crear Rol
+          </button>
+        </div>
+
+        <div class="roles-page__barra">
+          <label class="roles-page__busqueda">
+            <svg
+              class="roles-page__busqueda-icono"
+              xmlns="http://www.w3.org/2000/svg"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              aria-hidden="true"
+            >
+              <circle cx="11" cy="11" r="8"></circle>
+              <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+            </svg>
+            <input
+              type="search"
+              class="roles-page__busqueda-input"
+              [value]="buscarTermino()"
+              (input)="onBuscar($event)"
+              placeholder="Buscar rol por nombre o descripción..."
+            />
+          </label>
+        </div>
+
+        @if (cargando()) {
+          <p class="roles-page__estado" role="status">Cargando roles...</p>
+        } @else if (errorCarga()) {
+          <p class="roles-page__estado roles-page__estado--error" role="alert">
+            No se pudieron cargar los datos. Verifica tu conexión e inténtalo
+            nuevamente.
+          </p>
+        } @else {
+          <app-roles-table
+            [roles]="rolesFiltrados()"
+            (editar)="abrirEdicion($event)"
+            (eliminar)="pedirEliminar($event)"
+          />
+        }
+      </div>
+    </div>
+  </div>
+
+  @if (sidebarMovilAbierto()) {
+    <button
+      type="button"
+      class="roles-page__backdrop"
+      (click)="cerrarSidebar()"
+      aria-label="Cerrar menú"
+    ></button>
+  }
+
+  <app-rol-modal
+    [open]="modalAbierto()"
+    [rol]="rolEnEdicion()"
+    [modulos]="modulos()"
+    [acciones]="acciones()"
+    [permisosCargando]="permisosCargando()"
+    [permisos]="permisosRol()"
+    [guardando]="guardando()"
+    [errorServer]="errorModal()"
+    (close)="cerrarModal()"
+    (save)="guardarRol($event)"
+  />
+
+  @if (rolAEliminar(); as rol) {
+    <div class="roles-page__confirmar">
+      <div
+        class="roles-page__confirmar-backdrop"
+        (click)="cancelarEliminar()"
+        aria-hidden="true"
+      ></div>
+      <div
+        class="roles-page__confirmar-dialog"
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="confirmar-titulo"
+      >
+        <h2 id="confirmar-titulo" class="roles-page__confirmar-titulo">
+          Eliminar rol
+        </h2>
+        <p class="roles-page__confirmar-texto">
+          ¿Está seguro de eliminar/desactivar el rol
+          <strong>{{ rol.nombre }}</strong
+          >?
+        </p>
+        @if (errorEliminar()) {
+          <p class="roles-page__confirmar-error" role="alert">
+            {{ errorEliminar() }}
+          </p>
+        }
+        <div class="roles-page__confirmar-acciones">
+          <button
+            type="button"
+            class="roles-page__confirmar-btn roles-page__confirmar-btn--cancel"
+            (click)="cancelarEliminar()"
+            [disabled]="eliminando()"
+          >
+            Cancelar
+          </button>
+          <button
+            type="button"
+            class="roles-page__confirmar-btn roles-page__confirmar-btn--danger"
+            (click)="confirmarEliminar()"
+            [disabled]="eliminando()"
+          >
+            @if (eliminando()) {
+              <span class="roles-page__spinner" aria-hidden="true"></span>
+              Desactivando...
+            } @else {
+              Sí, eliminar
+            }
+          </button>
+        </div>
+      </div>
+    </div>
+  }
+
+  @if (exito(); as mensaje) {
+    <div class="roles-page__toast roles-page__toast--exito" role="status">
+      {{ mensaje }}
+    </div>
+  }
+
+  @if (error(); as mensaje) {
+    <div class="roles-page__toast roles-page__toast--error" role="alert">
+      {{ mensaje }}
+    </div>
+  }
+</main>

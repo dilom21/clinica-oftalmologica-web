@@ -1,0 +1,50 @@
+<footer class="footer" appReveal="up">
+  <div class="container">
+    <div class="footer__grid">
+      <div class="footer__brand">
+        <div class="footer__logo-wrap">
+          <img
+            class="footer__logo"
+            src="/images/logo/logo-clinica.png"
+            alt="Logo Centro Oftalmológico Visión Clara"
+            width="44"
+            height="44"
+            loading="lazy"
+          />
+          <span class="footer__brand-short">Visión Clara</span>
+        </div>
+        <h3 class="footer__brand-name">Centro Oftalmológico Visión Clara</h3>
+        <p class="footer__brand-text">Atención especializada y tecnología para el cuidado integral de tu salud visual.</p>
+      </div>
+
+      <nav class="footer__column" aria-label="Enlaces rápidos">
+        <h4 class="footer__column-title">Enlaces rápidos</h4>
+        <ul class="footer__links">
+          @for (link of links; track link.href) {
+            <li>
+              <a class="footer__link" [href]="link.href">{{ link.label }}</a>
+            </li>
+          }
+        </ul>
+      </nav>
+
+      <div class="footer__column">
+        <h4 class="footer__column-title">Contacto</h4>
+        <p class="footer__contact-line">{{ direccion }}</p>
+        <p class="footer__contact-line">{{ telefono }}</p>
+        <p class="footer__contact-line">{{ correo }}</p>
+      </div>
+
+      <div class="footer__column">
+        <h4 class="footer__column-title">Horarios</h4>
+        <p class="footer__contact-line">{{ horario }}</p>
+        <p class="footer__contact-line">{{ horarioSabado }}</p>
+        <p class="footer__contact-line">Domingos: Cerrado</p>
+      </div>
+    </div>
+
+    <div class="footer__bottom">
+      <p class="footer__copy">© 2026 Centro Oftalmológico Visión Clara.</p>
+    </div>
+  </div>
+</footer>

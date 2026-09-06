@@ -1,0 +1,132 @@
+@if (open()) {
+  <div class="rol-modal">
+    <div
+      class="rol-modal__backdrop"
+      (click)="cerrar()"
+      aria-hidden="true"
+    ></div>
+
+    <div
+      class="rol-modal__dialog"
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="rol-modal-titulo"
+    >
+      <header class="rol-modal__header">
+        <h2 id="rol-modal-titulo" class="rol-modal__titulo">
+          {{ rol() ? 'Editar rol' : 'Crear rol' }}
+        </h2>
+        <button
+          type="button"
+          class="rol-modal__close"
+          (click)="cerrar()"
+          [disabled]="guardando()"
+          aria-label="Cerrar"
+        >
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+            aria-hidden="true"
+          >
+            <line x1="18" y1="6" x2="6" y2="18"></line>
+            <line x1="6" y1="6" x2="18" y2="18"></line>
+          </svg>
+        </button>
+      </header>
+
+      <form [formGroup]="rolForm" (ngSubmit)="onSubmit()" novalidate>
+        <div class="rol-modal__body">
+          <div class="rol-modal__field">
+            <label class="rol-modal__label" for="rol-nombre">
+              Nombre del rol *
+            </label>
+            <input
+              id="rol-nombre"
+              class="rol-modal__input"
+              formControlName="nombre"
+              [class.rol-modal__input--error]="hasError('required')"
+              placeholder="Ej. Administrador"
+              autocomplete="off"
+            />
+            @if (hasError('required')) {
+              <span class="rol-modal__error">{{ nombreErrorMessage() }}</span>
+            }
+          </div>
+
+          <div class="rol-modal__field">
+            <label class="rol-modal__label" for="rol-descripcion">
+              Descripción
+            </label>
+            <textarea
+              id="rol-descripcion"
+              class="rol-modal__textarea"
+              formControlName="descripcion"
+              rows="2"
+              placeholder="Descripción opcional"
+            ></textarea>
+          </div>
+
+          <div class="rol-modal__permisos">
+            <h3 class="rol-modal__subtitulo">
+              Asignación de módulos y funciones
+            </h3>
+
+            @if (rol() && permisosCargando()) {
+              <p class="rol-modal__cargando" role="status">
+                Cargando permisos actuales...
+              </p>
+            } @else if (modulos().length === 0) {
+              <p class="rol-modal__sin-datos">
+                No hay módulos disponibles.
+              </p>
+            } @else {
+              <app-permisos-modulo-accordion
+                [modulos]="modulos()"
+                [acciones]="acciones()"
+                [seleccion]="seleccion()"
+                [deshabilitado]="guardando()"
+                (toggleFuncion)="alternarFuncion($event)"
+                (cambiarAccion)="cambiarAccion($event)"
+                (toggleTodo)="alternarTodo($event)"
+              />
+            }
+          </div>
+
+          @if (errorServer()) {
+            <p class="rol-modal__server-error" role="alert">
+              {{ errorServer() }}
+            </p>
+          }
+        </div>
+
+        <footer class="rol-modal__footer">
+          <button
+            type="button"
+            class="rol-modal__btn rol-modal__btn--cancel"
+            (click)="cerrar()"
+            [disabled]="guardando()"
+          >
+            Cancelar
+          </button>
+          <button
+            type="submit"
+            class="rol-modal__btn rol-modal__btn--primary"
+            [disabled]="guardando()"
+          >
+            @if (guardando()) {
+              <span class="rol-modal__spinner" aria-hidden="true"></span>
+              Guardando...
+            } @else {
+              {{ rol() ? 'Guardar cambios' : 'Crear rol' }}
+            }
+          </button>
+        </footer>
+      </form>
+    </div>
+  </div>
+}

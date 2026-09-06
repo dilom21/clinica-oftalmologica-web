@@ -1,0 +1,140 @@
+<main class="pacientes-page">
+  <div class="pacientes-page__body">
+    <app-sidebar
+      [mobileOpen]="sidebarMovilAbierto()"
+      (mobileClose)="cerrarSidebar()"
+    />
+
+    <div class="pacientes-page__main">
+      <header class="pacientes-page__main-header">
+        <button
+          type="button"
+          class="pacientes-page__hamburger"
+          [attr.aria-expanded]="sidebarMovilAbierto()"
+          [attr.aria-label]="sidebarMovilAbierto() ? 'Cerrar menú' : 'Abrir menú'"
+          (click)="alternarSidebar()"
+        >
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+            aria-hidden="true"
+          >
+            <line x1="3" y1="6" x2="21" y2="6"></line>
+            <line x1="3" y1="12" x2="21" y2="12"></line>
+            <line x1="3" y1="18" x2="21" y2="18"></line>
+          </svg>
+        </button>
+        <button type="button" class="pacientes-page__logout" (click)="cerrarSesion()">
+          Cerrar sesión
+        </button>
+      </header>
+
+      <div class="pacientes-page__content">
+        <div class="pacientes-page__cabecera">
+          <div>
+            <h1 class="pacientes-page__titulo">Gestión de Pacientes</h1>
+            <p class="pacientes-page__subtitulo">
+              Administra el registro y la información de los pacientes.
+            </p>
+          </div>
+          <button
+            type="button"
+            class="pacientes-page__crear"
+            (click)="abrirCrear()"
+            [disabled]="cargando()"
+          >
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              aria-hidden="true"
+            >
+              <line x1="12" y1="5" x2="12" y2="19"></line>
+              <line x1="5" y1="12" x2="19" y2="12"></line>
+            </svg>
+            Registrar Paciente
+          </button>
+        </div>
+
+        <div class="pacientes-page__barra">
+          <label class="pacientes-page__busqueda">
+            <svg
+              class="pacientes-page__busqueda-icono"
+              xmlns="http://www.w3.org/2000/svg"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              aria-hidden="true"
+            >
+              <circle cx="11" cy="11" r="8"></circle>
+              <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+            </svg>
+            <input
+              type="search"
+              class="pacientes-page__busqueda-input"
+              [value]="buscarTermino()"
+              (input)="onBuscar($event)"
+              placeholder="Buscar por nombre, apellido, cédula o teléfono..."
+            />
+          </label>
+        </div>
+
+        @if (cargando()) {
+          <p class="pacientes-page__estado" role="status">Cargando pacientes...</p>
+        } @else if (errorCarga()) {
+          <p class="pacientes-page__estado pacientes-page__estado--error" role="alert">
+            No se pudieron cargar los datos. Verifica tu conexión e inténtalo
+            nuevamente.
+          </p>
+        } @else {
+          <app-pacientes-table
+            [pacientes]="pacientesFiltrados()"
+            (editar)="abrirEdicion($event)"
+          />
+        }
+      </div>
+    </div>
+  </div>
+
+  @if (sidebarMovilAbierto()) {
+    <button
+      type="button"
+      class="pacientes-page__backdrop"
+      (click)="cerrarSidebar()"
+      aria-label="Cerrar menú"
+    ></button>
+  }
+
+  <app-paciente-modal
+    [open]="modalAbierto()"
+    [paciente]="pacienteEnEdicion()"
+    [guardando]="guardando()"
+    [errorServer]="errorModal()"
+    (close)="cerrarModal()"
+    (save)="guardarPaciente($event)"
+  />
+
+  @if (exito(); as mensaje) {
+    <div class="pacientes-page__toast pacientes-page__toast--exito" role="status">
+      {{ mensaje }}
+    </div>
+  }
+
+  @if (error(); as mensaje) {
+    <div class="pacientes-page__toast pacientes-page__toast--error" role="alert">
+      {{ mensaje }}
+    </div>
+  }
+</main>

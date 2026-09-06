@@ -1,0 +1,173 @@
+<main class="bitacora-page">
+  <div class="bitacora-page__body">
+    <app-sidebar
+      [mobileOpen]="sidebarMovilAbierto()"
+      (mobileClose)="cerrarSidebar()"
+    />
+
+    <div class="bitacora-page__main">
+      <header class="bitacora-page__main-header">
+        <button
+          type="button"
+          class="bitacora-page__hamburger"
+          [attr.aria-expanded]="sidebarMovilAbierto()"
+          [attr.aria-label]="sidebarMovilAbierto() ? 'Cerrar menú' : 'Abrir menú'"
+          (click)="alternarSidebar()"
+        >
+          <span></span><span></span><span></span>
+        </button>
+        <button type="button" class="bitacora-page__logout" (click)="cerrarSesion()">
+          Cerrar sesión
+        </button>
+      </header>
+
+      <div class="bitacora-page__content">
+        <div class="bitacora-page__cabecera">
+          <div>
+            <p class="bitacora-page__eyebrow">Seguridad del sistema</p>
+            <h1 class="bitacora-page__titulo">Bitácora del sistema</h1>
+            <p class="bitacora-page__subtitulo">
+              Consulta el registro de actividades y revisa cada operación realizada.
+            </p>
+          </div>
+          <div class="bitacora-page__contador">
+            <strong>{{ totalRegistros() }}</strong>
+            <span>registros encontrados</span>
+          </div>
+        </div>
+
+        <section class="bitacora-filtros" [class.bitacora-filtros--cerrado]="!filtrosAbiertos()">
+          <button type="button" class="bitacora-filtros__encabezado" (click)="alternarFiltros()" [attr.aria-expanded]="filtrosAbiertos()">
+            <span>
+              <strong>Filtrar bitácora</strong>
+              <small>Acota la consulta por usuario, acción, entidad o fecha</small>
+            </span>
+            <span class="bitacora-filtros__chevron" aria-hidden="true">⌄</span>
+          </button>
+          @if (filtrosAbiertos()) {
+            <form class="bitacora-filtros__form" (submit)="$event.preventDefault(); consultar()">
+              <label>
+                Usuario ID
+                <input type="number" min="1" [value]="usuarioId" (input)="usuarioId = $any($event.target).value" placeholder="Ej. 12" />
+              </label>
+              <label>
+                Acción
+                <input type="text" [value]="accion" (input)="accion = $any($event.target).value" placeholder="Ej. CREAR_USUARIO" />
+              </label>
+              <label>
+                Entidad afectada
+                <input type="text" [value]="entidadAfectada" (input)="entidadAfectada = $any($event.target).value" placeholder="Ej. usuario" />
+              </label>
+              <label>
+                ID registro
+                <input type="number" min="1" [value]="idRegistroAfectado" (input)="idRegistroAfectado = $any($event.target).value" placeholder="Ej. 25" />
+              </label>
+              <label>
+                Desde
+                <input type="datetime-local" [value]="desde" (input)="desde = $any($event.target).value" />
+              </label>
+              <label>
+                Hasta
+                <input type="datetime-local" [value]="hasta" (input)="hasta = $any($event.target).value" />
+              </label>
+              <div class="bitacora-filtros__acciones">
+                <button type="button" class="bitacora-filtros__limpiar" (click)="limpiarFiltros()">Limpiar</button>
+                <button type="submit" class="bitacora-filtros__buscar">Consultar registros</button>
+              </div>
+            </form>
+          }
+        </section>
+
+        @if (cargando()) {
+          <p class="bitacora-page__estado" role="status">Cargando bitácora...</p>
+        } @else if (errorCarga()) {
+          <p class="bitacora-page__estado bitacora-page__estado--error" role="alert">
+            No se pudo cargar la bitácora. Verifica los filtros y tu conexión e inténtalo nuevamente.
+          </p>
+        } @else if (registros().length === 0) {
+          <p class="bitacora-page__estado" role="status">No hay registros para los filtros seleccionados.</p>
+        } @else {
+          <div class="bitacora-tabla">
+            <table>
+              <thead>
+                <tr>
+                  <th>Fecha y hora</th><th>Usuario</th><th>Acción</th><th>Entidad</th>
+                  <th>Registro</th><th>IP</th><th>Descripción</th>
+                </tr>
+              </thead>
+              <tbody>
+                @for (registro of registros(); track registro.id) {
+                  <tr>
+                    <td class="bitacora-tabla__fecha">{{ formatearFecha(registro.fecha_hora) }}</td>
+                    <td>{{ registro.usuario_id ?? 'Sistema' }}</td>
+                    <td><span class="bitacora-tabla__accion">{{ registro.accion }}</span></td>
+                    <td>{{ registro.entidad_afectada || '—' }}</td>
+                    <td>{{ registro.id_registro_afectado ?? '—' }}</td>
+                    <td class="bitacora-tabla__ip">{{ registro.ip || '—' }}</td>
+                    <td>{{ registro.descripcion || 'Sin descripción' }}</td>
+                  </tr>
+                }
+              </tbody>
+            </table>
+          </div>
+          <ul class="bitacora-lista">
+            @for (registro of registros(); track registro.id) {
+              <li>
+                <div class="bitacora-lista__cabecera">
+                  <span class="bitacora-tabla__accion">{{ registro.accion }}</span>
+                  <time>{{ formatearFecha(registro.fecha_hora) }}</time>
+                </div>
+                <p>{{ registro.descripcion || 'Sin descripción' }}</p>
+                <div class="bitacora-lista__detalles">
+                  <span>Usuario: {{ registro.usuario_id ?? 'Sistema' }}</span>
+                  <span>{{ registro.entidad_afectada || 'Sin entidad' }}</span>
+                  <span>{{ registro.ip || 'Sin IP' }}</span>
+                </div>
+              </li>
+            }
+          </ul>
+        }
+
+        @if (!cargando() && !errorCarga() && totalPaginas() > 1) {
+          <nav class="bitacora-paginacion" aria-label="Paginación de bitácora">
+            <button
+              type="button"
+              class="bitacora-paginacion__anterior"
+              [disabled]="paginaActual() === 1"
+              (click)="irPaginaAnterior()"
+            >
+              Anterior
+            </button>
+            @for (pagina of paginasVisibles(); track $index) {
+              @if (pagina === 'ellipsis') {
+                <span class="bitacora-paginacion__ellipsis" aria-hidden="true">...</span>
+              } @else {
+                <button
+                  type="button"
+                  class="bitacora-paginacion__pagina"
+                  [class.bitacora-paginacion__pagina--activa]="pagina === paginaActual()"
+                  [attr.aria-current]="pagina === paginaActual() ? 'page' : null"
+                  (click)="seleccionarPagina(pagina)"
+                >
+                  {{ pagina }}
+                </button>
+              }
+            }
+            <button
+              type="button"
+              class="bitacora-paginacion__siguiente"
+              [disabled]="paginaActual() === totalPaginas()"
+              (click)="irPaginaSiguiente()"
+            >
+              Siguiente
+            </button>
+          </nav>
+        }
+      </div>
+    </div>
+  </div>
+
+  @if (sidebarMovilAbierto()) {
+    <button type="button" class="bitacora-page__backdrop" (click)="cerrarSidebar()" aria-label="Cerrar menú"></button>
+  }
+</main>

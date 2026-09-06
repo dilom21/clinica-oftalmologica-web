@@ -1,0 +1,259 @@
+.paciente-modal__backdrop {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.5);
+  z-index: 999;
+  animation: fadeIn 0.2s ease;
+}
+
+.paciente-modal__dialog {
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 90%;
+  max-width: 500px;
+  max-height: 90vh;
+  background: var(--color-white);
+  border-radius: var(--radius-lg);
+  box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1);
+  display: flex;
+  flex-direction: column;
+  z-index: 1000;
+  animation: slideUp 0.3s ease;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes slideUp {
+  from {
+    opacity: 0;
+    transform: translate(-50%, -45%);
+  }
+  to {
+    opacity: 1;
+    transform: translate(-50%, -50%);
+  }
+}
+
+.paciente-modal__header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 1.5rem;
+  border-bottom: 1px solid var(--color-border-soft);
+  gap: 1rem;
+}
+
+.paciente-modal__titulo {
+  margin: 0;
+  font-size: 1.25rem;
+  font-weight: 700;
+  color: var(--color-primary-dark);
+  line-height: 1.4;
+}
+
+.paciente-modal__close {
+  flex: 0 0 auto;
+  width: 32px;
+  height: 32px;
+  padding: 0;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-sm);
+  background: var(--color-white);
+  color: var(--color-text);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition:
+    background 0.2s ease,
+    color 0.2s ease,
+    border-color 0.2s ease;
+}
+
+.paciente-modal__close:hover:not(:disabled) {
+  background: var(--color-background-mist);
+  border-color: var(--color-border);
+}
+
+.paciente-modal__close:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.paciente-modal__close svg {
+  width: 18px;
+  height: 18px;
+}
+
+.paciente-modal__form {
+  flex: 1;
+  overflow-y: auto;
+  padding: 1.5rem;
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
+}
+
+.paciente-modal__error-server {
+  padding: 0.75rem 1rem;
+  background: #fef2f2;
+  border: 1px solid #fecaca;
+  border-radius: var(--radius-md);
+  color: #dc2626;
+  font-size: 0.875rem;
+  line-height: 1.5;
+}
+
+.paciente-modal__grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 1rem;
+}
+
+.paciente-modal__group {
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+}
+
+.paciente-modal__group--full {
+  grid-column: 1 / -1;
+}
+
+.paciente-modal__label {
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: var(--color-text);
+}
+
+.paciente-modal__required {
+  color: #dc2626;
+}
+
+.paciente-modal__input {
+  padding: 0.6rem 0.85rem;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-sm);
+  font-size: 0.875rem;
+  font-family: inherit;
+  color: var(--color-text);
+  background: var(--color-white);
+  transition:
+    border-color 0.2s ease,
+    box-shadow 0.2s ease;
+}
+
+.paciente-modal__input:focus {
+  outline: none;
+  border-color: var(--color-primary);
+  box-shadow: 0 0 0 3px rgba(56, 189, 248, 0.1);
+}
+
+.paciente-modal__input--error {
+  border-color: #fca5a5;
+  background: #fef2f2;
+}
+
+.paciente-modal__input--error:focus {
+  box-shadow: 0 0 0 3px rgba(220, 38, 38, 0.1);
+}
+
+.paciente-modal__error {
+  margin: 0;
+  font-size: 0.8125rem;
+  color: #dc2626;
+  line-height: 1.4;
+}
+
+.paciente-modal__acciones {
+  display: flex;
+  gap: 0.75rem;
+  padding: 1rem 1.5rem;
+  border-top: 1px solid var(--color-border-soft);
+  background: var(--color-background-mist);
+  justify-content: flex-end;
+}
+
+.paciente-modal__btn {
+  padding: 0.6rem 1.3rem;
+  border-radius: var(--radius-sm);
+  font-size: 0.875rem;
+  font-weight: 600;
+  cursor: pointer;
+  border: none;
+  transition:
+    background 0.2s ease,
+    color 0.2s ease;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.paciente-modal__btn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.paciente-modal__btn--cancel {
+  background: var(--color-white);
+  border: 1px solid var(--color-border);
+  color: var(--color-text);
+}
+
+.paciente-modal__btn--cancel:hover:not(:disabled) {
+  background: var(--color-background-soft);
+}
+
+.paciente-modal__btn--primary {
+  background: var(--color-primary);
+  color: var(--color-white);
+}
+
+.paciente-modal__btn--primary:hover:not(:disabled) {
+  background: var(--color-primary-dark);
+}
+
+.paciente-modal__spinner {
+  display: inline-block;
+  width: 14px;
+  height: 14px;
+  border: 2px solid rgba(255, 255, 255, 0.3);
+  border-top-color: var(--color-white);
+  border-radius: 50%;
+  animation: spin 0.6s linear infinite;
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+@media (max-width: 640px) {
+  .paciente-modal__dialog {
+    width: 95%;
+    max-height: 95vh;
+  }
+
+  .paciente-modal__grid {
+    grid-template-columns: 1fr;
+  }
+
+  .paciente-modal__acciones {
+    flex-direction: column-reverse;
+  }
+
+  .paciente-modal__btn {
+    width: 100%;
+    justify-content: center;
+  }
+}

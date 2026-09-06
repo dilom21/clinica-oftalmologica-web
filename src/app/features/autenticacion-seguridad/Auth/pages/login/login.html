@@ -1,0 +1,129 @@
+<main class="login">
+  <div class="login__card">
+    <div class="login__form-side">
+      <a routerLink="/" class="login__brand" aria-label="Volver al inicio">
+        <img
+          class="login__logo"
+          src="/images/logo/logo-clinica.png"
+          alt="Logo Centro Oftalmológico Visión Clara"
+          width="48"
+          height="48"
+        />
+        <span class="login__brand-name">Visión Clara</span>
+      </a>
+
+      <div class="login__form-content">
+        <span class="login__eyebrow">Bienvenido</span>
+        <h1 class="login__title">Iniciar sesión</h1>
+        <p class="login__subtitle">Accede al sistema de gestión de la clínica.</p>
+
+        <form class="login__form" [formGroup]="loginForm" (ngSubmit)="onSubmit()" novalidate>
+          <div class="login__field">
+            <label class="login__label" for="email">Correo electrónico</label>
+            <div class="login__input-wrap">
+              <span class="login__input-icon" aria-hidden="true">
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                  <rect x="2" y="4" width="20" height="16" rx="2" />
+                  <path d="m22 7-10 6L2 7" />
+                </svg>
+              </span>
+              <input
+                class="login__input"
+                [class.login__input--error]="hasError('email', 'required') || hasError('email', 'email')"
+                id="email"
+                type="email"
+                formControlName="email"
+                placeholder="tucorreo@ejemplo.com"
+                autocomplete="email"
+              />
+            </div>
+            @if (showErrorMessage('email')) {
+              <p class="login__error" role="alert">{{ showErrorMessage('email') }}</p>
+            }
+          </div>
+
+          <div class="login__field">
+            <label class="login__label" for="password">Contraseña</label>
+            <div class="login__input-wrap">
+              <span class="login__input-icon" aria-hidden="true">
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                  <rect x="3" y="11" width="18" height="11" rx="2" />
+                  <path d="M7 11V7a5 5 0 0 1 10 0v4" />
+                </svg>
+              </span>
+              <input
+                class="login__input login__input--password"
+                [class.login__input--error]="hasError('password', 'required')"
+                id="password"
+                [type]="passwordVisible() ? 'text' : 'password'"
+                formControlName="password"
+                placeholder="Ingresa tu contraseña"
+                autocomplete="current-password"
+              />
+              <button
+                type="button"
+                class="login__toggle"
+                [attr.aria-label]="passwordVisible() ? 'Ocultar contraseña' : 'Mostrar contraseña'"
+                (click)="togglePassword()"
+              >
+                @if (passwordVisible()) {
+                  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94" />
+                    <path d="M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19" />
+                    <path d="M14.12 14.12a3 3 0 1 1-4.24-4.24" />
+                    <line x1="1" y1="1" x2="23" y2="23" />
+                  </svg>
+                } @else {
+                  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z" />
+                    <circle cx="12" cy="12" r="3" />
+                  </svg>
+                }
+              </button>
+            </div>
+            @if (showErrorMessage('password')) {
+              <p class="login__error" role="alert">{{ showErrorMessage('password') }}</p>
+            }
+          </div>
+
+          @if (serverError()) {
+            <p class="login__server-error" role="alert">{{ serverError() }}</p>
+          }
+
+          <button type="submit" class="login__submit" [disabled]="loading()">
+            {{ loading() ? 'Iniciando sesión...' : 'Iniciar sesión' }}
+          </button>
+        </form>
+
+        <a routerLink="/password/recuperar" class="login__forgot">
+          ¿Olvidaste tu contraseña?
+        </a>
+
+        <a routerLink="/" class="login__back">
+          ← Volver al inicio
+        </a>
+      </div>
+    </div>
+
+    <div class="login__visual-side" aria-hidden="true">
+      <div class="login__visual-overlay"></div>
+      <img
+        class="login__visual-image"
+        src="/images/clinica/consultorio.png"
+        alt="Consultorio oftalmológico del centro"
+      />
+      <div class="login__visual-content">
+        <h2 class="login__visual-brand">Centro Oftalmológico<br />Visión Clara</h2>
+        <p class="login__visual-text">
+          Atención especializada y tecnología para el cuidado integral de tu salud visual.
+        </p>
+        <div class="login__visual-badge">
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M12 2L15.09 8.26L22 9.27L17 14.14L18.18 21.02L12 17.77L5.82 21.02L7 14.14L2 9.27L8.91 8.26L12 2Z" />
+          </svg>
+          Salud visual profesional
+        </div>
+      </div>
+    </div>
+  </div>
+</main>

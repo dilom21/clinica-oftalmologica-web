@@ -1,0 +1,114 @@
+@if (roles().length === 0) {
+  <div class="roles-table__vacio">
+    <p class="roles-table__vacio-texto">No se encontraron roles.</p>
+  </div>
+} @else {
+  <!-- Desktop: tabla -->
+  <div class="roles-table roles-table--desktop">
+    <table class="roles-table__tabla">
+      <thead>
+        <tr>
+          <th scope="col">ID</th>
+          <th scope="col">Rol</th>
+          <th scope="col">Descripción</th>
+          <th scope="col">Estado</th>
+          <th scope="col" class="roles-table__acciones-th">Acciones</th>
+        </tr>
+      </thead>
+      <tbody>
+        @for (rol of roles(); track rol.id) {
+          <tr class="roles-table__fila">
+            <td class="roles-table__id">{{ rol.id }}</td>
+            <td>
+              <div class="roles-table__nombre">
+                {{ rol.nombre }}
+                @if (rol.protegido) {
+                  <span class="roles-table__badge roles-table__badge--protegido">
+                    Protegido
+                  </span>
+                }
+              </div>
+            </td>
+            <td class="roles-table__descripcion">
+              {{ rol.descripcion || '—' }}
+            </td>
+            <td>
+              <span
+                class="roles-table__badge"
+                [class.roles-table__badge--activo]="rol.estado"
+                [class.roles-table__badge--inactivo]="!rol.estado"
+              >
+                {{ rol.estado ? 'Activo' : 'Inactivo' }}
+              </span>
+            </td>
+            <td class="roles-table__acciones">
+              <button
+                type="button"
+                class="roles-table__btn roles-table__btn--editar"
+                (click)="editar.emit(rol)"
+              >
+                Editar
+              </button>
+              <button
+                type="button"
+                class="roles-table__btn roles-table__btn--eliminar"
+                [disabled]="!rol.estado"
+                (click)="eliminar.emit(rol)"
+              >
+                Eliminar
+              </button>
+            </td>
+          </tr>
+        }
+      </tbody>
+    </table>
+  </div>
+
+  <!-- Móvil: cards -->
+  <ul class="roles-table roles-table--movil">
+    @for (rol of roles(); track rol.id) {
+      <li class="roles-table__card">
+        <div class="roles-table__card-cabecera">
+          <span class="roles-table__card-id">#{{ rol.id }}</span>
+          <div class="roles-table__nombre">
+            {{ rol.nombre }}
+            @if (rol.protegido) {
+              <span class="roles-table__badge roles-table__badge--protegido">
+                Protegido
+              </span>
+            }
+          </div>
+        </div>
+        <p class="roles-table__card-descripcion">
+          {{ rol.descripcion || 'Sin descripción' }}
+        </p>
+        <div class="roles-table__card-pie">
+          <span
+            class="roles-table__badge"
+            [class.roles-table__badge--activo]="rol.estado"
+            [class.roles-table__badge--inactivo]="!rol.estado"
+          >
+            {{ rol.estado ? 'Activo' : 'Inactivo' }}
+          </span>
+          <div class="roles-table__acciones">
+            <button
+              type="button"
+              class="roles-table__btn roles-table__btn--editar"
+              (click)="editar.emit(rol)"
+            >
+              Editar
+            </button>
+            <button
+              type="button"
+              class="roles-table__btn roles-table__btn--eliminar"
+              [disabled]="!rol.estado"
+              (click)="eliminar.emit(rol)"
+            >
+              Eliminar
+            </button>
+          </div>
+        </div>
+      </li>
+    }
+  </ul>
+}

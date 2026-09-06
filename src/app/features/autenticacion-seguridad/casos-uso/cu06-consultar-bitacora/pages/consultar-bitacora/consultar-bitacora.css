@@ -1,0 +1,460 @@
+.bitacora-page {
+  height: 100dvh;
+  display: flex;
+  background:
+    radial-gradient(800px 420px at 90% 0%, rgba(56, 189, 248, 0.12), transparent 62%),
+    linear-gradient(180deg, #f4fafe 0%, var(--color-white) 100%);
+}
+
+.bitacora-page__body,
+.bitacora-page__main {
+  display: flex;
+  min-width: 0;
+  min-height: 0;
+}
+
+.bitacora-page__body {
+  flex: 1;
+}
+
+.bitacora-page__main {
+  flex: 1;
+  flex-direction: column;
+}
+
+.bitacora-page__main-header {
+  flex: 0 0 auto;
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  padding: 0.9rem 1.5rem;
+  background: var(--color-white);
+  border-bottom: 1px solid var(--color-border-soft);
+  box-shadow: var(--shadow-xs);
+}
+
+.bitacora-page__hamburger {
+  display: none;
+  width: 40px;
+  height: 40px;
+  padding: 0.6rem;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-sm);
+  background: var(--color-white);
+  cursor: pointer;
+}
+
+.bitacora-page__hamburger span {
+  display: block;
+  height: 2px;
+  margin: 4px 0;
+  background: var(--color-primary-dark);
+}
+
+.bitacora-page__logout {
+  padding: 0.6rem 1.3rem;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-sm);
+  background: var(--color-white);
+  color: var(--color-primary);
+  font-size: 0.875rem;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.bitacora-page__logout:hover,
+.bitacora-filtros__limpiar:hover {
+  background: var(--color-background-sky);
+}
+
+.bitacora-page__content {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
+  padding: 2rem 1.5rem;
+}
+
+.bitacora-page__cabecera {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 1rem;
+}
+
+.bitacora-page__eyebrow {
+  margin-bottom: 0.4rem;
+  color: var(--color-primary);
+  font-size: 0.75rem;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.bitacora-page__titulo {
+  margin-bottom: 0.35rem;
+  color: var(--color-primary-dark);
+  font-size: 1.6rem;
+  font-weight: 800;
+}
+
+.bitacora-page__subtitulo {
+  color: var(--color-text-soft);
+  font-size: 0.9375rem;
+}
+
+.bitacora-page__contador {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  padding: 0.7rem 1rem;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  background: rgba(255, 255, 255, 0.78);
+  color: var(--color-text-soft);
+  font-size: 0.75rem;
+  line-height: 1.3;
+}
+
+.bitacora-page__contador strong {
+  color: var(--color-primary);
+  font-size: 1.35rem;
+}
+
+.bitacora-filtros {
+  border: 1px solid var(--color-border-soft);
+  border-radius: var(--radius-md);
+  background: var(--color-white);
+  box-shadow: var(--shadow-xs);
+}
+
+.bitacora-filtros__encabezado {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+  padding: 1rem 1.1rem;
+  border: 0;
+  background: transparent;
+  color: var(--color-primary-dark);
+  text-align: left;
+  cursor: pointer;
+}
+
+.bitacora-filtros__encabezado strong,
+.bitacora-filtros__encabezado small {
+  display: block;
+}
+
+.bitacora-filtros__encabezado small {
+  margin-top: 0.2rem;
+  color: var(--color-text-soft);
+  font-size: 0.8125rem;
+  font-weight: 400;
+}
+
+.bitacora-filtros__chevron {
+  color: var(--color-primary);
+  font-size: 1.35rem;
+  transform: rotate(180deg);
+}
+
+.bitacora-filtros--cerrado .bitacora-filtros__chevron {
+  transform: rotate(0deg);
+}
+
+.bitacora-filtros__form {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(140px, 1fr));
+  gap: 0.9rem;
+  padding: 0 1.1rem 1.1rem;
+}
+
+.bitacora-filtros__form label {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+  color: var(--color-text-soft);
+  font-size: 0.75rem;
+  font-weight: 700;
+}
+
+.bitacora-filtros__form input {
+  width: 100%;
+  padding: 0.62rem 0.7rem;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-sm);
+  color: var(--color-text);
+  font-size: 0.875rem;
+}
+
+.bitacora-filtros__form input:focus {
+  outline: none;
+  border-color: var(--color-primary);
+  box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.12);
+}
+
+.bitacora-filtros__acciones {
+  display: flex;
+  align-items: flex-end;
+  justify-content: flex-end;
+  gap: 0.6rem;
+  grid-column: 1 / -1;
+}
+
+.bitacora-filtros__limpiar,
+.bitacora-filtros__buscar {
+  padding: 0.65rem 1rem;
+  border-radius: var(--radius-pill);
+  font-size: 0.8125rem;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.bitacora-filtros__limpiar {
+  border: 1px solid var(--color-border);
+  background: var(--color-white);
+  color: var(--color-primary);
+}
+
+.bitacora-filtros__buscar {
+  border: 1px solid var(--color-primary);
+  background: var(--color-primary);
+  color: var(--color-white);
+  box-shadow: 0 6px 16px rgba(37, 99, 235, 0.2);
+}
+
+.bitacora-filtros__buscar:hover {
+  background: #1d4ed8;
+}
+
+.bitacora-page__estado {
+  padding: 2.5rem 1.5rem;
+  border: 1px dashed var(--color-border);
+  border-radius: var(--radius-lg);
+  background: var(--color-background-mist);
+  color: var(--color-text-soft);
+  text-align: center;
+}
+
+.bitacora-page__estado--error {
+  border-color: #fecaca;
+  background: #fef2f2;
+  color: #dc2626;
+}
+
+.bitacora-tabla {
+  overflow-x: auto;
+  border: 1px solid var(--color-border-soft);
+  border-radius: var(--radius-md);
+  background: var(--color-white);
+  box-shadow: var(--shadow-xs);
+}
+
+.bitacora-tabla table {
+  width: 100%;
+  min-width: 920px;
+  border-collapse: collapse;
+  font-size: 0.8125rem;
+}
+
+.bitacora-tabla th {
+  padding: 0.8rem 0.9rem;
+  background: var(--color-background-soft);
+  color: var(--color-text-soft);
+  font-size: 0.7rem;
+  font-weight: 800;
+  text-align: left;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  white-space: nowrap;
+}
+
+.bitacora-tabla td {
+  padding: 0.85rem 0.9rem;
+  border-top: 1px solid var(--color-border-soft);
+  color: var(--color-text);
+  vertical-align: middle;
+}
+
+.bitacora-tabla tbody tr:hover {
+  background: var(--color-background-mist);
+}
+
+.bitacora-tabla__fecha,
+.bitacora-tabla__ip {
+  color: var(--color-text-soft) !important;
+  white-space: nowrap;
+}
+
+.bitacora-tabla__accion {
+  display: inline-flex;
+  padding: 0.22rem 0.55rem;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-pill);
+  background: var(--color-background-sky);
+  color: var(--color-primary);
+  font-size: 0.7rem;
+  font-weight: 800;
+  white-space: nowrap;
+}
+
+.bitacora-lista {
+  display: none;
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  gap: 0.8rem;
+}
+
+.bitacora-lista li {
+  display: flex;
+  flex-direction: column;
+  gap: 0.7rem;
+  padding: 1rem;
+  border: 1px solid var(--color-border-soft);
+  border-radius: var(--radius-md);
+  background: var(--color-white);
+  box-shadow: var(--shadow-xs);
+}
+
+.bitacora-lista__cabecera,
+.bitacora-lista__detalles {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+}
+
+.bitacora-lista time,
+.bitacora-lista p,
+.bitacora-lista__detalles {
+  color: var(--color-text-soft);
+  font-size: 0.8125rem;
+}
+
+.bitacora-lista p {
+  line-height: 1.5;
+}
+
+.bitacora-lista__detalles {
+  flex-wrap: wrap;
+  padding-top: 0.65rem;
+  border-top: 1px solid var(--color-border-soft);
+}
+
+.bitacora-paginacion {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-wrap: wrap;
+  gap: 0.4rem;
+  padding: 0.25rem 0 0.5rem;
+}
+
+.bitacora-paginacion button {
+  min-width: 38px;
+  min-height: 36px;
+  padding: 0.45rem 0.7rem;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-sm);
+  background: var(--color-white);
+  color: var(--color-primary);
+  font-size: 0.8125rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: background 0.2s ease, color 0.2s ease, border-color 0.2s ease;
+}
+
+.bitacora-paginacion button:hover:not(:disabled),
+.bitacora-paginacion__pagina--activa {
+  border-color: var(--color-primary) !important;
+  background: var(--color-primary) !important;
+  color: var(--color-white) !important;
+}
+
+.bitacora-paginacion button:disabled {
+  cursor: not-allowed;
+  opacity: 0.45;
+}
+
+.bitacora-paginacion__anterior,
+.bitacora-paginacion__siguiente {
+  padding-inline: 0.9rem !important;
+}
+
+.bitacora-paginacion__ellipsis {
+  min-width: 24px;
+  color: var(--color-text-soft);
+  text-align: center;
+}
+
+.bitacora-page__backdrop {
+  display: none;
+  position: fixed;
+  inset: 0;
+  z-index: 35;
+  border: 0;
+  background: rgba(16, 42, 67, 0.5);
+}
+
+@media (max-width: 820px) {
+  .bitacora-page__main-header {
+    justify-content: space-between;
+  }
+
+  .bitacora-page__hamburger {
+    display: block;
+  }
+
+  .bitacora-page__backdrop {
+    display: block;
+  }
+
+  .bitacora-page__content {
+    padding: 1.4rem 1rem;
+  }
+
+  .bitacora-page__cabecera {
+    flex-direction: column;
+  }
+
+  .bitacora-page__contador {
+    align-items: flex-start;
+  }
+
+  .bitacora-filtros__form {
+    grid-template-columns: repeat(2, minmax(130px, 1fr));
+  }
+
+  .bitacora-tabla {
+    display: none;
+  }
+
+  .bitacora-lista {
+    display: flex;
+    flex-direction: column;
+  }
+}
+
+@media (max-width: 500px) {
+  .bitacora-filtros__form {
+    grid-template-columns: 1fr;
+  }
+
+  .bitacora-filtros__acciones {
+    align-items: stretch;
+    flex-direction: column-reverse;
+  }
+
+  .bitacora-filtros__acciones button {
+    width: 100%;
+  }
+
+  .bitacora-lista__cabecera {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+}
