@@ -1,0 +1,426 @@
+<main class="conf-page">
+  <div class="conf-page__body">
+    <app-sidebar [mobileOpen]="sidebarMovilAbierto()" (mobileClose)="cerrarSidebar()" />
+
+    <div class="conf-page__main">
+      <header class="conf-page__main-header">
+        <button
+          type="button"
+          class="conf-page__hamburger"
+          [attr.aria-expanded]="sidebarMovilAbierto()"
+          [attr.aria-label]="sidebarMovilAbierto() ? 'Cerrar menú' : 'Abrir menú'"
+          (click)="alternarSidebar()"
+        >
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+            aria-hidden="true"
+          >
+            <line x1="3" y1="6" x2="21" y2="6"></line>
+            <line x1="3" y1="12" x2="21" y2="12"></line>
+            <line x1="3" y1="18" x2="21" y2="18"></line>
+          </svg>
+        </button>
+        <button type="button" class="conf-page__logout" (click)="cerrarSesion()">
+          Cerrar sesión
+        </button>
+      </header>
+
+      <div class="conf-page__content">
+        <div class="conf-page__cabecera">
+          <div>
+            <p class="conf-page__eyebrow">Agenda y Citas</p>
+            <h1 class="conf-page__titulo">
+              {{ esOftalmologo() ? 'Mi disponibilidad' : 'Configurar disponibilidad del oftalmólogo' }}
+            </h1>
+            @if (esOftalmologo()) {
+              <p class="conf-page__subtitulo">
+                Administra tu horario semanal y tus bloqueos para definir cuándo
+                atiendes consultas.
+              </p>
+            } @else if (esAdministrador()) {
+              <p class="conf-page__subtitulo">
+                Selecciona un oftalmólogo y administra su horario semanal y sus
+                bloqueos de atención.
+              </p>
+            } @else {
+              <p class="conf-page__subtitulo">
+                Configura el horario semanal y los bloqueos de atención del
+                oftalmólogo.
+              </p>
+            }
+          </div>
+        </div>
+
+        @if (cargandoOftalmologos()) {
+          <p class="conf-page__estado" role="status">
+            Cargando oftalmólogos configurables...
+          </p>
+        } @else if (errorOftalmologos(); as mensajeError) {
+          <div class="conf-page__estado conf-page__estado--error" role="alert">
+            <strong>No se pudieron cargar los oftalmólogos.</strong>
+            <span>{{ mensajeError }}</span>
+            <button
+              type="button"
+              class="conf-page__accion-secundaria"
+              (click)="reintentarOftalmologos()"
+            >
+              Reintentar
+            </button>
+          </div>
+        } @else if (oftalmologos().length === 0) {
+          <div class="conf-page__estado" role="status">
+            <strong>
+              {{
+                esOftalmologo()
+                  ? 'No se encontró tu registro de oftalmólogo'
+                  : 'No hay oftalmólogos configurables'
+              }}
+            </strong>
+            <span>
+              @if (esOftalmologo()) {
+                Tu cuenta no está asociada a un oftalmólogo activo. Contacta al
+                administrador del sistema.
+              } @else {
+                Por el momento no existen oftalmólogos activos disponibles para
+                configurar su disponibilidad.
+              }
+            </span>
+            <button
+              type="button"
+              class="conf-page__accion-secundaria"
+              (click)="reintentarOftalmologos()"
+            >
+              Reintentar
+            </button>
+          </div>
+        } @else {
+          @if (esOftalmologo()) {
+            <div class="conf-selector conf-selector--fijo">
+              <span class="conf-selector__etiqueta">Configurando</span>
+              <strong class="conf-selector__valor">Mi propia disponibilidad</strong>
+              <span class="conf-selector__ayuda">
+                Solo puedes administrar tu propio registro.
+              </span>
+            </div>
+          } @else {
+            <section class="conf-selector" aria-label="Selección de oftalmólogo">
+              <label class="conf-selector__campo">
+                <span>Oftalmólogo</span>
+                <select
+                  [value]="oftalmologoSeleccionadoId() ?? ''"
+                  (change)="onCambiarOftalmologo($event)"
+                  [disabled]="cargandoConfiguracion()"
+                >
+                  <option value="" disabled>Selecciona un oftalmólogo</option>
+                  @for (oftalmologo of oftalmologos(); track oftalmologo.id) {
+                    <option [value]="oftalmologo.id">
+                      {{ oftalmologo.nombres }} {{ oftalmologo.apellidos }}
+                    </option>
+                  }
+                </select>
+              </label>
+            </section>
+          }
+
+          @if (cargandoConfiguracion()) {
+            <p class="conf-page__estado" role="status">
+              Cargando configuración de disponibilidad...
+            </p>
+          } @else if (errorConfiguracion(); as mensajeErrorConfig) {
+            <div class="conf-page__estado conf-page__estado--error" role="alert">
+              <strong>No se pudo cargar la configuración.</strong>
+              <span>{{ mensajeErrorConfig }}</span>
+              <button
+                type="button"
+                class="conf-page__accion-secundaria"
+                (click)="reintentarConfiguracion()"
+              >
+                Reintentar
+              </button>
+            </div>
+          } @else if (configuracion(); as config) {
+            <div class="conf-resumen">
+              <div class="conf-resumen__info">
+                <span class="conf-resumen__etiqueta">
+                  {{ esOftalmologo() ? 'Mi registro' : 'Oftalmólogo seleccionado' }}
+                </span>
+                <h2 class="conf-resumen__nombre">
+                  {{ config.oftalmologo.nombres }} {{ config.oftalmologo.apellidos }}
+                </h2>
+                <div class="conf-resumen__chips">
+                  @if (config.oftalmologo.especialidad) {
+                    <span class="conf-resumen__chip">
+                      {{ config.oftalmologo.especialidad }}
+                    </span>
+                  }
+                  <span class="conf-resumen__chip">
+                    Matrícula {{ config.oftalmologo.matricula }}
+                  </span>
+                </div>
+              </div>
+              <div class="conf-resumen__metricas">
+                <div class="conf-resumen__metrica">
+                  <strong>{{ horariosActivos() }}</strong>
+                  <span>Horario(s) activo(s)</span>
+                </div>
+                <div class="conf-resumen__metrica">
+                  <strong>{{ bloqueosActivos() }}</strong>
+                  <span>Bloqueo(s) activo(s)</span>
+                </div>
+              </div>
+            </div>
+
+            <div class="conf-paneles">
+              <section class="conf-panel" aria-label="Horario semanal">
+                <header class="conf-panel__cabecera">
+                  <div>
+                    <h3 class="conf-panel__titulo">Horario semanal</h3>
+                    <p class="conf-panel__subtitulo">
+                      Intervalos regulares por día de la semana.
+                    </p>
+                  </div>
+                  <button
+                    type="button"
+                    class="conf-panel__crear"
+                    (click)="abrirCrearHorario()"
+                    [disabled]="!puedeAgregar()"
+                  >
+                    <svg
+                      xmlns="http://www.w3.org/2000/svg"
+                      viewBox="0 0 24 24"
+                      fill="none"
+                      stroke="currentColor"
+                      stroke-width="2"
+                      stroke-linecap="round"
+                      stroke-linejoin="round"
+                      aria-hidden="true"
+                    >
+                      <line x1="12" y1="5" x2="12" y2="19"></line>
+                      <line x1="5" y1="12" x2="19" y2="12"></line>
+                    </svg>
+                    Agregar horario
+                  </button>
+                </header>
+
+                <div class="conf-semanal">
+                  @for (dia of diasConHorarios(); track dia.dia) {
+                    <div class="conf-semanal__dia">
+                      <h4 class="conf-semanal__dia-nombre">{{ dia.nombre }}</h4>
+                      @if (dia.horarios.length === 0) {
+                        <p class="conf-semanal__vacio">Sin horarios</p>
+                      } @else {
+                        <ul class="conf-semanal__lista">
+                          @for (horario of dia.horarios; track horario.id) {
+                            <li
+                              class="conf-registro"
+                              [class.conf-registro--inactivo]="!horario.estado"
+                            >
+                              <div class="conf-registro__principal">
+                                <div class="conf-registro__rango">
+                                  <time>{{ formatearHora(horario.hora_inicio) }}</time>
+                                  <span>a</span>
+                                  <time>{{ formatearHora(horario.hora_fin) }}</time>
+                                </div>
+                                <span
+                                  class="conf-registro__badge"
+                                  [class.conf-registro__badge--activo]="horario.estado"
+                                  [class.conf-registro__badge--inactivo]="!horario.estado"
+                                >
+                                  {{ horario.estado ? 'Activo' : 'Inactivo' }}
+                                </span>
+                              </div>
+                              <div class="conf-registro__acciones">
+                                <button
+                                  type="button"
+                                  class="conf-registro__accion conf-registro__accion--editar"
+                                  (click)="abrirEditarHorario(horario)"
+                                  [disabled]="ocupado()"
+                                >
+                                  Editar
+                                </button>
+                                @if (horario.estado) {
+                                  <button
+                                    type="button"
+                                    class="conf-registro__accion conf-registro__accion--desactivar"
+                                    (click)="solicitarCambioEstadoHorario(horario)"
+                                    [disabled]="ocupado()"
+                                  >
+                                    Desactivar
+                                  </button>
+                                } @else {
+                                  <button
+                                    type="button"
+                                    class="conf-registro__accion conf-registro__accion--reactivar"
+                                    (click)="solicitarCambioEstadoHorario(horario)"
+                                    [disabled]="ocupado()"
+                                  >
+                                    Reactivar
+                                  </button>
+                                }
+                              </div>
+                            </li>
+                          }
+                        </ul>
+                      }
+                    </div>
+                  }
+                </div>
+              </section>
+
+              <section class="conf-panel" aria-label="Bloqueos">
+                <header class="conf-panel__cabecera">
+                  <div>
+                    <h3 class="conf-panel__titulo">Bloqueos</h3>
+                    <p class="conf-panel__subtitulo">
+                      Fechas puntuales en las que no se atiende.
+                    </p>
+                  </div>
+                  <button
+                    type="button"
+                    class="conf-panel__crear"
+                    (click)="abrirCrearBloqueo()"
+                    [disabled]="!puedeAgregar()"
+                  >
+                    <svg
+                      xmlns="http://www.w3.org/2000/svg"
+                      viewBox="0 0 24 24"
+                      fill="none"
+                      stroke="currentColor"
+                      stroke-width="2"
+                      stroke-linecap="round"
+                      stroke-linejoin="round"
+                      aria-hidden="true"
+                    >
+                      <line x1="12" y1="5" x2="12" y2="19"></line>
+                      <line x1="5" y1="12" x2="19" y2="12"></line>
+                    </svg>
+                    Agregar bloqueo
+                  </button>
+                </header>
+
+                @if (bloqueosOrdenados().length === 0) {
+                  <div class="conf-panel__vacio">
+                    <strong>Sin bloqueos registrados</strong>
+                    <span>
+                      No hay bloqueos para este oftalmólogo. Usa «Agregar bloqueo»
+                      para reservar fechas puntuales sin atención.
+                    </span>
+                  </div>
+                } @else {
+                  <ul class="conf-bloqueos">
+                    @for (bloqueo of bloqueosOrdenados(); track bloqueo.id) {
+                      <li
+                        class="conf-registro"
+                        [class.conf-registro--inactivo]="!bloqueo.estado"
+                      >
+                        <div class="conf-registro__principal">
+                          <div class="conf-registro__rango">
+                            <time>{{ formatearFecha(bloqueo.fecha) }}</time>
+                            <span>de</span>
+                            <time>{{ formatearHora(bloqueo.hora_inicio) }}</time>
+                            <span>a</span>
+                            <time>{{ formatearHora(bloqueo.hora_fin) }}</time>
+                          </div>
+                          <span
+                            class="conf-registro__badge"
+                            [class.conf-registro__badge--activo]="bloqueo.estado"
+                            [class.conf-registro__badge--inactivo]="!bloqueo.estado"
+                          >
+                            {{ bloqueo.estado ? 'Activo' : 'Inactivo' }}
+                          </span>
+                        </div>
+                        @if (bloqueo.motivo) {
+                          <p class="conf-registro__motivo">{{ bloqueo.motivo }}</p>
+                        }
+                        <div class="conf-registro__acciones">
+                          <button
+                            type="button"
+                            class="conf-registro__accion conf-registro__accion--editar"
+                            (click)="abrirEditarBloqueo(bloqueo)"
+                            [disabled]="ocupado()"
+                          >
+                            Editar
+                          </button>
+                          @if (bloqueo.estado) {
+                            <button
+                              type="button"
+                              class="conf-registro__accion conf-registro__accion--desactivar"
+                              (click)="solicitarCambioEstadoBloqueo(bloqueo)"
+                              [disabled]="ocupado()"
+                            >
+                              Desactivar
+                            </button>
+                          } @else {
+                            <button
+                              type="button"
+                              class="conf-registro__accion conf-registro__accion--reactivar"
+                              (click)="solicitarCambioEstadoBloqueo(bloqueo)"
+                              [disabled]="ocupado()"
+                            >
+                              Reactivar
+                            </button>
+                          }
+                        </div>
+                      </li>
+                    }
+                  </ul>
+                }
+              </section>
+            </div>
+          }
+        }
+      </div>
+    </div>
+  </div>
+
+  @if (sidebarMovilAbierto()) {
+    <button
+      type="button"
+      class="conf-page__backdrop"
+      (click)="cerrarSidebar()"
+      aria-label="Cerrar menú"
+    ></button>
+  }
+
+  <app-cu11-horario-modal
+    [abierto]="modalHorarioAbierto()"
+    [horario]="horarioEnEdicion()"
+    [guardando]="guardandoHorario()"
+    [errorServer]="errorHorarioModal()"
+    (close)="cerrarModalHorario()"
+    (save)="guardarHorario($event)"
+  />
+
+  <app-cu11-bloqueo-modal
+    [abierto]="modalBloqueoAbierto()"
+    [bloqueo]="bloqueoEnEdicion()"
+    [guardando]="guardandoBloqueo()"
+    [errorServer]="errorBloqueoModal()"
+    (close)="cerrarModalBloqueo()"
+    (save)="guardarBloqueo($event)"
+  />
+
+  <app-cu11-estado-dialog
+    [abierto]="!!confirmacion()"
+    [titulo]="tituloConfirmacion()"
+    [detalle]="detalleConfirmacion()"
+    [botonConfirmar]="textoAccionConfirmacion()"
+    [activa]="esActivacion()"
+    [procesando]="procesandoEstado()"
+    [error]="errorEstadoDialog()"
+    (close)="cancelarConfirmacion()"
+    (confirm)="confirmarCambioEstado()"
+  />
+
+  @if (exito(); as mensajeExito) {
+    <div class="conf-page__toast conf-page__toast--exito" role="status">
+      {{ mensajeExito }}
+    </div>
+  }
+</main>

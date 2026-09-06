@@ -1,0 +1,136 @@
+@if (abierto()) {
+  <div class="bloqueo-modal__backdrop" (click)="cerrar()"></div>
+
+  <div
+    class="bloqueo-modal__dialog"
+    role="dialog"
+    aria-modal="true"
+    aria-labelledby="bloqueo-modal-titulo"
+  >
+    <div class="bloqueo-modal__header">
+      <h2 id="bloqueo-modal-titulo" class="bloqueo-modal__titulo">
+        @if (bloqueo()) {
+          Editar bloqueo
+        } @else {
+          Agregar bloqueo
+        }
+      </h2>
+      <button
+        type="button"
+        class="bloqueo-modal__close"
+        (click)="cerrar()"
+        aria-label="Cerrar modal"
+        [disabled]="guardando()"
+      >
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+          <line x1="18" y1="6" x2="6" y2="18"></line>
+          <line x1="6" y1="6" x2="18" y2="18"></line>
+        </svg>
+      </button>
+    </div>
+
+    <form [formGroup]="bloqueoForm" (ngSubmit)="onSubmit()" class="bloqueo-modal__form">
+      @if (errorServer(); as mensajeError) {
+        <div class="bloqueo-modal__error-server" role="alert">
+          {{ mensajeError }}
+        </div>
+      }
+
+      <div class="bloqueo-modal__grid">
+        <div class="bloqueo-modal__group">
+          <label for="fecha" class="bloqueo-modal__label">
+            Fecha <span class="bloqueo-modal__required">*</span>
+          </label>
+          <input
+            id="fecha"
+            type="date"
+            formControlName="fecha"
+            [min]="fechaMinima"
+            class="bloqueo-modal__input"
+            [class.bloqueo-modal__input--error]="hasError('fecha')"
+          />
+          @if (hasError('fecha')) {
+            <p class="bloqueo-modal__error">Ingresa la fecha del bloqueo.</p>
+          }
+        </div>
+
+        <div class="bloqueo-modal__group">
+          <label for="hora_inicio" class="bloqueo-modal__label">
+            Hora inicio <span class="bloqueo-modal__required">*</span>
+          </label>
+          <input
+            id="hora_inicio"
+            type="time"
+            formControlName="hora_inicio"
+            class="bloqueo-modal__input"
+            [class.bloqueo-modal__input--error]="hasError('hora_inicio') || ordenInvalido()"
+          />
+          @if (hasError('hora_inicio')) {
+            <p class="bloqueo-modal__error">Ingresa la hora de inicio.</p>
+          }
+        </div>
+
+        <div class="bloqueo-modal__group">
+          <label for="hora_fin" class="bloqueo-modal__label">
+            Hora fin <span class="bloqueo-modal__required">*</span>
+          </label>
+          <input
+            id="hora_fin"
+            type="time"
+            formControlName="hora_fin"
+            class="bloqueo-modal__input"
+            [class.bloqueo-modal__input--error]="hasError('hora_fin') || ordenInvalido()"
+          />
+          @if (hasError('hora_fin')) {
+            <p class="bloqueo-modal__error">Ingresa la hora de fin.</p>
+          }
+        </div>
+      </div>
+
+      @if (ordenInvalido()) {
+        <p class="bloqueo-modal__error bloqueo-modal__error--orden" role="alert">
+          La hora de inicio debe ser anterior a la hora de fin.
+        </p>
+      }
+
+      <div class="bloqueo-modal__group">
+        <label for="motivo" class="bloqueo-modal__label">Motivo</label>
+        <textarea
+          id="motivo"
+          formControlName="motivo"
+          rows="3"
+          maxlength="255"
+          class="bloqueo-modal__input bloqueo-modal__textarea"
+          placeholder="Ej: Capacitación, permiso personal, jornada de cirugías..."
+        ></textarea>
+      </div>
+
+      <div class="bloqueo-modal__acciones">
+        <button
+          type="button"
+          class="bloqueo-modal__btn bloqueo-modal__btn--cancel"
+          (click)="cerrar()"
+          [disabled]="guardando()"
+        >
+          Cancelar
+        </button>
+        <button
+          type="submit"
+          class="bloqueo-modal__btn bloqueo-modal__btn--primary"
+          [disabled]="guardando()"
+        >
+          @if (guardando()) {
+            <span class="bloqueo-modal__spinner" aria-hidden="true"></span>
+            Guardando...
+          } @else {
+            @if (bloqueo()) {
+              Guardar cambios
+            } @else {
+              Agregar bloqueo
+            }
+          }
+        </button>
+      </div>
+    </form>
+  </div>
+}

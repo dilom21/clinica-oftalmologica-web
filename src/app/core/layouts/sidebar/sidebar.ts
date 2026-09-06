@@ -25,6 +25,7 @@ export class Sidebar implements OnInit {
     ['gestionar pacientes', '/pacientes'],
     ['consultar bitácora', '/bitacora'],
     ['consultar agenda y disponibilidad médica', '/agenda-disponibilidad'],
+    ['configurar disponibilidad del oftalmólogo', '/configurar-disponibilidad'],
   ]);
 
   private readonly iconosPorNombre: ReadonlyArray<{
@@ -81,6 +82,10 @@ export class Sidebar implements OnInit {
 
   if (clave.includes('agenda') && clave.includes('disponibilidad')) {
     return '/agenda-disponibilidad';
+  }
+
+  if (clave.includes('disponibilidad') && clave.includes('configurar')) {
+    return '/configurar-disponibilidad';
   }
 
   return null;
