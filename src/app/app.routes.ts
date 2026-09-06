@@ -69,6 +69,14 @@ export const routes: Routes = [
     canActivate: [authGuard],
   },
   {
+    path: 'agenda-disponibilidad',
+    loadComponent: () =>
+      import(
+        './features/agenda-citas/casos-uso/cu09-consultar-agenda-disponibilidad/pages/consultar-agenda-disponibilidad/consultar-agenda-disponibilidad'
+      ).then((m) => m.ConsultarAgendaDisponibilidad),
+    canActivate: [authGuard],
+  },
+  {
     path: '**',
     redirectTo: '',
   },

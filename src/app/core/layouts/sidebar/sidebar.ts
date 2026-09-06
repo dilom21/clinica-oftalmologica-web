@@ -24,6 +24,7 @@ export class Sidebar implements OnInit {
     ['gestionar roles y permisos', '/roles'],
     ['gestionar pacientes', '/pacientes'],
     ['consultar bitácora', '/bitacora'],
+    ['consultar agenda y disponibilidad médica', '/agenda-disponibilidad'],
   ]);
 
   private readonly iconosPorNombre: ReadonlyArray<{
@@ -76,6 +77,10 @@ export class Sidebar implements OnInit {
 
   if (clave.includes('bitácora') || clave.includes('bitacora')) {
     return '/bitacora';
+  }
+
+  if (clave.includes('agenda') && clave.includes('disponibilidad')) {
+    return '/agenda-disponibilidad';
   }
 
   return null;
