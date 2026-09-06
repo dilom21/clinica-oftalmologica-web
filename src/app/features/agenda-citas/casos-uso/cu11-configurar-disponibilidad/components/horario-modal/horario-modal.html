@@ -1,0 +1,123 @@
+@if (abierto()) {
+  <div class="horario-modal__backdrop" (click)="cerrar()"></div>
+
+  <div
+    class="horario-modal__dialog"
+    role="dialog"
+    aria-modal="true"
+    aria-labelledby="horario-modal-titulo"
+  >
+    <div class="horario-modal__header">
+      <h2 id="horario-modal-titulo" class="horario-modal__titulo">
+        {{ tituloModal() }}
+      </h2>
+      <button
+        type="button"
+        class="horario-modal__close"
+        (click)="cerrar()"
+        aria-label="Cerrar modal"
+        [disabled]="guardando()"
+      >
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+          <line x1="18" y1="6" x2="6" y2="18"></line>
+          <line x1="6" y1="6" x2="18" y2="18"></line>
+        </svg>
+      </button>
+    </div>
+
+    <form [formGroup]="horarioForm" (ngSubmit)="onSubmit()" class="horario-modal__form">
+      @if (errorServer(); as mensajeError) {
+        <div class="horario-modal__error-server" role="alert">
+          {{ mensajeError }}
+        </div>
+      }
+
+      <div class="horario-modal__group">
+        <label for="dia_semana" class="horario-modal__label">
+          Día de la semana <span class="horario-modal__required">*</span>
+        </label>
+        <select
+          id="dia_semana"
+          formControlName="dia_semana"
+          class="horario-modal__input"
+          [class.horario-modal__input--error]="hasError('dia_semana')"
+        >
+          <option value="">-- Seleccionar día --</option>
+          @for (dia of diasSemana; track dia.numero) {
+            <option [value]="dia.numero">{{ dia.nombre }}</option>
+          }
+        </select>
+        @if (hasError('dia_semana')) {
+          <p class="horario-modal__error">Selecciona un día de la semana.</p>
+        }
+      </div>
+
+      <div class="horario-modal__grid">
+        <div class="horario-modal__group">
+          <label for="hora_inicio" class="horario-modal__label">
+            Hora inicio <span class="horario-modal__required">*</span>
+          </label>
+          <input
+            id="hora_inicio"
+            type="time"
+            formControlName="hora_inicio"
+            class="horario-modal__input"
+            [class.horario-modal__input--error]="hasError('hora_inicio') || ordenInvalido()"
+          />
+          @if (hasError('hora_inicio')) {
+            <p class="horario-modal__error">Ingresa la hora de inicio.</p>
+          }
+        </div>
+
+        <div class="horario-modal__group">
+          <label for="hora_fin" class="horario-modal__label">
+            Hora fin <span class="horario-modal__required">*</span>
+          </label>
+          <input
+            id="hora_fin"
+            type="time"
+            formControlName="hora_fin"
+            class="horario-modal__input"
+            [class.horario-modal__input--error]="hasError('hora_fin') || ordenInvalido()"
+          />
+          @if (hasError('hora_fin')) {
+            <p class="horario-modal__error">Ingresa la hora de fin.</p>
+          }
+        </div>
+      </div>
+
+      @if (ordenInvalido()) {
+        <p class="horario-modal__error horario-modal__error--orden" role="alert">
+          La hora de inicio debe ser anterior a la hora de fin.
+        </p>
+      }
+
+      <div class="horario-modal__acciones">
+        <button
+          type="button"
+          class="horario-modal__btn horario-modal__btn--cancel"
+          (click)="cerrar()"
+          [disabled]="guardando()"
+        >
+          Cancelar
+        </button>
+        <button
+          type="submit"
+          class="horario-modal__btn horario-modal__btn--primary"
+          [disabled]="guardando()"
+        >
+          @if (guardando()) {
+            <span class="horario-modal__spinner" aria-hidden="true"></span>
+            Guardando...
+          } @else {
+            @if (horario()) {
+              Guardar cambios
+            } @else {
+              Agregar horario
+            }
+          }
+        </button>
+      </div>
+    </form>
+  </div>
+}
