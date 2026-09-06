@@ -1,0 +1,170 @@
+<main class="historial-page">
+  <div class="historial-page__body">
+    <app-sidebar
+      [mobileOpen]="sidebarMovilAbierto()"
+      (mobileClose)="cerrarSidebar()"
+    />
+
+    <div class="historial-page__main">
+      <header class="historial-page__main-header">
+        <button
+          type="button"
+          class="historial-page__hamburger"
+          [attr.aria-expanded]="sidebarMovilAbierto()"
+          [attr.aria-label]="sidebarMovilAbierto() ? 'Cerrar menú' : 'Abrir menú'"
+          (click)="alternarSidebar()"
+        >
+          <span></span><span></span><span></span>
+        </button>
+        <button type="button" class="historial-page__logout" (click)="cerrarSesion()">
+          Cerrar sesión
+        </button>
+      </header>
+
+      <div class="historial-page__content">
+        <div class="historial-page__cabecera">
+          <div>
+            <p class="historial-page__eyebrow">Paciente e historial clínico</p>
+            <h1 class="historial-page__titulo">Consultar historial clínico</h1>
+            <p class="historial-page__subtitulo">
+              Revisa la información clínica registrada de un paciente.
+            </p>
+          </div>
+        </div>
+
+        <section class="historial-selector" aria-labelledby="selector-titulo">
+          <div class="historial-selector__encabezado">
+            <div>
+              <h2 id="selector-titulo">Seleccionar paciente</h2>
+              <p>Busca por nombre, apellido o cédula y elige un paciente para consultar.</p>
+            </div>
+          </div>
+          <div class="historial-selector__controles">
+            <label class="historial-selector__busqueda">
+              <span>Buscar paciente</span>
+              <input
+                type="search"
+                [value]="buscarTermino()"
+                (input)="onBuscar($event)"
+                placeholder="Nombre, apellido o cédula"
+              />
+            </label>
+            <label class="historial-selector__select">
+              <span>Paciente</span>
+              <select
+                [value]="pacienteId()"
+                (change)="seleccionarPaciente($event)"
+                [disabled]="cargandoPacientes() || pacientes().length === 0"
+              >
+                <option value="">Seleccione un paciente</option>
+                @for (paciente of pacientesFiltrados(); track paciente.id) {
+                  <option [value]="paciente.id">
+                    {{ paciente.nombres }} {{ paciente.apellidos }} · CI {{ paciente.ci }}
+                  </option>
+                }
+              </select>
+            </label>
+          </div>
+        </section>
+
+        @if (cargandoPacientes()) {
+          <p class="historial-page__estado" role="status">Cargando pacientes...</p>
+        } @else if (errorCargaPacientes()) {
+          <div class="historial-page__estado historial-page__estado--error" role="alert">
+            <p>No se pudieron cargar los pacientes. Verifica tu conexión e inténtalo nuevamente.</p>
+            <button type="button" class="historial-page__accion" (click)="reintentarPacientes()">
+              Reintentar
+            </button>
+          </div>
+        } @else if (!pacienteId()) {
+          <p class="historial-page__estado" role="status">
+            Seleccione un paciente para consultar su historial clínico.
+          </p>
+        } @else if (cargandoHistorial()) {
+          <p class="historial-page__estado" role="status">Consultando historial clínico...</p>
+        } @else if (errorConsulta(); as mensaje) {
+          <div class="historial-page__estado historial-page__estado--error" role="alert">
+            <p>{{ mensaje }}</p>
+            <button type="button" class="historial-page__accion" (click)="reintentarConsulta()">
+              Reintentar consulta
+            </button>
+          </div>
+        } @else if (pacienteSeleccionado(); as paciente) {
+          <section class="historial-resumen" aria-labelledby="paciente-titulo">
+            <div class="historial-resumen__titulo">
+              <span class="historial-resumen__avatar" aria-hidden="true">
+                {{ paciente.nombres.charAt(0) }}{{ paciente.apellidos.charAt(0) }}
+              </span>
+              <div>
+                <p class="historial-page__eyebrow">Paciente seleccionado</p>
+                <h2 id="paciente-titulo">{{ paciente.nombres }} {{ paciente.apellidos }}</h2>
+              </div>
+            </div>
+            <dl class="historial-resumen__datos">
+              <div><dt>Cédula</dt><dd>{{ paciente.ci }}</dd></div>
+              <div><dt>Fecha de nacimiento</dt><dd>{{ formatearFecha(paciente.fecha_nacimiento) }}</dd></div>
+              <div><dt>Sexo</dt><dd>{{ paciente.sexo }}</dd></div>
+              <div><dt>Teléfono</dt><dd>{{ paciente.telefono }}</dd></div>
+            </dl>
+          </section>
+
+          @if (historial(); as registro) {
+            <section class="historial-detalle" aria-labelledby="historial-titulo">
+              <div class="historial-detalle__cabecera">
+                <div>
+                  <p class="historial-page__eyebrow">Registro clínico</p>
+                  <h2 id="historial-titulo">Historial clínico</h2>
+                </div>
+                <p class="historial-detalle__fecha">
+                  Apertura: {{ formatearFecha(registro.fecha_apertura) }}
+                </p>
+              </div>
+
+              @if (registro.observaciones_generales) {
+                <div class="historial-detalle__observaciones">
+                  <h3>Observaciones generales</h3>
+                  <p>{{ registro.observaciones_generales }}</p>
+                </div>
+              }
+
+              <div class="historial-antecedentes">
+                <div class="historial-antecedentes__cabecera">
+                  <h3>Antecedentes clínicos</h3>
+                  <span>{{ registro.antecedentes.length }} registros</span>
+                </div>
+                @if (registro.antecedentes.length === 0) {
+                  <p class="historial-page__estado">No hay antecedentes clínicos registrados.</p>
+                } @else {
+                  <ul class="historial-antecedentes__lista">
+                    @for (antecedente of registro.antecedentes; track antecedente.id) {
+                      <li>
+                        <div class="historial-antecedentes__meta">
+                          <strong>{{ antecedente.tipo }}</strong>
+                          <time>{{ formatearFecha(antecedente.fecha_registro) }}</time>
+                        </div>
+                        <p>{{ antecedente.descripcion }}</p>
+                      </li>
+                    }
+                  </ul>
+                }
+              </div>
+            </section>
+          } @else {
+            <p class="historial-page__estado" role="status">
+              No existen registros de historial clínico para este paciente.
+            </p>
+          }
+        }
+      </div>
+    </div>
+  </div>
+
+  @if (sidebarMovilAbierto()) {
+    <button
+      type="button"
+      class="historial-page__backdrop"
+      (click)="cerrarSidebar()"
+      aria-label="Cerrar menú"
+    ></button>
+  }
+</main>
