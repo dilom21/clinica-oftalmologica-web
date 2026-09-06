@@ -23,6 +23,7 @@ export class Sidebar implements OnInit {
     ['gestionar usuarios', '/usuarios'],
     ['gestionar roles y permisos', '/roles'],
     ['gestionar pacientes', '/pacientes'],
+    ['consultar historial clínico', '/historial-clinico'],
     ['consultar bitácora', '/bitacora'],
     ['consultar agenda y disponibilidad médica', '/agenda-disponibilidad'],
     ['configurar disponibilidad del oftalmólogo', '/configurar-disponibilidad'],
@@ -75,6 +76,14 @@ export class Sidebar implements OnInit {
 
   if (clave.includes('pacientes')) {
     return '/pacientes';
+  }
+
+  if (clave.includes('historial') && clave.includes('clínico')) {
+    return '/historial-clinico';
+  }
+
+  if (clave.includes('historial') && clave.includes('clinico')) {
+    return '/historial-clinico';
   }
 
   if (clave.includes('bitácora') || clave.includes('bitacora')) {

@@ -61,6 +61,14 @@ export const routes: Routes = [
   canActivate: [authGuard],
 },
   {
+    path: 'historial-clinico',
+    loadComponent: () =>
+      import(
+        './features/gestion-historial-clinico/casos-uso/cu13-consultar-historial-clinico/pages/consultar-historial-clinico/consultar-historial-clinico'
+      ).then((m) => m.ConsultarHistorialClinico),
+    canActivate: [authGuard],
+  },
+  {
     path: 'bitacora',
     loadComponent: () =>
       import(
