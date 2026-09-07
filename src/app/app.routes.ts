@@ -101,6 +101,14 @@ export const routes: Routes = [
     canActivate: [authGuard],
   },
   {
+  path: 'historial-citas',
+  loadComponent: () =>
+    import(
+      './features/gestion-agenda-citas/casos-uso/cu12-consultar-historial-citas/pages/consultar-historial-citas/consultar-historial-citas'
+    ).then((m) => m.ConsultarHistorialCitas),
+  canActivate: [authGuard],
+  },
+  {
     path: '**',
     redirectTo: '',
   },

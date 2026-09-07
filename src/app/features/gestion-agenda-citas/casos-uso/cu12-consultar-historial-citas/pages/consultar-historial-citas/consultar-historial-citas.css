@@ -1,0 +1,116 @@
+.historial-page {
+  min-height: 100dvh;
+  display: flex;
+  background: linear-gradient(180deg, #f4fafe 0%, var(--color-white) 100%);
+}
+
+.historial-page__body,
+.historial-page__main { display: flex; min-width: 0; min-height: 0; }
+.historial-page__body { flex: 1; }
+.historial-page__main { flex: 1; flex-direction: column; }
+.historial-page__header {
+  display: flex;
+  justify-content: flex-end;
+  align-items: center;
+  padding: 0.9rem 1.5rem;
+  background: var(--color-white);
+  border-bottom: 1px solid var(--color-border-soft);
+  box-shadow: var(--shadow-xs);
+}
+.historial-page__hamburger {
+  display: none;
+  width: 40px;
+  height: 40px;
+  padding: 0.6rem;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-sm);
+  background: var(--color-white);
+  cursor: pointer;
+}
+.historial-page__hamburger span { display: block; height: 2px; margin: 4px 0; background: var(--color-primary-dark); }
+.historial-page__logout,
+.historial-filtros__limpiar,
+.historial-filtros__buscar {
+  border-radius: var(--radius-pill);
+  font-size: 0.8125rem;
+  font-weight: 700;
+  cursor: pointer;
+}
+.historial-page__logout {
+  padding: 0.6rem 1.3rem;
+  border: 1px solid var(--color-border);
+  background: var(--color-white);
+  color: var(--color-primary);
+}
+.historial-page__content {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
+  padding: 2rem 1.5rem;
+}
+.historial-page__intro h1 { margin-bottom: 0.35rem; color: var(--color-primary-dark); font-size: 1.6rem; font-weight: 800; }
+.historial-page__intro p:last-child { max-width: 680px; color: var(--color-text-soft); font-size: 0.9375rem; }
+.historial-page__eyebrow { margin-bottom: 0.4rem; color: var(--color-primary); font-size: 0.75rem; font-weight: 800; letter-spacing: 0.08em; text-transform: uppercase; }
+.historial-filtros,
+.historial-resultado { border: 1px solid var(--color-border-soft); border-radius: var(--radius-md); background: var(--color-white); }
+.historial-filtros { display: flex; flex-wrap: wrap; align-items: end; gap: 1rem; padding: 1.1rem; }
+.historial-filtros__busqueda,
+.historial-filtros__filtros { display: flex; flex: 1 1 560px; gap: 0.75rem; }
+.historial-filtros__filtros { flex-basis: 470px; }
+.historial-filtros label { display: flex; min-width: 0; flex: 1; flex-direction: column; gap: 0.35rem; color: var(--color-text-soft); font-size: 0.75rem; font-weight: 700; }
+.historial-filtros__termino { flex: 2 !important; }
+.historial-filtros select,
+.historial-filtros input { width: 100%; padding: 0.62rem 0.7rem; border: 1px solid var(--color-border); border-radius: var(--radius-sm); background: var(--color-white); color: var(--color-text); font: inherit; font-size: 0.875rem; font-weight: 400; }
+.historial-filtros select:focus,
+.historial-filtros input:focus { outline: 2px solid var(--color-primary); outline-offset: 1px; }
+.historial-filtros__acciones { display: flex; gap: 0.6rem; }
+.historial-filtros__limpiar,
+.historial-filtros__buscar { padding: 0.65rem 1rem; white-space: nowrap; }
+.historial-filtros__limpiar { border: 1px solid var(--color-border); background: var(--color-white); color: var(--color-primary); }
+.historial-filtros__buscar { border: 1px solid var(--color-primary); background: var(--color-primary); color: var(--color-white); }
+.historial-filtros__buscar:disabled { opacity: 0.55; cursor: not-allowed; }
+.historial-estado { display: flex; flex-direction: column; align-items: center; gap: 0.35rem; padding: 2.5rem 1rem; color: var(--color-text-soft); text-align: center; }
+.historial-estado strong { color: var(--color-primary-dark); }
+.historial-estado--error { align-items: flex-start; border: 1px solid #f2c5c5; border-radius: var(--radius-md); background: #fff8f8; text-align: left; }
+.historial-estado--error strong { color: #9b2929; }
+.historial-estado--vacio { margin: 1rem; border: 1px dashed var(--color-border); border-radius: var(--radius-sm); }
+.historial-resultado__cabecera { display: flex; justify-content: space-between; gap: 1rem; padding: 1.25rem; border-bottom: 1px solid var(--color-border-soft); }
+.historial-resultado h2 { color: var(--color-primary-dark); font-size: 1.25rem; }
+.historial-paciente { display: flex; gap: 1.5rem; margin: 0; }
+.historial-paciente div { display: grid; gap: 0.2rem; }
+.historial-paciente dt { color: var(--color-text-soft); font-size: 0.7rem; font-weight: 700; text-transform: uppercase; }
+.historial-paciente dd { margin: 0; color: var(--color-text); font-size: 0.875rem; }
+.historial-tabla-wrap { overflow-x: auto; }
+.historial-tabla { width: 100%; border-collapse: collapse; min-width: 680px; }
+.historial-tabla caption { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); }
+.historial-tabla th,
+.historial-tabla td { padding: 0.9rem 1.25rem; border-bottom: 1px solid var(--color-border-soft); text-align: left; vertical-align: middle; }
+.historial-tabla th { color: var(--color-text-soft); font-size: 0.7rem; letter-spacing: 0.05em; text-transform: uppercase; }
+.historial-tabla td { color: var(--color-text); font-size: 0.875rem; }
+.historial-tabla tbody tr:last-child td { border-bottom: 0; }
+.historial-estado-cita { display: inline-flex; padding: 0.3rem 0.55rem; border-radius: var(--radius-pill); background: #eef2f6; color: #465568; font-size: 0.72rem; font-weight: 800; white-space: nowrap; }
+.historial-estado-cita--programada { background: #e7f1ff; color: #245c97; }
+.historial-estado-cita--confirmada { background: #e4f6ee; color: #17653f; }
+.historial-estado-cita--atendida { background: #e9e7fb; color: #4d438c; }
+.historial-estado-cita--cancelada { background: #ffebeb; color: #9b2929; }
+.historial-estado-cita--no-asistio { background: #fff1db; color: #87530a; }
+
+@media (max-width: 900px) {
+  .historial-filtros__busqueda,
+  .historial-filtros__filtros { flex-basis: 100%; }
+}
+
+@media (max-width: 700px) {
+  .historial-page__header { justify-content: space-between; }
+  .historial-page__hamburger { display: block; }
+  .historial-page__content { padding: 1.4rem 1rem; }
+  .historial-filtros__busqueda,
+  .historial-filtros__filtros,
+  .historial-filtros__acciones { flex-direction: column; }
+  .historial-filtros__acciones button { width: 100%; }
+  .historial-resultado__cabecera { flex-direction: column; }
+  .historial-paciente { justify-content: space-between; }
+}

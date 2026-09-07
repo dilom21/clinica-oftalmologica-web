@@ -1,0 +1,153 @@
+<main class="historial-page">
+  <div class="historial-page__body">
+    <app-sidebar [mobileOpen]="sidebarMovilAbierto()" (mobileClose)="cerrarSidebar()" />
+
+    <div class="historial-page__main">
+      <header class="historial-page__header">
+        <button
+          type="button"
+          class="historial-page__hamburger"
+          [attr.aria-expanded]="sidebarMovilAbierto()"
+          [attr.aria-label]="sidebarMovilAbierto() ? 'Cerrar menú' : 'Abrir menú'"
+          (click)="alternarSidebar()"
+        >
+          <span></span><span></span><span></span>
+        </button>
+        <button type="button" class="historial-page__logout" (click)="cerrarSesion()">
+          Cerrar sesión
+        </button>
+      </header>
+
+      <div class="historial-page__content">
+        <header class="historial-page__intro">
+          <p class="historial-page__eyebrow">Agenda y Citas</p>
+          <h1>Consultar historial de citas</h1>
+          <p>Consulta las citas pasadas y vigentes de un paciente en orden cronológico.</p>
+        </header>
+
+        <form class="historial-filtros" (submit)="$event.preventDefault(); consultar()">
+          <div class="historial-filtros__busqueda">
+            <label>
+              <span>Buscar paciente por</span>
+              <select [value]="tipoBusqueda()" (change)="onCambiarTipoBusqueda($event)">
+                <option value="nombre">Nombre o apellido</option>
+                <option value="codigo">Código o ID</option>
+                <option value="identificacion">Identificación</option>
+              </select>
+            </label>
+            <label class="historial-filtros__termino">
+              <span>Dato del paciente</span>
+              <input
+                type="search"
+                [value]="terminoBusqueda()"
+                (input)="onCambiarTermino($event)"
+                placeholder="Ej. María López o 1024"
+                autocomplete="off"
+              />
+            </label>
+          </div>
+
+          <div class="historial-filtros__filtros">
+            <label>
+              <span>Desde</span>
+              <input type="date" [value]="fechaDesde()" (change)="onCambiarFechaDesde($event)" />
+            </label>
+            <label>
+              <span>Hasta</span>
+              <input type="date" [value]="fechaHasta()" (change)="onCambiarFechaHasta($event)" />
+            </label>
+            <label>
+              <span>Estado</span>
+              <select [value]="estado()" (change)="onCambiarEstado($event)">
+                <option value="">Todos los estados</option>
+                <option value="PROGRAMADA">Programada</option>
+                <option value="CONFIRMADA">Confirmada</option>
+                <option value="ATENDIDA">Atendida</option>
+                <option value="CANCELADA">Cancelada</option>
+                <option value="NO ASISTIO">No asistió</option>
+              </select>
+            </label>
+          </div>
+
+          <div class="historial-filtros__acciones">
+            <button type="button" class="historial-filtros__limpiar" (click)="limpiar()">
+              Limpiar
+            </button>
+            <button type="submit" class="historial-filtros__buscar" [disabled]="!puedeConsultar()">
+              Consultar historial
+            </button>
+          </div>
+        </form>
+
+        @if (consultando()) {
+          <p class="historial-estado" role="status">Consultando historial...</p>
+        } @else if (errorConsulta(); as mensaje) {
+          <div class="historial-estado historial-estado--error" role="alert">
+            <strong>No se pudo completar la consulta</strong>
+            <span>{{ mensaje }}</span>
+            <button type="button" class="historial-filtros__limpiar" (click)="reintentar()">
+              Reintentar
+            </button>
+          </div>
+        } @else if (historial(); as resultado) {
+          <section class="historial-resultado" aria-labelledby="paciente-consultado">
+            <div class="historial-resultado__cabecera">
+              <div>
+                <p class="historial-page__eyebrow">Paciente consultado</p>
+                <h2 id="paciente-consultado">
+                  {{ resultado.paciente.nombres }} {{ resultado.paciente.apellidos }}
+                </h2>
+              </div>
+              <dl class="historial-paciente">
+                <div><dt>Código</dt><dd>{{ resultado.paciente.id }}</dd></div>
+                <div><dt>Identificación</dt><dd>{{ resultado.paciente.ci || 'No registrada' }}</dd></div>
+              </dl>
+            </div>
+
+            @if (resultado.citas.length === 0) {
+              <div class="historial-estado historial-estado--vacio" role="status">
+                <strong>Sin citas registradas</strong>
+                <span>{{ resultado.mensaje || 'No hay citas para los filtros seleccionados.' }}</span>
+              </div>
+            } @else {
+              <div class="historial-tabla-wrap">
+                <table class="historial-tabla">
+                  <caption>Historial de citas de {{ resultado.paciente.nombres }} {{ resultado.paciente.apellidos }}</caption>
+                  <thead>
+                    <tr>
+                      <th scope="col">Fecha</th>
+                      <th scope="col">Horario</th>
+                      <th scope="col">Estado</th>
+                      <th scope="col">Motivo</th>
+                      <th scope="col">Canal</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    @for (cita of resultado.citas; track trackPorId($index, cita)) {
+                      <tr>
+                        <td>{{ formatearFecha(cita.fecha) }}</td>
+                        <td>{{ formatearHora(cita.hora_inicio) }} - {{ formatearHora(cita.hora_fin) }}</td>
+                        <td>
+                          <span class="historial-estado-cita" [class]="'historial-estado-cita historial-estado-cita--' + claseEstado(cita.estado)">
+                            {{ etiquetaEstado(cita.estado) }}
+                          </span>
+                        </td>
+                        <td>{{ cita.motivo || 'Sin motivo registrado' }}</td>
+                        <td>{{ cita.canal || 'No especificado' }}</td>
+                      </tr>
+                    }
+                  </tbody>
+                </table>
+              </div>
+            }
+          </section>
+        } @else {
+          <div class="historial-estado historial-estado--inicio" role="status">
+            <strong>Busca un paciente para comenzar</strong>
+            <span>Indica un nombre, código o identificación y aplica los filtros necesarios.</span>
+          </div>
+        }
+      </div>
+    </div>
+  </div>
+</main>
