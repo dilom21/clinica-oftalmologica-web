@@ -27,6 +27,7 @@ export class Sidebar implements OnInit {
     ['consultar agenda y disponibilidad médica', '/agenda-disponibilidad'],
     ['configurar disponibilidad del oftalmólogo', '/configurar-disponibilidad'],
     ['gestionar citas médicas', '/gestionar-citas'],
+    ['consultar historial de citas', '/historial-citas'],
   ]);
 
   private readonly iconosPorNombre: ReadonlyArray<{
@@ -89,6 +90,9 @@ export class Sidebar implements OnInit {
     return '/configurar-disponibilidad';
   }
 
+  if (clave.includes('historial') && clave.includes('cita')) {
+    return '/historial-citas';
+}
   if (clave.includes('cita') && clave.includes('gestionar')) {
     return '/gestionar-citas';
   }
