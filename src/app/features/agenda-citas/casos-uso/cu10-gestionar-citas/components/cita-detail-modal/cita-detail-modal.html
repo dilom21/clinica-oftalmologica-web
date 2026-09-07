@@ -1,0 +1,119 @@
+@if (abierto(); as abrir) {
+  @if (cita(); as cita) {
+    <div class="cita-detail-modal">
+      <div
+        class="cita-detail-modal__backdrop"
+        (click)="close.emit()"
+        aria-hidden="true"
+      ></div>
+
+      <div
+        class="cita-detail-modal__dialog"
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="cita-detalle-titulo"
+      >
+        <div class="cita-detail-modal__header">
+          <div>
+            <p class="cita-detail-modal__eyebrow">Cita #{{ cita.id }}</p>
+            <h2 id="cita-detalle-titulo" class="cita-detail-modal__titulo">
+              Detalle de la cita
+            </h2>
+          </div>
+          <button
+            type="button"
+            class="cita-detail-modal__close"
+            (click)="close.emit()"
+            aria-label="Cerrar modal"
+          >
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              aria-hidden="true"
+            >
+              <line x1="18" y1="6" x2="6" y2="18"></line>
+              <line x1="6" y1="6" x2="18" y2="18"></line>
+            </svg>
+          </button>
+        </div>
+
+        <div class="cita-detail-modal__estado">
+          <span [class]="clasesEstado(cita.estado)">{{ etiquetaEstado(cita.estado) }}</span>
+        </div>
+
+        <dl class="cita-detail-modal__datos">
+          <div>
+            <dt>Paciente</dt>
+            <dd>
+              <strong>{{ nombrePaciente(cita) }}</strong>
+              <span>{{ ciPaciente(cita) }}</span>
+            </dd>
+          </div>
+          <div>
+            <dt>Oftalmólogo</dt>
+            <dd>
+              <strong>{{ nombreOftalmologo(cita) }}</strong>
+              <span>{{ detalleOftalmologo(cita) }}</span>
+            </dd>
+          </div>
+          <div>
+            <dt>Fecha</dt>
+            <dd>{{ formatearFecha(cita.fecha) }}</dd>
+          </div>
+          <div>
+            <dt>Horario</dt>
+            <dd>
+              {{ formatearHora(cita.hora_inicio) }} – {{ formatearHora(cita.hora_fin) }}
+            </dd>
+          </div>
+          <div class="cita-detail-modal__datos-full">
+            <dt>Motivo de consulta</dt>
+            <dd>{{ cita.motivo ?? '—' }}</dd>
+          </div>
+          <div class="cita-detail-modal__datos-full">
+            <dt>Observaciones</dt>
+            <dd>{{ cita.observaciones ?? '—' }}</dd>
+          </div>
+        </dl>
+
+        <div class="cita-detail-modal__acciones">
+          @if (!esEstadoTerminal(cita)) {
+            <button
+              type="button"
+              class="cita-detail-modal__btn"
+              (click)="reprogramar.emit(cita)"
+            >
+              Reprogramar
+            </button>
+            <button
+              type="button"
+              class="cita-detail-modal__btn"
+              (click)="cambiarEstado.emit(cita)"
+            >
+              Cambiar estado
+            </button>
+            <button
+              type="button"
+              class="cita-detail-modal__btn cita-detail-modal__btn--peligro"
+              (click)="cancelar.emit(cita)"
+            >
+              Cancelar cita
+            </button>
+          }
+          <button
+            type="button"
+            class="cita-detail-modal__btn cita-detail-modal__btn--primario"
+            (click)="close.emit()"
+          >
+            Cerrar
+          </button>
+        </div>
+      </div>
+    </div>
+  }
+}

@@ -1,0 +1,281 @@
+@if (citas().length === 0) {
+  <div class="citas-table__vacio">
+    <p class="citas-table__vacio-texto">No se encontraron citas.</p>
+  </div>
+} @else {
+  <!-- Escritorio: tabla -->
+  <div class="citas-table citas-table--desktop">
+    <div class="citas-table__scroll">
+      <table class="citas-table__tabla">
+        <thead>
+          <tr>
+            <th scope="col">Paciente</th>
+            <th scope="col">Oftalmólogo</th>
+            <th scope="col">Fecha</th>
+            <th scope="col">Horario</th>
+            <th scope="col">Estado</th>
+            <th scope="col" class="citas-table__acciones-th">Acciones</th>
+          </tr>
+        </thead>
+        <tbody>
+          @for (cita of citas(); track cita.id) {
+            <tr class="citas-table__fila">
+              <td>
+                <div class="citas-table__persona">
+                  <strong>{{ nombrePaciente(cita) }}</strong>
+                  <small>{{ ciPaciente(cita) }}</small>
+                </div>
+              </td>
+              <td>
+                <div class="citas-table__persona">
+                  <strong>{{ nombreOftalmologo(cita) }}</strong>
+                  <small>{{ resumenOftalmologo(cita) }}</small>
+                </div>
+              </td>
+              <td class="citas-table__celda-fecha">{{ formatearFecha(cita.fecha) }}</td>
+              <td class="citas-table__celda-horario">
+                <span class="citas-table__hora">
+                  <span>{{ formatearHora(cita.hora_inicio) }}</span>
+                  <span class="citas-table__hora-separador" aria-hidden="true">a</span>
+                  <span>{{ formatearHora(cita.hora_fin) }}</span>
+                </span>
+              </td>
+              <td>
+                <span [class]="clasesEstado(cita.estado)">{{ etiquetaEstado(cita.estado) }}</span>
+              </td>
+              <td class="citas-table__acciones">
+                <button
+                  type="button"
+                  class="citas-table__menu-boton"
+                  [class.citas-table__menu-boton--activo]="esMenuAbierta(cita)"
+                  (click)="alternarMenu($event, cita)"
+                  [attr.aria-expanded]="esMenuAbierta(cita)"
+                  aria-label="Acciones de la cita del paciente {{ nombrePaciente(cita) }}"
+                  title="Acciones"
+                >
+                  <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    viewBox="0 0 24 24"
+                    fill="currentColor"
+                    aria-hidden="true"
+                  >
+                    <circle cx="12" cy="5" r="1.6"></circle>
+                    <circle cx="12" cy="12" r="1.6"></circle>
+                    <circle cx="12" cy="19" r="1.6"></circle>
+                  </svg>
+                </button>
+              </td>
+            </tr>
+          }
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- Móvil: tarjetas -->
+  <ul class="citas-table citas-table--movil">
+    @for (cita of citas(); track cita.id) {
+      <li class="citas-table__card">
+        <div class="citas-table__card-cabecera">
+          <div class="citas-table__persona">
+            <strong>{{ nombrePaciente(cita) }}</strong>
+            <small>{{ ciPaciente(cita) }}</small>
+          </div>
+          <span [class]="clasesEstado(cita.estado)">{{ etiquetaEstado(cita.estado) }}</span>
+        </div>
+
+        <dl class="citas-table__card-detalles">
+          <div>
+            <dt>Oftalmólogo</dt>
+            <dd>
+              <strong>{{ nombreOftalmologo(cita) }}</strong>
+              <small>{{ resumenOftalmologo(cita) }}</small>
+            </dd>
+          </div>
+          <div>
+            <dt>Fecha</dt>
+            <dd>{{ formatearFecha(cita.fecha) }}</dd>
+          </div>
+          <div>
+            <dt>Horario</dt>
+            <dd>{{ formatearHora(cita.hora_inicio) }} – {{ formatearHora(cita.hora_fin) }}</dd>
+          </div>
+        </dl>
+
+        <div class="citas-table__card-pie">
+          <button type="button" class="citas-table__btn" (click)="verCita(cita)">
+            Ver detalle
+          </button>
+          @if (esConfirmable(cita)) {
+            <button type="button" class="citas-table__btn" (click)="confirmarCita(cita)">
+              Confirmar
+            </button>
+          }
+          <button
+            type="button"
+            class="citas-table__btn"
+            [disabled]="esEstadoTerminal(cita)"
+            (click)="reprogramarCita(cita)"
+          >
+            Reprogramar
+          </button>
+          <button
+            type="button"
+            class="citas-table__btn"
+            [disabled]="esEstadoTerminal(cita)"
+            (click)="cambiarEstadoCita(cita)"
+          >
+            Estado
+          </button>
+          <button
+            type="button"
+            class="citas-table__btn citas-table__btn--peligro"
+            [disabled]="esEstadoTerminal(cita)"
+            (click)="cancelarCita(cita)"
+          >
+            Cancelar
+          </button>
+        </div>
+      </li>
+    }
+  </ul>
+}
+
+@if (menuCita(); as cita) {
+  <div
+    class="citas-table__menu-panel"
+    [class.citas-table__menu-panel--arriba]="posicionMenu().arriba"
+    [style.left.px]="posicionMenu().left"
+    [style.top.px]="posicionMenu().top"
+    role="menu"
+    (click)="$event.stopPropagation()"
+  >
+    <button
+      type="button"
+      role="menuitem"
+      class="citas-table__menu-item"
+      (click)="verCita(cita)"
+    >
+      <svg
+        xmlns="http://www.w3.org/2000/svg"
+        viewBox="0 0 24 24"
+        fill="none"
+        stroke="currentColor"
+        stroke-width="2"
+        stroke-linecap="round"
+        stroke-linejoin="round"
+        aria-hidden="true"
+      >
+        <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path>
+        <circle cx="12" cy="12" r="3"></circle>
+      </svg>
+      Ver detalle
+    </button>
+    <button
+      type="button"
+      role="menuitem"
+      class="citas-table__menu-item"
+      [disabled]="esEstadoTerminal(cita)"
+      [title]="
+        esEstadoTerminal(cita)
+          ? 'No se puede reprogramar una cita en estado ' + etiquetaEstado(cita.estado)
+          : 'Reprogramar cita'
+      "
+      (click)="reprogramarCita(cita)"
+    >
+      <svg
+        xmlns="http://www.w3.org/2000/svg"
+        viewBox="0 0 24 24"
+        fill="none"
+        stroke="currentColor"
+        stroke-width="2"
+        stroke-linecap="round"
+        stroke-linejoin="round"
+        aria-hidden="true"
+      >
+        <polyline points="23 4 23 10 17 10"></polyline>
+        <path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"></path>
+      </svg>
+      Reprogramar
+    </button>
+    @if (esConfirmable(cita)) {
+      <button
+        type="button"
+        role="menuitem"
+        class="citas-table__menu-item"
+        title="Confirmar cita"
+        (click)="confirmarCita(cita)"
+      >
+        <svg
+          xmlns="http://www.w3.org/2000/svg"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          stroke-width="2"
+          stroke-linecap="round"
+          stroke-linejoin="round"
+          aria-hidden="true"
+        >
+          <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path>
+          <polyline points="22 4 12 14.01 9 11.01"></polyline>
+        </svg>
+        Confirmar cita
+      </button>
+    }
+    <button
+      type="button"
+      role="menuitem"
+      class="citas-table__menu-item"
+      [disabled]="esEstadoTerminal(cita)"
+      [title]="
+        esEstadoTerminal(cita)
+          ? 'No se puede cambiar el estado de una cita en estado ' + etiquetaEstado(cita.estado)
+          : 'Cambiar estado de la cita'
+      "
+      (click)="cambiarEstadoCita(cita)"
+    >
+      <svg
+        xmlns="http://www.w3.org/2000/svg"
+        viewBox="0 0 24 24"
+        fill="none"
+        stroke="currentColor"
+        stroke-width="2"
+        stroke-linecap="round"
+        stroke-linejoin="round"
+        aria-hidden="true"
+      >
+        <path d="M12 20h9"></path>
+        <path d="M16.5 3.5a2.12 2.12 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"></path>
+      </svg>
+      Cambiar estado
+    </button>
+    <button
+      type="button"
+      role="menuitem"
+      class="citas-table__menu-item citas-table__menu-item--peligro"
+      [disabled]="esEstadoTerminal(cita)"
+      [title]="
+        esEstadoTerminal(cita)
+          ? 'No se puede cancelar una cita en estado ' + etiquetaEstado(cita.estado)
+          : 'Cancelar cita'
+      "
+      (click)="cancelarCita(cita)"
+    >
+      <svg
+        xmlns="http://www.w3.org/2000/svg"
+        viewBox="0 0 24 24"
+        fill="none"
+        stroke="currentColor"
+        stroke-width="2"
+        stroke-linecap="round"
+        stroke-linejoin="round"
+        aria-hidden="true"
+      >
+        <circle cx="12" cy="12" r="10"></circle>
+        <line x1="15" y1="9" x2="9" y2="15"></line>
+        <line x1="9" y1="9" x2="15" y2="15"></line>
+      </svg>
+      Cancelar
+    </button>
+  </div>
+}

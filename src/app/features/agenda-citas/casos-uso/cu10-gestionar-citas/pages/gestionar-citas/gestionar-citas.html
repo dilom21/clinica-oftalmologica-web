@@ -1,0 +1,384 @@
+<main class="citas-page">
+  <div class="citas-page__body">
+    <app-sidebar [mobileOpen]="sidebarMovilAbierto()" (mobileClose)="cerrarSidebar()" />
+
+    <div class="citas-page__main">
+      <header class="citas-page__main-header">
+        <button
+          type="button"
+          class="citas-page__hamburger"
+          [attr.aria-expanded]="sidebarMovilAbierto()"
+          [attr.aria-label]="sidebarMovilAbierto() ? 'Cerrar menú' : 'Abrir menú'"
+          (click)="alternarSidebar()"
+        >
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+            aria-hidden="true"
+          >
+            <line x1="3" y1="6" x2="21" y2="6"></line>
+            <line x1="3" y1="12" x2="21" y2="12"></line>
+            <line x1="3" y1="18" x2="21" y2="18"></line>
+          </svg>
+        </button>
+        <button type="button" class="citas-page__logout" (click)="cerrarSesion()">
+          Cerrar sesión
+        </button>
+      </header>
+
+      <div class="citas-page__content">
+        <div class="citas-page__cabecera">
+          <div>
+            <h1 class="citas-page__titulo">Gestión de citas médicas</h1>
+            <p class="citas-page__subtitulo">
+              Registra, consulta y administra las citas de los pacientes.
+            </p>
+          </div>
+
+          <div class="citas-page__controles" role="tablist" aria-label="Vista de citas">
+            <button
+              type="button"
+              role="tab"
+              class="citas-page__control"
+              [class.citas-page__control--activo]="esVistaLista()"
+              (click)="irALista()"
+            >
+              Lista de citas
+            </button>
+            <button
+              type="button"
+              role="tab"
+              class="citas-page__control citas-page__control--crear"
+              [class.citas-page__control--activo]="!esVistaLista()"
+              (click)="irANuevaCita()"
+            >
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                aria-hidden="true"
+              >
+                <line x1="12" y1="5" x2="12" y2="19"></line>
+                <line x1="5" y1="12" x2="19" y2="12"></line>
+              </svg>
+              Nueva cita
+            </button>
+          </div>
+        </div>
+
+@if (esVistaLista()) {
+  @if (errorDia(); as err) {
+    <div
+      class="citas-page__aviso"
+      [class.citas-page__aviso--permiso]="err.tipo === 'permiso'"
+      role="alert"
+    >
+      {{ err.mensaje }}
+      @if (err.tipo === 'error') {
+        <button type="button" class="citas-page__aviso-accion" (click)="reintentarDia()">
+          Reintentar
+        </button>
+      }
+    </div>
+  } @else {
+    <section class="citas-resumen" aria-label="Resumen de citas del día">
+      <article class="citas-resumen__tarjeta citas-resumen__tarjeta--total">
+        <span class="citas-resumen__etiqueta">Total</span>
+        <strong class="citas-resumen__valor">{{ totalDia() }}</strong>
+      </article>
+      <article class="citas-resumen__tarjeta citas-resumen__tarjeta--programadas">
+        <span class="citas-resumen__etiqueta">Programadas</span>
+        <strong class="citas-resumen__valor">{{ programadasDia() }}</strong>
+      </article>
+      <article class="citas-resumen__tarjeta citas-resumen__tarjeta--confirmadas">
+        <span class="citas-resumen__etiqueta">Confirmadas</span>
+        <strong class="citas-resumen__valor">{{ confirmadasDia() }}</strong>
+      </article>
+      <article class="citas-resumen__tarjeta citas-resumen__tarjeta--canceladas">
+        <span class="citas-resumen__etiqueta">Canceladas</span>
+        <strong class="citas-resumen__valor">{{ canceladasDia() }}</strong>
+      </article>
+    </section>
+
+    <div class="citas-fecha">
+      <button
+        type="button"
+        class="citas-fecha__nav"
+        (click)="diaAnterior()"
+        [attr.aria-label]="'Día anterior'"
+        title="Día anterior"
+      >
+        <svg
+          xmlns="http://www.w3.org/2000/svg"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          stroke-width="2.5"
+          stroke-linecap="round"
+          stroke-linejoin="round"
+          aria-hidden="true"
+        >
+          <polyline points="15 18 9 12 15 6"></polyline>
+        </svg>
+      </button>
+
+      <button
+        type="button"
+        class="citas-fecha__texto"
+        (click)="alternarCalendario()"
+        title="Abrir calendario"
+      >
+        {{ formatearSelector() }}
+      </button>
+
+      <button
+        type="button"
+        class="citas-fecha__nav"
+        (click)="diaSiguiente()"
+        [attr.aria-label]="'Día siguiente'"
+        title="Día siguiente"
+      >
+        <svg
+          xmlns="http://www.w3.org/2000/svg"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          stroke-width="2.5"
+          stroke-linecap="round"
+          stroke-linejoin="round"
+          aria-hidden="true"
+        >
+          <polyline points="9 18 15 12 9 6"></polyline>
+        </svg>
+      </button>
+
+      <div class="citas-fecha__calendario">
+        <button
+          type="button"
+          class="citas-fecha__icono"
+          (click)="alternarCalendario()"
+          title="Elegir fecha"
+          aria-label="Elegir fecha"
+        >
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+            aria-hidden="true"
+          >
+            <rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect>
+            <line x1="16" y1="2" x2="16" y2="6"></line>
+            <line x1="8" y1="2" x2="8" y2="6"></line>
+            <line x1="3" y1="10" x2="21" y2="10"></line>
+          </svg>
+        </button>
+
+        @if (calendarioAbierto()) {
+          <div class="citas-fecha__popover">
+            <input
+              type="date"
+              class="citas-fecha__input"
+              [value]="fechaSeleccionada()"
+              (change)="seleccionarFechaDelCalendario($event)"
+              aria-label="Seleccionar fecha"
+            />
+            <p>Selecciona la fecha a consultar.</p>
+          </div>
+        }
+      </div>
+    </div>
+
+    <section class="citas-dia" aria-labelledby="citas-dia-titulo">
+      <header class="citas-dia__cabecera">
+        <div>
+          <h2 id="citas-dia-titulo" class="citas-dia__titulo">Citas del día</h2>
+          <p class="citas-dia__fecha">{{ formatearDiaConSemana() }}</p>
+        </div>
+        @if (cargandoDia()) {
+          <span class="citas-dia__cargando" role="status">Consultando…</span>
+        } @else {
+          <span class="citas-dia__contador">
+            {{ citasFiltradas().length }} cita(s)
+          </span>
+        }
+      </header>
+
+      <div class="citas-filtros">
+        <label class="citas-filtros__campo citas-filtros__campo--busqueda">
+          <span>Buscar paciente</span>
+          <div class="citas-filtros__busqueda">
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              aria-hidden="true"
+            >
+              <circle cx="11" cy="11" r="8"></circle>
+              <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+            </svg>
+            <input
+              type="search"
+              [value]="filtroBusqueda()"
+              (input)="onBuscarPaciente($event)"
+              placeholder="Nombre, CI o n.º de cita…"
+            />
+          </div>
+        </label>
+
+        <label class="citas-filtros__campo">
+          <span>Oftalmólogo</span>
+          <select [value]="filtroOftalmologo()" (change)="cambiarFiltroOftalmologo($event)">
+            <option value="">Todos</option>
+            @for (oftalmologo of oftalmologos(); track oftalmologo.id) {
+              <option [value]="oftalmologo.id">
+                {{ oftalmologo.nombres }} {{ oftalmologo.apellidos }}
+              </option>
+            }
+          </select>
+        </label>
+
+        <label class="citas-filtros__campo">
+          <span>Estado</span>
+          <select [value]="filtroEstado()" (change)="cambiarFiltroEstado($event)">
+            @for (estado of estadosFiltro; track estado) {
+              <option [value]="estado">
+                {{ estado === '' ? 'Todos' : estado.charAt(0) + estado.slice(1).toLowerCase() }}
+              </option>
+            }
+          </select>
+        </label>
+
+        <button type="button" class="citas-filtros__limpiar" (click)="limpiarFiltros()">
+          Limpiar filtros
+        </button>
+      </div>
+
+      @if (cargandoDia()) {
+        <div class="citas-dia__estado" role="status">
+          <span class="citas-dia__spinner" aria-hidden="true"></span>
+          Cargando citas del día…
+        </div>
+      } @else if (citasFiltradas().length === 0) {
+        <div class="citas-dia__estado citas-dia__estado--vacio">
+          @if (hayFiltrosActivos()) {
+            No se encontraron citas con los filtros aplicados.
+          } @else {
+            No hay citas programadas para esta fecha.
+          }
+        </div>
+      } @else {
+        <app-cu10-citas-table
+          [citas]="citasFiltradas()"
+          [pacientes]="pacientes()"
+          [oftalmologos]="oftalmologos()"
+          (verDetalle)="abrirDetalle($event)"
+          (reprogramar)="abrirReprogramar($event)"
+          (confirmar)="confirmarCita($event)"
+          (cambiarEstado)="abrirCambiarEstado($event)"
+          (cancelar)="abrirCancelar($event)"
+        />
+      }
+    </section>
+  }
+}
+
+@if (!esVistaLista()) {
+  <section class="citas-nueva" aria-label="Registrar nueva cita">
+    @if (errorCatalogos(); as err) {
+      <div
+        class="citas-page__aviso"
+        [class.citas-page__aviso--permiso]="err.tipo === 'permiso'"
+        role="alert"
+      >
+        @if (err.tipo === 'permiso') {
+          No tienes permisos para consultar pacientes u oftalmólogos. No es posible registrar citas.
+        } @else {
+          No fue posible cargar la información. Intenta nuevamente.
+        }
+        @if (err.tipo === 'error') {
+          <button type="button" class="citas-page__aviso-accion" (click)="reintentarCatalogos()">
+            Reintentar
+          </button>
+        }
+      </div>
+    }
+
+    <app-cu10-cita-form
+      [pacientes]="pacientes()"
+      [oftalmologos]="oftalmologos()"
+      (citaRegistrada)="alRegistrarCita($event)"
+    />
+  </section>
+}
+      </div>
+    </div>
+  </div>
+
+  @if (sidebarMovilAbierto()) {
+    <button
+      type="button"
+      class="citas-page__backdrop"
+      (click)="cerrarSidebar()"
+      aria-label="Cerrar menú"
+    ></button>
+  }
+
+  @if (detalleAbierto() && citaEnDetalle(); as cita) {
+    <app-cu10-cita-detail-modal
+      [abierto]="detalleAbierto()"
+      [cita]="cita"
+      [pacientes]="pacientes()"
+      [oftalmologos]="oftalmologos()"
+      (close)="cerrarDetalle()"
+      (reprogramar)="reprogramarDesdeDetalle($event)"
+      (cambiarEstado)="abrirCambiarEstado($event)"
+      (cancelar)="abrirCancelar($event)"
+    />
+  }
+
+  @if (modalReprogramarAbierto() && citaReprogramar(); as cita) {
+    <app-cu10-reprogramar-modal
+      [abierto]="modalReprogramarAbierto()"
+      [cita]="cita"
+      [pacientes]="pacientes()"
+      [oftalmologos]="oftalmologos()"
+      (close)="cerrarReprogramar()"
+      (reprogramada)="alReprogramar()"
+    />
+  }
+
+  @if (modalEstadoAbierto() && citaEstado(); as cita) {
+    <app-cu10-estado-modal
+      [abierto]="modalEstadoAbierto()"
+      [cita]="cita"
+      [pacientes]="pacientes()"
+      [modo]="modoEstado()"
+      (close)="cerrarEstadoModal()"
+      (actualizada)="alActualizarEstado()"
+    />
+  }
+
+  @if (toastExito(); as mensaje) {
+    <div class="citas-page__toast citas-page__toast--exito" role="status">{{ mensaje }}</div>
+  }
+  @if (toastError(); as mensaje) {
+    <div class="citas-page__toast citas-page__toast--error" role="alert">{{ mensaje }}</div>
+  }
+</main>

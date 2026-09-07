@@ -1,0 +1,185 @@
+@if (abierto()) {
+  @if (cita(); as cita) {
+    <div class="reprogramar-modal">
+      <div
+        class="reprogramar-modal__backdrop"
+        (click)="cancelar()"
+        aria-hidden="true"
+      ></div>
+
+      <div
+        class="reprogramar-modal__dialog"
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="reprogramar-titulo"
+      >
+        <div class="reprogramar-modal__header">
+          <div>
+            <p class="reprogramar-modal__eyebrow">Cita #{{ cita.id }}</p>
+            <h2 id="reprogramar-titulo" class="reprogramar-modal__titulo">
+              Reprogramar cita
+            </h2>
+          </div>
+          <button
+            type="button"
+            class="reprogramar-modal__close"
+            (click)="cancelar()"
+            aria-label="Cerrar modal"
+            [disabled]="guardando()"
+          >
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              aria-hidden="true"
+            >
+              <line x1="18" y1="6" x2="6" y2="18"></line>
+              <line x1="6" y1="6" x2="18" y2="18"></line>
+            </svg>
+          </button>
+        </div>
+
+        <div class="reprogramar-modal__cuerpo">
+          <ul class="reprogramar-modal__resumen">
+            <li>
+              <span>Paciente</span>
+              <strong>{{ nombrePaciente(cita) }}</strong>
+            </li>
+            <li>
+              <span>Oftalmólogo</span>
+              <strong>{{ nombreOftalmologo(cita) }}</strong>
+            </li>
+            <li>
+              <span>Fecha actual</span>
+              <strong>{{ formatearFecha(cita.fecha) }}</strong>
+            </li>
+            <li>
+              <span>Horario actual</span>
+              <strong>{{ formatearHora(cita.hora_inicio) }} – {{ formatearHora(cita.hora_fin) }}</strong>
+            </li>
+          </ul>
+
+          @if (errorConsulta(); as mensajeConsulta) {
+            <div class="reprogramar-modal__alerta reprogramar-modal__alerta--error" role="alert">
+              <strong>No se pudo consultar la disponibilidad.</strong>
+              <span>{{ mensajeConsulta }}</span>
+            </div>
+          }
+
+          <div class="reprogramar-modal__fecha-fila">
+            <label class="reprogramar-modal__campo">
+              <span class="reprogramar-modal__label">
+                Nueva fecha <span class="reprogramar-modal__requerido">*</span>
+              </span>
+              <input
+                type="date"
+                class="reprogramar-modal__input"
+                [value]="fecha()"
+                [min]="fechaMinima"
+                (change)="cambiarFecha($event)"
+                [disabled]="consultando() || guardando()"
+              />
+            </label>
+            <button
+              type="button"
+              class="reprogramar-modal__boton-consultar"
+              (click)="consultarDisponibilidad()"
+              [disabled]="fecha() === '' || consultando() || guardando()"
+            >
+              @if (consultando()) {
+                <span class="reprogramar-modal__spinner" aria-hidden="true"></span>
+                Consultando…
+              } @else {
+                Consultar disponibilidad
+              }
+            </button>
+          </div>
+
+          @if (consultando()) {
+            <p class="reprogramar-modal__estado" role="status">
+              Consultando horarios disponibles…
+            </p>
+          }
+
+          @if (disponibilidad(); as disp) {
+            <section class="reprogramar-modal__horarios" aria-label="Horarios disponibles">
+              <header class="reprogramar-modal__horarios-cabecera">
+                <div>
+                  <p class="reprogramar-modal__etiqueta">Nueva fecha</p>
+                  <h3 class="reprogramar-modal__horarios-titulo">
+                    {{ formatearFecha(disp.fecha) }}
+                  </h3>
+                </div>
+                <span class="reprogramar-modal__contador">
+                  {{ disp.intervalos_disponibles.length }} disponible(s)
+                </span>
+              </header>
+
+              @if (!disp.tiene_horario) {
+                <div class="reprogramar-modal__aviso">
+                  <strong>Sin horario configurado</strong>
+                  <span>
+                    El oftalmólogo no tiene un horario base activo para la fecha seleccionada.
+                  </span>
+                </div>
+              } @else {
+                <app-cu10-selector-horarios
+                  [opciones]="opcionesHorarios()"
+                  [fecha]="fecha()"
+                  [seleccionado]="horarioSeleccionado()"
+                  [deshabilitado]="guardando()"
+                  (seleccionar)="seleccionarHorario($event)"
+                />
+              }
+            </section>
+          }
+
+          @if (horarioSeleccionado(); as horario) {
+            <div class="reprogramar-modal__resumen-nuevo">
+              <span>Nuevo horario seleccionado</span>
+              <strong>
+                {{ formatearFecha(fecha()) }} ·
+                {{ formatearHora(horario.hora_inicio) }} – {{ formatearHora(horario.hora_fin) }}
+              </strong>
+            </div>
+          }
+
+          @if (errorGuardar(); as mensajeGuardar) {
+            <div class="reprogramar-modal__alerta reprogramar-modal__alerta--error" role="alert">
+              <strong>No se pudo reprogramar la cita.</strong>
+              <span>{{ mensajeGuardar }}</span>
+            </div>
+          }
+        </div>
+
+        <div class="reprogramar-modal__pie">
+          <button
+            type="button"
+            class="reprogramar-modal__btn reprogramar-modal__btn--cancelar"
+            (click)="cancelar()"
+            [disabled]="guardando()"
+          >
+            Cancelar
+          </button>
+          <button
+            type="button"
+            class="reprogramar-modal__btn reprogramar-modal__btn--guardar"
+            (click)="guardarReprogramacion()"
+            [disabled]="!puedeGuardar()"
+          >
+            @if (guardando()) {
+              <span class="reprogramar-modal__spinner" aria-hidden="true"></span>
+              Guardando…
+            } @else {
+              Guardar reprogramación
+            }
+          </button>
+        </div>
+      </div>
+    </div>
+  }
+}

@@ -26,6 +26,7 @@ export class Sidebar implements OnInit {
     ['consultar bitácora', '/bitacora'],
     ['consultar agenda y disponibilidad médica', '/agenda-disponibilidad'],
     ['configurar disponibilidad del oftalmólogo', '/configurar-disponibilidad'],
+    ['gestionar citas médicas', '/gestionar-citas'],
   ]);
 
   private readonly iconosPorNombre: ReadonlyArray<{
@@ -86,6 +87,10 @@ export class Sidebar implements OnInit {
 
   if (clave.includes('disponibilidad') && clave.includes('configurar')) {
     return '/configurar-disponibilidad';
+  }
+
+  if (clave.includes('cita') && clave.includes('gestionar')) {
+    return '/gestionar-citas';
   }
 
   return null;

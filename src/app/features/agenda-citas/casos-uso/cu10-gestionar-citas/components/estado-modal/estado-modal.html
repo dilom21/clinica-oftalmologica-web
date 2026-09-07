@@ -1,0 +1,157 @@
+@if (abierto()) {
+  @if (cita(); as cita) {
+    <div class="estado-modal">
+      <div class="estado-modal__backdrop" (click)="cancelar()" aria-hidden="true"></div>
+
+      <div
+        class="estado-modal__dialog"
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="estado-modal-titulo"
+      >
+        <div class="estado-modal__header">
+          <div>
+            <p class="estado-modal__eyebrow">Cita #{{ cita.id }}</p>
+            <h2 id="estado-modal-titulo" class="estado-modal__titulo">
+              @if (esModoCancelar()) {
+                Cancelar cita
+              } @else {
+                Cambiar estado de la cita
+              }
+            </h2>
+          </div>
+          <button
+            type="button"
+            class="estado-modal__close"
+            (click)="cancelar()"
+            aria-label="Cerrar modal"
+            [disabled]="guardando()"
+          >
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              aria-hidden="true"
+            >
+              <line x1="18" y1="6" x2="6" y2="18"></line>
+              <line x1="6" y1="6" x2="18" y2="18"></line>
+            </svg>
+          </button>
+        </div>
+
+        <div class="estado-modal__cuerpo">
+          @if (esModoCancelar()) {
+            <div class="estado-modal__aviso">
+              <span class="estado-modal__icono estado-modal__icono--peligro" aria-hidden="true">
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  stroke-width="2"
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                >
+                  <circle cx="12" cy="12" r="10"></circle>
+                  <line x1="15" y1="9" x2="9" y2="15"></line>
+                  <line x1="9" y1="9" x2="15" y2="15"></line>
+                </svg>
+              </span>
+              <h3 class="estado-modal__aviso-titulo">¿Desea cancelar esta cita?</h3>
+              <p class="estado-modal__aviso-texto">
+                El estado de la cita cambiará a «Cancelada». Esta acción no se puede
+                deshacer desde esta pantalla.
+              </p>
+              <ul class="estado-modal__datos">
+                <li>
+                  <span>Paciente</span>
+                  <strong>{{ nombrePaciente(cita) }}</strong>
+                </li>
+                <li>
+                  <span>Fecha y horario</span>
+                  <strong>
+                    {{ formatearFecha(cita.fecha) }} ·
+                    {{ formatearHora(cita.hora_inicio) }} – {{ formatearHora(cita.hora_fin) }}
+                  </strong>
+                </li>
+              </ul>
+            </div>
+          } @else {
+            <div class="estado-modal__actual">
+              <span>Estado actual</span>
+              <strong>{{ etiquetaEstado(cita.estado) }}</strong>
+            </div>
+
+            <p class="estado-modal__subtitulo">Selecciona el nuevo estado de la cita</p>
+
+            <div class="estado-modal__opciones">
+              @for (opcion of opciones; track opcion.estado) {
+                <button
+                  type="button"
+                  class="estado-modal__opcion"
+                  [class.estado-modal__opcion--activa]="estadoSeleccionado() === opcion.estado"
+                  (click)="seleccionarEstado(opcion.estado)"
+                  [disabled]="guardando()"
+                >
+                  <span class="estado-modal__radio" aria-hidden="true"></span>
+                  <span class="estado-modal__opcion-texto">
+                    <strong>{{ etiquetaEstado(opcion.estado) }}</strong>
+                    <small>{{ opcion.descripcion }}</small>
+                  </span>
+                </button>
+              }
+            </div>
+          }
+
+          @if (error(); as mensajeError) {
+            <div class="estado-modal__error" role="alert">{{ mensajeError }}</div>
+          }
+        </div>
+
+        <div class="estado-modal__pie">
+          <button
+            type="button"
+            class="estado-modal__btn estado-modal__btn--cancelar"
+            (click)="cancelar()"
+            [disabled]="guardando()"
+          >
+            Cancelar
+          </button>
+          @if (esModoCancelar()) {
+            <button
+              type="button"
+              class="estado-modal__btn estado-modal__btn--peligro"
+              (click)="confirmar()"
+              [disabled]="guardando()"
+            >
+              @if (guardando()) {
+                <span class="estado-modal__spinner" aria-hidden="true"></span>
+                Cancelando…
+              } @else {
+                Sí, cancelar cita
+              }
+            </button>
+          } @else {
+            <button
+              type="button"
+              class="estado-modal__btn estado-modal__btn--primario"
+              (click)="confirmar()"
+              [disabled]="!puedeCambiar()"
+            >
+              @if (guardando()) {
+                <span class="estado-modal__spinner" aria-hidden="true"></span>
+                Guardando…
+              } @else {
+                Cambiar estado
+              }
+            </button>
+          }
+        </div>
+      </div>
+    </div>
+  }
+}

@@ -1,0 +1,110 @@
+.selector-horarios__contenido {
+  display: flex;
+  flex-direction: column;
+  gap: 0.7rem;
+}
+
+.selector-horarios__hint {
+  color: var(--color-text-soft);
+  font-size: 0.8rem;
+}
+
+.selector-horarios__vacio {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.3rem;
+  padding: 1.2rem;
+  border: 1px dashed var(--color-border);
+  border-radius: var(--radius-sm);
+  background: var(--color-background-mist);
+  color: var(--color-text-soft);
+  font-size: 0.85rem;
+  text-align: center;
+}
+
+.selector-horarios__vacio strong {
+  color: var(--color-primary-dark);
+  font-size: 0.9rem;
+}
+
+.selector-horarios__lista {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(110px, 1fr));
+  gap: 0.6rem;
+}
+
+.selector-horarios__item {
+  min-width: 0;
+}
+
+.selector-horarios__boton {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-direction: column;
+  gap: 0.25rem;
+  width: 100%;
+  padding: 0.6rem 0.7rem;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-sm);
+  background: var(--color-white);
+  color: var(--color-text);
+  cursor: pointer;
+  text-align: center;
+  transition:
+    border-color 0.2s ease,
+    background 0.2s ease,
+    box-shadow 0.2s ease,
+    transform 0.2s ease;
+}
+
+.selector-horarios__boton:hover:not(:disabled) {
+  border-color: var(--color-primary);
+  background: var(--color-background-sky);
+  transform: translateY(-1px);
+}
+
+.selector-horarios__boton--activo {
+  border-color: var(--color-primary);
+  background: var(--color-background-deep);
+  box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.12);
+}
+
+.selector-horarios__boton:disabled {
+  opacity: 0.65;
+  cursor: not-allowed;
+}
+
+.selector-horarios__hora {
+  color: var(--color-primary-dark);
+  font-size: 1rem;
+  font-weight: 800;
+  font-variant-numeric: tabular-nums;
+}
+
+.selector-horarios__badge {
+  display: inline-block;
+  padding: 0.15rem 0.55rem;
+  border-radius: var(--radius-pill);
+  background: #ecfdf5;
+  border: 1px solid #a7f3d0;
+  color: #047857;
+  font-size: 0.65rem;
+  font-weight: 800;
+}
+
+.selector-horarios__boton--activo .selector-horarios__badge {
+  background: var(--color-background-sky);
+  border-color: var(--color-border);
+  color: var(--color-primary);
+}
+
+@media (max-width: 480px) {
+  .selector-horarios__lista {
+    grid-template-columns: repeat(auto-fill, minmax(96px, 1fr));
+  }
+}

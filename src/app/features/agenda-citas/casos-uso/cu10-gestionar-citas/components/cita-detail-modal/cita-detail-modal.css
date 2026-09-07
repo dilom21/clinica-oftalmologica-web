@@ -1,0 +1,269 @@
+.cita-detail-modal__backdrop {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.5);
+  z-index: 1199;
+  animation: citaDetalleFadeIn 0.2s ease;
+}
+
+.cita-detail-modal__dialog {
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 90%;
+  max-width: 560px;
+  max-height: 90vh;
+  display: flex;
+  flex-direction: column;
+  background: var(--color-white);
+  border-radius: var(--radius-lg);
+  box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.15);
+  z-index: 1200;
+  animation: citaDetalleSlideUp 0.3s ease;
+}
+
+@keyframes citaDetalleFadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes citaDetalleSlideUp {
+  from {
+    opacity: 0;
+    transform: translate(-50%, -45%);
+  }
+  to {
+    opacity: 1;
+    transform: translate(-50%, -50%);
+  }
+}
+
+.cita-detail-modal__header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 1rem;
+  padding: 1.4rem 1.5rem;
+  border-bottom: 1px solid var(--color-border-soft);
+}
+
+.cita-detail-modal__eyebrow {
+  color: var(--color-primary);
+  font-size: 0.7rem;
+  font-weight: 800;
+  letter-spacing: 0.07em;
+  text-transform: uppercase;
+}
+
+.cita-detail-modal__titulo {
+  margin-top: 0.15rem;
+  font-size: 1.25rem;
+  font-weight: 800;
+  color: var(--color-primary-dark);
+}
+
+.cita-detail-modal__close {
+  flex: 0 0 auto;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  padding: 0;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-sm);
+  background: var(--color-white);
+  color: var(--color-text);
+  cursor: pointer;
+  transition:
+    background 0.2s ease,
+    color 0.2s ease;
+}
+
+.cita-detail-modal__close:hover {
+  background: var(--color-background-mist);
+  color: var(--color-primary-dark);
+}
+
+.cita-detail-modal__close svg {
+  width: 18px;
+  height: 18px;
+}
+
+.cita-detail-modal__estado {
+  display: flex;
+  justify-content: center;
+  padding: 0.9rem 1.5rem 0;
+}
+
+.cita-detail-modal__badge {
+  display: inline-flex;
+  align-items: center;
+  padding: 0.25rem 0.9rem;
+  border-radius: var(--radius-pill);
+  font-size: 0.78rem;
+  font-weight: 800;
+  border: 1px solid transparent;
+}
+
+.cita-detail-modal__badge.cita-estado--programada {
+  background: var(--color-background-sky);
+  border-color: var(--color-border);
+  color: var(--color-primary);
+}
+
+.cita-detail-modal__badge.cita-estado--confirmada {
+  background: #ecfdf5;
+  border-color: #a7f3d0;
+  color: #047857;
+}
+
+.cita-detail-modal__badge.cita-estado--en_espera {
+  background: #fffbeb;
+  border-color: #fde68a;
+  color: #b45309;
+}
+
+.cita-detail-modal__badge.cita-estado--atendida {
+  background: #f0f9ff;
+  border-color: #bae6fd;
+  color: #0369a1;
+}
+
+.cita-detail-modal__badge.cita-estado--cancelada {
+  background: #fef2f2;
+  border-color: #fecaca;
+  color: #dc2626;
+}
+
+.cita-detail-modal__badge.cita-estado--no_asistio {
+  background: #f1f5f9;
+  border-color: #cbd5e1;
+  color: #475569;
+}
+
+.cita-detail-modal__datos {
+  margin: 0;
+  padding: 1.2rem 1.5rem;
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  gap: 0.9rem;
+  overflow-y: auto;
+}
+
+.cita-detail-modal__datos > div {
+  display: flex;
+  flex-direction: column;
+  gap: 0.15rem;
+  padding: 0.7rem 0.9rem;
+  border: 1px solid var(--color-border-soft);
+  border-radius: var(--radius-sm);
+  background: var(--color-background-mist);
+}
+
+.cita-detail-modal__datos-full {
+  grid-column: 1 / -1;
+}
+
+.cita-detail-modal__datos dt {
+  color: var(--color-text-soft);
+  font-size: 0.7rem;
+  font-weight: 800;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+}
+
+.cita-detail-modal__datos dd {
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.1rem;
+  color: var(--color-text);
+  font-size: 0.9rem;
+  line-height: 1.5;
+}
+
+.cita-detail-modal__datos dd strong {
+  color: var(--color-primary-dark);
+}
+
+.cita-detail-modal__datos dd span {
+  color: var(--color-text-soft);
+  font-size: 0.8rem;
+}
+
+.cita-detail-modal__acciones {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  flex-wrap: wrap;
+  gap: 0.6rem;
+  padding: 1rem 1.5rem;
+  border-top: 1px solid var(--color-border-soft);
+  background: var(--color-background-mist);
+}
+
+.cita-detail-modal__btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.4rem;
+  padding: 0.55rem 1.1rem;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-pill);
+  background: var(--color-white);
+  color: var(--color-text);
+  font-size: 0.85rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition:
+    background 0.2s ease,
+    color 0.2s ease,
+    border-color 0.2s ease;
+}
+
+.cita-detail-modal__btn:hover {
+  background: var(--color-background-soft);
+}
+
+.cita-detail-modal__btn--primario {
+  border-color: var(--color-primary);
+  background: var(--color-primary);
+  color: var(--color-white);
+}
+
+.cita-detail-modal__btn--primario:hover {
+  background: var(--color-primary-dark);
+  border-color: var(--color-primary-dark);
+}
+
+.cita-detail-modal__btn--peligro {
+  background: #fef2f2;
+  border-color: #fecaca;
+  color: #dc2626;
+}
+
+.cita-detail-modal__btn--peligro:hover {
+  background: #fee2e2;
+}
+
+@media (max-width: 560px) {
+  .cita-detail-modal__dialog {
+    width: 95%;
+    max-height: 95vh;
+  }
+
+  .cita-detail-modal__acciones {
+    flex-direction: column-reverse;
+    align-items: stretch;
+  }
+
+  .cita-detail-modal__btn {
+    width: 100%;
+  }
+}

@@ -85,6 +85,14 @@ export const routes: Routes = [
     canActivate: [authGuard],
   },
   {
+    path: 'gestionar-citas',
+    loadComponent: () =>
+      import(
+        './features/agenda-citas/casos-uso/cu10-gestionar-citas/pages/gestionar-citas/gestionar-citas'
+      ).then((m) => m.GestionarCitas),
+    canActivate: [authGuard],
+  },
+  {
     path: '**',
     redirectTo: '',
   },
