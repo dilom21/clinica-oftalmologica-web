@@ -102,6 +102,7 @@
           <app-pacientes-table
             [pacientes]="pacientesFiltrados()"
             (editar)="abrirEdicion($event)"
+            (verAntecedentes)="abrirAntecedentes($event)"
           />
         }
       </div>
@@ -125,7 +126,13 @@
     (close)="cerrarModal()"
     (save)="guardarPaciente($event)"
   />
-
+  <!-- MODAL DE ANTECEDENTES -->
+  <app-antecedente-modal
+    [open]="modalAntecedentesAbierto()"
+    [paciente]="pacienteSeleccionadoParaAntecedentes()"
+    (close)="cerrarModalAntecedentes()"
+  />
+  
   @if (exito(); as mensaje) {
     <div class="pacientes-page__toast pacientes-page__toast--exito" role="status">
       {{ mensaje }}

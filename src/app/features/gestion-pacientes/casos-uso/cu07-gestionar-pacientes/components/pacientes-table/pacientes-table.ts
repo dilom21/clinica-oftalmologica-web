@@ -10,4 +10,7 @@ import { Paciente } from '../../models/pacientes.models';
 export class PacientesTable {
   readonly pacientes = input<Paciente[]>([]);
   readonly editar = output<Paciente>();
+  
+  // NUEVO EVENTO PARA EL BOTÓN DE ANTECEDENTES
+  readonly verAntecedentes = output<Paciente>();
 }
