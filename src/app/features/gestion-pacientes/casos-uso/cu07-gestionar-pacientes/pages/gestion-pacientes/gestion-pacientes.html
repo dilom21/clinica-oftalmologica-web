@@ -100,9 +100,10 @@
           </p>
         } @else {
           <app-pacientes-table
-            [pacientes]="pacientesFiltrados()"
-            (editar)="abrirEdicion($event)"
-          />
+          [pacientes]="pacientesFiltrados()"
+          (editar)="abrirEdicion($event)"
+          (verAntecedentes)="abrirAntecedentes($event)"
+        />
         }
       </div>
     </div>
@@ -125,7 +126,11 @@
     (close)="cerrarModal()"
     (save)="guardarPaciente($event)"
   />
-
+  <app-antecedente-modal
+  [open]="modalAntecedentesAbierto()"
+  [paciente]="pacienteSeleccionadoParaAntecedentes()"
+  (close)="cerrarModalAntecedentes()"
+/>
   @if (exito(); as mensaje) {
     <div class="pacientes-page__toast pacientes-page__toast--exito" role="status">
       {{ mensaje }}
