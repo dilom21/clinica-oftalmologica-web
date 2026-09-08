@@ -1,0 +1,150 @@
+@if (open()) {
+  <div class="antecedente-modal__backdrop" (click)="cerrarModal()"></div>
+
+  <div
+    class="antecedente-modal__dialog"
+    role="dialog"
+    aria-modal="true"
+    aria-labelledby="antecedente-modal-titulo"
+  >
+    <header class="antecedente-modal__header">
+      <div>
+        <h2 id="antecedente-modal-titulo" class="antecedente-modal__title">
+          Antecedentes de {{ paciente()?.nombres }} {{ paciente()?.apellidos }}
+        </h2>
+      </div>
+      <button
+        type="button"
+        class="antecedente-modal__close"
+        (click)="cerrarModal()"
+        [disabled]="guardando()"
+        aria-label="Cerrar modal"
+      >
+        <svg
+          xmlns="http://www.w3.org/2000/svg"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          stroke-width="2"
+          stroke-linecap="round"
+          stroke-linejoin="round"
+          aria-hidden="true"
+        >
+          <line x1="18" y1="6" x2="6" y2="18"></line>
+          <line x1="6" y1="6" x2="18" y2="18"></line>
+        </svg>
+      </button>
+    </header>
+
+    <div class="antecedente-modal__body">
+      @if (error(); as mensaje) {
+        <div class="antecedente-modal__message antecedente-modal__message--error" role="alert">
+          {{ mensaje }}
+        </div>
+      }
+
+      @if (exito(); as mensaje) {
+        <div class="antecedente-modal__message antecedente-modal__message--success" role="status">
+          {{ mensaje }}
+        </div>
+      }
+
+      @if (cargando()) {
+        <p class="antecedente-modal__empty" role="status">Cargando historial clínico...</p>
+      } @else if (sinHistorial()) {
+        <p class="antecedente-modal__empty" role="status">
+          El paciente todavía no tiene un historial clínico registrado.
+        </p>
+      } @else if (historialClinicoId() !== null) {
+        <form class="antecedente-modal__form" (ngSubmit)="guardarAntecedente()">
+          <div class="antecedente-modal__form-row">
+            <label class="antecedente-modal__field">
+              <span>Tipo</span>
+              <select
+                class="antecedente-modal__input"
+                [ngModel]="tipo()"
+                (ngModelChange)="tipo.set($event)"
+                name="tipo"
+                [disabled]="guardando()"
+              >
+                <option value="ENFERMEDAD">Enfermedad base</option>
+                <option value="ALERGIA">Alergia</option>
+                <option value="CIRUGIA">Cirugía previa</option>
+                <option value="MEDICAMENTO">Medicamento continuo</option>
+              </select>
+            </label>
+
+            <label class="antecedente-modal__field antecedente-modal__field--description">
+              <span>Descripción</span>
+              <input
+                type="text"
+                class="antecedente-modal__input"
+                [ngModel]="descripcion()"
+                (ngModelChange)="descripcion.set($event)"
+                name="descripcion"
+                placeholder="Ej.: Hipertensión o alergia a la penicilina"
+                maxlength="1000"
+                [disabled]="guardando()"
+                required
+              />
+            </label>
+          </div>
+
+          <div class="antecedente-modal__form-actions">
+            @if (antecedenteEnEdicionId() !== null) {
+              <button
+                type="button"
+                class="antecedente-modal__btn antecedente-modal__btn--secondary"
+                (click)="cancelarEdicion()"
+                [disabled]="guardando()"
+              >
+                Cancelar edición
+              </button>
+            }
+            <button
+              type="submit"
+              class="antecedente-modal__btn antecedente-modal__btn--primary"
+              [disabled]="guardando() || !descripcion().trim()"
+            >
+              @if (guardando()) {
+                Guardando...
+              } @else if (antecedenteEnEdicionId() !== null) {
+                Actualizar antecedente
+              } @else {
+                Registrar antecedente
+              }
+            </button>
+          </div>
+        </form>
+
+        <section class="antecedente-modal__list-container" aria-labelledby="antecedentes-lista">
+          <div class="antecedente-modal__list-header">
+            <h3 id="antecedentes-lista">Antecedentes registrados</h3>
+            <span>{{ antecedentes().length }}</span>
+          </div>
+
+          @if (antecedentes().length === 0) {
+            <p class="antecedente-modal__empty">El paciente no tiene antecedentes registrados.</p>
+          } @else {
+            <ul class="antecedente-modal__list">
+              @for (item of antecedentes(); track item.id) {
+                <li class="antecedente-modal__list-item">
+                  <span class="antecedente-modal__badge">{{ item.tipo }}</span>
+                  <span class="antecedente-modal__text">{{ item.descripcion }}</span>
+                  <button
+                    type="button"
+                    class="antecedente-modal__btn-edit"
+                    (click)="editarAntecedente(item)"
+                    [disabled]="guardando()"
+                  >
+                    Editar
+                  </button>
+                </li>
+              }
+            </ul>
+          }
+        </section>
+      }
+    </div>
+  </div>
+}

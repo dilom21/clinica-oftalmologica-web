@@ -1,9 +1,6 @@
 <main class="pacientes-page">
   <div class="pacientes-page__body">
-    <app-sidebar
-      [mobileOpen]="sidebarMovilAbierto()"
-      (mobileClose)="cerrarSidebar()"
-    />
+    <app-sidebar [mobileOpen]="sidebarMovilAbierto()" (mobileClose)="cerrarSidebar()" />
 
     <div class="pacientes-page__main">
       <header class="pacientes-page__main-header">
@@ -95,13 +92,13 @@
           <p class="pacientes-page__estado" role="status">Cargando pacientes...</p>
         } @else if (errorCarga()) {
           <p class="pacientes-page__estado pacientes-page__estado--error" role="alert">
-            No se pudieron cargar los datos. Verifica tu conexión e inténtalo
-            nuevamente.
+            No se pudieron cargar los datos. Verifica tu conexión e inténtalo nuevamente.
           </p>
         } @else {
           <app-pacientes-table
             [pacientes]="pacientesFiltrados()"
             (editar)="abrirEdicion($event)"
+            (verAntecedentes)="abrirAntecedentes($event)"
           />
         }
       </div>
@@ -125,7 +122,11 @@
     (close)="cerrarModal()"
     (save)="guardarPaciente($event)"
   />
-
+  <app-antecedente-modal
+    [open]="modalAntecedentesAbierto()"
+    [paciente]="pacienteSeleccionadoParaAntecedentes()"
+    (close)="cerrarModalAntecedentes()"
+  />
   @if (exito(); as mensaje) {
     <div class="pacientes-page__toast pacientes-page__toast--exito" role="status">
       {{ mensaje }}
