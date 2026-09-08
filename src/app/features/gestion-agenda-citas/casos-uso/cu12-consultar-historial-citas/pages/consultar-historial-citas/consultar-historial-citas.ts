@@ -64,14 +64,22 @@ export class ConsultarHistorialCitas {
 
   consultar(): void {
     const termino = this.terminoBusqueda().trim();
-    if (!termino || this.fechaDesde() > this.fechaHasta()) {
-      this.errorConsulta.set(
-        this.fechaDesde() > this.fechaHasta()
-          ? 'La fecha inicial no puede ser posterior a la fecha final.'
-          : 'Indica un nombre, código o número de identificación para buscar.',
-      );
-      return;
-    }
+    const fechaDesde = this.fechaDesde();
+    const fechaHasta = this.fechaHasta();
+
+      const rangoFechasInvalido =
+        fechaDesde !== '' &&
+        fechaHasta !== '' &&
+        fechaDesde > fechaHasta;
+
+      if (!termino || rangoFechasInvalido) {
+        this.errorConsulta.set(
+          rangoFechasInvalido
+            ? 'La fecha inicial no puede ser posterior a la fecha final.'
+            : 'Indica un nombre, código o número de identificación para buscar.',
+        );
+        return;
+      }
 
     const filtros: HistorialCitasFiltros = {
       [this.tipoBusqueda()]: termino,
