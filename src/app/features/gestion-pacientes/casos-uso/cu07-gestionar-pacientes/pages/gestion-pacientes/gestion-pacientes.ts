@@ -10,10 +10,10 @@ import {
 } from '../../components/paciente-modal/paciente-modal';
 import { Paciente } from '../../models/pacientes.models';
 import { PacientesService } from '../../services/pacientes.service';
-
+import { AntecedenteModal } from '../../components/antecedente-modal/antecedente-modal';
 @Component({
   selector: 'app-gestion-pacientes',
-  imports: [Sidebar, PacientesTable, PacienteModal],
+  imports: [Sidebar, PacientesTable, PacienteModal, AntecedenteModal],
   templateUrl: './gestion-pacientes.html',
   styleUrl: './gestion-pacientes.css',
 })
@@ -29,6 +29,8 @@ export class GestionPacientes implements OnInit {
   protected readonly pacienteEnEdicion = signal<Paciente | null>(null);
   protected readonly guardando = signal(false);
   protected readonly errorModal = signal<string | null>(null);
+  protected readonly modalAntecedentesAbierto = signal(false);
+  protected readonly pacienteSeleccionadoParaAntecedentes = signal<Paciente | null>(null);
 
   protected readonly exito = signal<string | null>(null);
   protected readonly error = signal<string | null>(null);
@@ -111,7 +113,15 @@ export class GestionPacientes implements OnInit {
     this.pacienteEnEdicion.set(null);
     this.errorModal.set(null);
   }
+  abrirAntecedentes(paciente: Paciente): void {
+    this.pacienteSeleccionadoParaAntecedentes.set(paciente);
+    this.modalAntecedentesAbierto.set(true);
+  }
 
+  cerrarModalAntecedentes(): void {
+    this.modalAntecedentesAbierto.set(false);
+    this.pacienteSeleccionadoParaAntecedentes.set(null);
+  }
   guardarPaciente(datos: PacienteModalGuardar): void {
     if (this.guardando()) {
       return;

@@ -10,4 +10,5 @@ import { Paciente } from '../../models/pacientes.models';
 export class PacientesTable {
   readonly pacientes = input<Paciente[]>([]);
   readonly editar = output<Paciente>();
+  readonly verAntecedentes = output<Paciente>();
 }
