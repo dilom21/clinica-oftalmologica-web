@@ -30,9 +30,11 @@ export class GestionPacientes implements OnInit {
   protected readonly pacienteEnEdicion = signal<Paciente | null>(null);
   protected readonly guardando = signal(false);
   protected readonly errorModal = signal<string | null>(null);
-// Estados para el modal de antecedentes
+  
+  // Estados para el modal de antecedentes (LIMPIOS, SIN DUPLICAR)
   protected readonly modalAntecedentesAbierto = signal(false);
   protected readonly pacienteSeleccionadoParaAntecedentes = signal<Paciente | null>(null);
+
   protected readonly exito = signal<string | null>(null);
   protected readonly error = signal<string | null>(null);
 
@@ -114,6 +116,8 @@ export class GestionPacientes implements OnInit {
     this.pacienteEnEdicion.set(null);
     this.errorModal.set(null);
   }
+
+  // Función limpia sin duplicar
   abrirAntecedentes(paciente: Paciente): void {
     this.pacienteSeleccionadoParaAntecedentes.set(paciente);
     this.modalAntecedentesAbierto.set(true);
@@ -123,6 +127,7 @@ export class GestionPacientes implements OnInit {
     this.modalAntecedentesAbierto.set(false);
     this.pacienteSeleccionadoParaAntecedentes.set(null);
   }
+
   guardarPaciente(datos: PacienteModalGuardar): void {
     if (this.guardando()) {
       return;
@@ -142,9 +147,7 @@ export class GestionPacientes implements OnInit {
         this.modalAbierto.set(false);
         this.pacienteEnEdicion.set(null);
         this.mostrarExito(
-          paciente
-            ? 'Paciente actualizado correctamente.'
-            : 'Paciente registrado correctamente.',
+          paciente ? 'Paciente actualizado correctamente.' : 'Paciente registrado correctamente.',
         );
         this.cargarPacientes();
       },

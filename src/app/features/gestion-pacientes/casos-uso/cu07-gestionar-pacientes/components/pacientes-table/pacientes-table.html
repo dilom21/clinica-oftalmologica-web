@@ -48,6 +48,13 @@
               
               <button
                 type="button"
+                class="pacientes-table__btn pacientes-table__btn--antecedentes"
+                (click)="verAntecedentes.emit(paciente)"
+              >
+                Antecedentes
+              </button>
+              <button
+                type="button"
                 class="pacientes-table__btn pacientes-table__btn--editar"
                 (click)="editar.emit(paciente)"
               >
@@ -94,6 +101,13 @@
               Antecedentes
             </button>
             
+            <button
+              type="button"
+              class="pacientes-table__btn pacientes-table__btn--antecedentes"
+              (click)="verAntecedentes.emit(paciente)"
+            >
+              Antecedentes
+            </button>
             <button
               type="button"
               class="pacientes-table__btn pacientes-table__btn--editar"

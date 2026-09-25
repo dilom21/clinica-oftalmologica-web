@@ -61,6 +61,14 @@ export const routes: Routes = [
   canActivate: [authGuard],
 },
   {
+    path: 'historial-clinico',
+    loadComponent: () =>
+      import(
+        './features/gestion-historial-clinico/casos-uso/cu13-consultar-historial-clinico/pages/consultar-historial-clinico/consultar-historial-clinico'
+      ).then((m) => m.ConsultarHistorialClinico),
+    canActivate: [authGuard],
+  },
+  {
     path: 'bitacora',
     loadComponent: () =>
       import(
@@ -83,6 +91,22 @@ export const routes: Routes = [
         './features/agenda-citas/casos-uso/cu11-configurar-disponibilidad/pages/configurar-disponibilidad/configurar-disponibilidad'
       ).then((m) => m.ConfigurarDisponibilidad),
     canActivate: [authGuard],
+  },
+  {
+    path: 'gestionar-citas',
+    loadComponent: () =>
+      import(
+        './features/agenda-citas/casos-uso/cu10-gestionar-citas/pages/gestionar-citas/gestionar-citas'
+      ).then((m) => m.GestionarCitas),
+    canActivate: [authGuard],
+  },
+  {
+  path: 'historial-citas',
+  loadComponent: () =>
+    import(
+      './features/gestion-agenda-citas/casos-uso/cu12-consultar-historial-citas/pages/consultar-historial-citas/consultar-historial-citas'
+    ).then((m) => m.ConsultarHistorialCitas),
+  canActivate: [authGuard],
   },
   {
     path: '**',
