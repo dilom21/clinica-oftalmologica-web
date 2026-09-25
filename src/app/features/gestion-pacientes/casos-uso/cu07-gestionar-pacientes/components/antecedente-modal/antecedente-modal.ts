@@ -1,75 +1,170 @@
-import { Component, input, output, signal, effect } from '@angular/core';
+import { Component, effect, inject, input, output, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
+
 import { Paciente } from '../../models/pacientes.models';
 import { AntecedenteClinico } from '../../models/antecedentes.models';
+import { PacientesService } from '../../services/pacientes.service';
+
+import { HistorialClinicoService } from '../../../../../gestion-historial-clinico/casos-uso/cu13-consultar-historial-clinico/services/historial-clinico.service';
 
 @Component({
   selector: 'app-antecedente-modal',
-  imports: [FormsModule], // Necesario para que funcione [ngModel] y (ngSubmit) en el HTML
+  imports: [FormsModule],
   templateUrl: './antecedente-modal.html',
-  styleUrl: './antecedente-modal.css'
+  styleUrl: './antecedente-modal.css',
 })
 export class AntecedenteModal {
-  // Entradas y salidas del componente
-  readonly open = input<boolean>(false);
+  readonly open = input(false);
   readonly paciente = input<Paciente | null>(null);
   readonly close = output<void>();
 
-  // Estados de la interfaz
-  readonly error = signal<string | null>(null);
-  readonly cargando = signal<boolean>(false);
-  readonly guardando = signal<boolean>(false);
-  
-  // Variables del formulario
-  readonly tipo = signal<string>('ENFERMEDAD');
-  readonly descripcion = signal<string>('');
+  protected readonly antecedentes = signal<AntecedenteClinico[]>([]);
+  protected readonly cargando = signal(false);
+  protected readonly guardando = signal(false);
+  protected readonly error = signal<string | null>(null);
 
-  // Lista de datos
-  readonly antecedentes = signal<AntecedenteClinico[]>([]);
+  protected readonly tipo = signal('ENFERMEDAD');
+  protected readonly descripcion = signal('');
+  protected readonly antecedenteEnEdicionId = signal<number | null>(null);
+
+  private readonly historialClinicoId = signal<number | null>(null);
+
+  private readonly pacientesService = inject(PacientesService);
+  private readonly historialClinicoService = inject(HistorialClinicoService);
 
   constructor() {
-    // Escucha si el modal se abre y hay un paciente seleccionado para cargar sus datos
     effect(() => {
-      const p = this.paciente();
-      if (p && this.open()) {
-        this.cargarAntecedentes(p.id);
+      const isOpen = this.open();
+      const paciente = this.paciente();
+
+      if (isOpen && paciente) {
+        this.cargarHistorialPaciente(paciente.id);
+        this.limpiarFormulario();
       }
     });
   }
 
-  cerrarModal(): void {
-    this.close.emit();
-    this.resetForm();
-  }
-
-  cargarAntecedentes(pacienteId: number): void {
+  private cargarHistorialPaciente(pacienteId: number): void {
     this.cargando.set(true);
-    
-    // NOTA: Aquí debes llamar a tu PacientesService real cuando lo conectes a la API.
-    // Por ahora, dejamos la lista vacía para que la interfaz compile sin errores.
+    this.error.set(null);
     this.antecedentes.set([]);
-    this.cargando.set(false);
+    this.historialClinicoId.set(null);
+
+    this.historialClinicoService
+      .obtenerHistorialClinico(pacienteId)
+      .subscribe({
+        next: (respuesta) => {
+          if (!respuesta.historial) {
+            this.error.set(
+              'El paciente todavía no tiene un historial clínico registrado.',
+            );
+            this.cargando.set(false);
+            return;
+          }
+
+          this.historialClinicoId.set(respuesta.historial.id);
+
+          this.antecedentes.set(
+            respuesta.historial.antecedentes.map((antecedente) => ({
+              id: antecedente.id,
+              historial_clinico_id: respuesta.historial!.id,
+              tipo: antecedente.tipo,
+              descripcion: antecedente.descripcion,
+              fecha_registro: antecedente.fecha_registro,
+            })),
+          );
+
+          this.cargando.set(false);
+        },
+        error: () => {
+          this.error.set('No se pudo cargar el historial clínico del paciente.');
+          this.cargando.set(false);
+        },
+      });
   }
 
-  guardarAntecedente(): void {
-    if (!this.descripcion().trim() || this.guardando()) {
+      guardarAntecedente(): void {
+      const historialId = this.historialClinicoId();
+      const antecedenteId = this.antecedenteEnEdicionId();
+
+      if (
+        historialId === null ||
+        !this.descripcion().trim() ||
+        this.guardando()
+      ) {
+        return;
+      }
+
+      this.guardando.set(true);
+      this.error.set(null);
+
+      const datos = {
+        historial_clinico_id: historialId,
+        tipo: this.tipo(),
+        descripcion: this.descripcion().trim(),
+      };
+
+      if (antecedenteId !== null) {
+        this.pacientesService
+          .actualizarAntecedente(antecedenteId, datos)
+          .subscribe({
+            next: (actualizado) => {
+              this.antecedentes.update((lista) =>
+                lista.map((item) =>
+                  item.id === antecedenteId ? actualizado : item,
+                ),
+              );
+
+              this.limpiarFormulario();
+              this.guardando.set(false);
+            },
+            error: () => {
+              this.error.set('No se pudo actualizar el antecedente.');
+              this.guardando.set(false);
+            },
+          });
+
+        return;
+      }
+
+      this.pacientesService.crearAntecedente(datos).subscribe({
+        next: (antecedenteGuardado) => {
+          this.antecedentes.update((lista) => [
+            ...lista,
+            antecedenteGuardado,
+          ]);
+
+          this.limpiarFormulario();
+          this.guardando.set(false);
+        },
+        error: () => {
+          this.error.set('No se pudo guardar el antecedente.');
+          this.guardando.set(false);
+        },
+      });
+    }
+
+    editarAntecedente(antecedente: AntecedenteClinico): void {
+      if (antecedente.id === undefined) {
+        return;
+      }
+
+      this.antecedenteEnEdicionId.set(antecedente.id);
+      this.tipo.set(antecedente.tipo);
+      this.descripcion.set(antecedente.descripcion);
+    }
+  cerrarModal(): void {
+    if (this.guardando()) {
       return;
     }
-    
-    this.guardando.set(true);
-    this.error.set(null);
-    
-    // NOTA: Aquí debes llamar a tu PacientesService real para guardar en la base de datos.
-    // Simulamos que termina la carga para limpiar el formulario.
-    setTimeout(() => {
-      this.guardando.set(false);
-      this.resetForm();
-    }, 500);
+
+    this.close.emit();
   }
 
-  private resetForm(): void {
+  private limpiarFormulario(): void {
+    this.antecedenteEnEdicionId.set(null);
     this.tipo.set('ENFERMEDAD');
     this.descripcion.set('');
     this.error.set(null);
-  }
+}
 }

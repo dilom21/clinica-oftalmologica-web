@@ -11,7 +11,7 @@ import {
 import { AntecedenteModal } from '../../components/antecedente-modal/antecedente-modal';
 import { Paciente } from '../../models/pacientes.models';
 import { PacientesService } from '../../services/pacientes.service';
-
+import { AntecedenteModal } from '../../components/antecedente-modal/antecedente-modal';
 @Component({
   selector: 'app-gestion-pacientes',
   imports: [Sidebar, PacientesTable, PacienteModal, AntecedenteModal],
@@ -30,8 +30,11 @@ export class GestionPacientes implements OnInit {
   protected readonly pacienteEnEdicion = signal<Paciente | null>(null);
   protected readonly guardando = signal(false);
   protected readonly errorModal = signal<string | null>(null);
+<<<<<<< HEAD
   
   // Estados para el modal de antecedentes (LIMPIOS, SIN DUPLICAR)
+=======
+>>>>>>> c988c15c98221be3d61f92bb5cd58304cb990fc2
   protected readonly modalAntecedentesAbierto = signal(false);
   protected readonly pacienteSeleccionadoParaAntecedentes = signal<Paciente | null>(null);
 
@@ -116,18 +119,28 @@ export class GestionPacientes implements OnInit {
     this.pacienteEnEdicion.set(null);
     this.errorModal.set(null);
   }
+  abrirAntecedentes(paciente: Paciente): void {
+    this.pacienteSeleccionadoParaAntecedentes.set(paciente);
+    this.modalAntecedentesAbierto.set(true);
+  }
 
+<<<<<<< HEAD
   // Función limpia sin duplicar
   abrirAntecedentes(paciente: Paciente): void {
     this.pacienteSeleccionadoParaAntecedentes.set(paciente);
     this.modalAntecedentesAbierto.set(true);
   }
 
+=======
+>>>>>>> c988c15c98221be3d61f92bb5cd58304cb990fc2
   cerrarModalAntecedentes(): void {
     this.modalAntecedentesAbierto.set(false);
     this.pacienteSeleccionadoParaAntecedentes.set(null);
   }
+<<<<<<< HEAD
 
+=======
+>>>>>>> c988c15c98221be3d61f92bb5cd58304cb990fc2
   guardarPaciente(datos: PacienteModalGuardar): void {
     if (this.guardando()) {
       return;

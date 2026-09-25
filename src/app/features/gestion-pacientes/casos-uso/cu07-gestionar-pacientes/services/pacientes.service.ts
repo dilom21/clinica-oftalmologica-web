@@ -33,12 +33,21 @@ export class PacientesService {
     return this.http.put<Paciente>(`${this.pacientesUrl}/${pacienteId}`, datos);
   }
 
-  obtenerHistorialClinico(pacienteId: number): Observable<HistorialClinicoRespuesta> {
-    return this.http.get<HistorialClinicoRespuesta>(`${this.historialClinicoUrl}/${pacienteId}`);
+  listarAntecedentesPorHistorial(
+    historialClinicoId: number,
+  ): Observable<AntecedenteClinico[]> {
+    return this.http.get<AntecedenteClinico[]>(
+      `${this.pacientesUrl}/historial/${historialClinicoId}/antecedentes`,
+    );
   }
 
-  crearAntecedente(datos: AntecedenteClinicoCrear): Observable<AntecedenteClinico> {
-    return this.http.post<AntecedenteClinico>(`${this.historialClinicoUrl}/antecedentes`, datos);
+  crearAntecedente(
+    datos: AntecedenteClinicoCrear,
+  ): Observable<AntecedenteClinico> {
+    return this.http.post<AntecedenteClinico>(
+      `${this.pacientesUrl}/antecedentes`,
+      datos,
+    );
   }
 
   actualizarAntecedente(
@@ -46,7 +55,7 @@ export class PacientesService {
     datos: AntecedenteClinicoActualizar,
   ): Observable<AntecedenteClinico> {
     return this.http.put<AntecedenteClinico>(
-      `${this.historialClinicoUrl}/antecedentes/${antecedenteId}`,
+      `${this.pacientesUrl}/antecedentes/${antecedenteId}`,
       datos,
     );
   }

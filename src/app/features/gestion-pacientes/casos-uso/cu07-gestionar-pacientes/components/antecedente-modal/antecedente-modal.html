@@ -44,12 +44,27 @@
             required
           />
           
+<<<<<<< HEAD
           <button 
             type="submit" 
             class="antecedente-modal__btn-add" 
             [disabled]="guardando() || !descripcion().trim()"
           >
             {{ guardando() ? 'Guardando...' : 'Agregar' }}
+=======
+          <button
+              type="submit"
+              class="antecedente-modal__btn-add"
+              [disabled]="guardando() || !descripcion().trim()"
+            >
+              {{
+                guardando()
+                  ? 'Guardando...'
+                  : antecedenteEnEdicionId() !== null
+                    ? 'Actualizar'
+                    : 'Agregar'
+              }}
+>>>>>>> c988c15c98221be3d61f92bb5cd58304cb990fc2
           </button>
         </div>
       </form>
@@ -65,7 +80,23 @@
             @for (item of antecedentes(); track item.id) {
               <li class="antecedente-modal__list-item">
                 <span class="antecedente-modal__badge">{{ item.tipo }}</span>
+<<<<<<< HEAD
                 <span class="antecedente-modal__text">{{ item.descripcion }}</span>
+=======
+
+                <span class="antecedente-modal__text">
+                  {{ item.descripcion }}
+                </span>
+
+                <button
+                  type="button"
+                  class="antecedente-modal__btn-edit"
+                  (click)="editarAntecedente(item)"
+                  [disabled]="guardando()"
+                >
+                  Editar
+                </button>
+>>>>>>> c988c15c98221be3d61f92bb5cd58304cb990fc2
               </li>
             }
           </ul>
@@ -73,4 +104,8 @@
       </div>
     </div>
   </div>
+<<<<<<< HEAD
 }
+=======
+}
+>>>>>>> c988c15c98221be3d61f92bb5cd58304cb990fc2
