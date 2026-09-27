@@ -11,8 +11,4 @@ export class PacientesTable {
   readonly pacientes = input<Paciente[]>([]);
   readonly editar = output<Paciente>();
   readonly verAntecedentes = output<Paciente>();
-<<<<<<< HEAD
 }
-=======
-}
->>>>>>> c988c15c98221be3d61f92bb5cd58304cb990fc2

@@ -2,12 +2,7 @@ import { HttpClient } from '@angular/common/http';
 import { Injectable } from '@angular/core';
 import { Observable } from 'rxjs';
 import { environment } from '../../../../../../environments/environment';
-import {
-  AntecedenteClinico,
-  AntecedenteClinicoActualizar,
-  AntecedenteClinicoCrear,
-  HistorialClinicoRespuesta,
-} from '../models/antecedentes.models';
+import { AntecedenteClinico } from '../models/antecedentes.models';
 import { Paciente, PacienteActualizar, PacienteCrear } from '../models/pacientes.models';
 
 @Injectable({ providedIn: 'root' })
@@ -42,7 +37,7 @@ export class PacientesService {
   }
 
   crearAntecedente(
-    datos: AntecedenteClinicoCrear,
+    datos: Partial<AntecedenteClinico>,
   ): Observable<AntecedenteClinico> {
     return this.http.post<AntecedenteClinico>(
       `${this.pacientesUrl}/antecedentes`,
@@ -52,7 +47,7 @@ export class PacientesService {
 
   actualizarAntecedente(
     antecedenteId: number,
-    datos: AntecedenteClinicoActualizar,
+    datos: Partial<AntecedenteClinico>,
   ): Observable<AntecedenteClinico> {
     return this.http.put<AntecedenteClinico>(
       `${this.pacientesUrl}/antecedentes/${antecedenteId}`,
