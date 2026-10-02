@@ -69,6 +69,22 @@ export const routes: Routes = [
     canActivate: [authGuard],
   },
   {
+    path: 'registrar-consulta-clinica',
+    loadComponent: () =>
+      import(
+        './features/gestion-historial-clinico/casos-uso/cu15-registrar-consulta-clinica/pages/registrar-consulta/registrar-consulta'
+      ).then((m) => m.RegistrarConsulta),
+    canActivate: [authGuard],
+  },
+  {
+    path: 'registrar-diagnostico',
+    loadComponent: () =>
+      import(
+        './features/gestion-historial-clinico/casos-uso/cu16-registrar-diagnostico/pages/registrar-diagnostico/registrar-diagnostico'
+      ).then((m) => m.RegistrarDiagnostico),
+    canActivate: [authGuard],
+  },
+  {
     path: 'bitacora',
     loadComponent: () =>
       import(
