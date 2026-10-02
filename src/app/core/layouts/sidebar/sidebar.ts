@@ -24,6 +24,9 @@ export class Sidebar implements OnInit {
     ['gestionar roles y permisos', '/roles'],
     ['gestionar pacientes', '/pacientes'],
     ['consultar historial clínico', '/historial-clinico'],
+    ['registrar consulta clínica', '/registrar-consulta-clinica'],
+    ['registrar diagnóstico', '/registrar-diagnostico'],
+    ['registrar diagnostico', '/registrar-diagnostico'],
     ['consultar bitácora', '/bitacora'],
     ['consultar agenda y disponibilidad médica', '/agenda-disponibilidad'],
     ['configurar disponibilidad del oftalmólogo', '/configurar-disponibilidad'],
@@ -108,6 +111,14 @@ export class Sidebar implements OnInit {
 }
   if (clave.includes('cita') && clave.includes('gestionar')) {
     return '/gestionar-citas';
+  }
+
+  if (clave.includes('registrar') && (clave.includes('diagnóstico') || clave.includes('diagnostico'))) {
+    return '/registrar-diagnostico';
+  }
+
+  if (clave.includes('registrar') && clave.includes('consulta')) {
+    return '/registrar-consulta-clinica';
   }
 
   return null;
