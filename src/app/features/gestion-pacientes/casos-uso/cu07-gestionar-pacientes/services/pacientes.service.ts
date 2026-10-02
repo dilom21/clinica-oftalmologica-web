@@ -1,13 +1,14 @@
-import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
+import { Injectable } from '@angular/core';
 import { Observable } from 'rxjs';
 import { environment } from '../../../../../../environments/environment';
-import { Paciente, PacienteActualizar, PacienteCrear } from '../models/pacientes.models';
 import { AntecedenteClinico } from '../models/antecedentes.models';
+import { Paciente, PacienteActualizar, PacienteCrear } from '../models/pacientes.models';
 
 @Injectable({ providedIn: 'root' })
 export class PacientesService {
   private readonly pacientesUrl = `${environment.apiUrl}/pacientes`;
+  private readonly historialClinicoUrl = `${environment.apiUrl}/historial-clinico`;
 
   constructor(private readonly http: HttpClient) {}
 
@@ -26,30 +27,31 @@ export class PacientesService {
   actualizarPaciente(pacienteId: number, datos: PacienteActualizar): Observable<Paciente> {
     return this.http.put<Paciente>(`${this.pacientesUrl}/${pacienteId}`, datos);
   }
+
   listarAntecedentesPorHistorial(
-  historialClinicoId: number,
-): Observable<AntecedenteClinico[]> {
-  return this.http.get<AntecedenteClinico[]>(
-    `${this.pacientesUrl}/historial/${historialClinicoId}/antecedentes`,
-  );
-}
+    historialClinicoId: number,
+  ): Observable<AntecedenteClinico[]> {
+    return this.http.get<AntecedenteClinico[]>(
+      `${this.pacientesUrl}/historial/${historialClinicoId}/antecedentes`,
+    );
+  }
 
-crearAntecedente(
-  datos: AntecedenteClinico,
-): Observable<AntecedenteClinico> {
-  return this.http.post<AntecedenteClinico>(
-    `${this.pacientesUrl}/antecedentes`,
-    datos,
-  );
-}
+  crearAntecedente(
+    datos: Partial<AntecedenteClinico>,
+  ): Observable<AntecedenteClinico> {
+    return this.http.post<AntecedenteClinico>(
+      `${this.pacientesUrl}/antecedentes`,
+      datos,
+    );
+  }
 
-actualizarAntecedente(
-  antecedenteId: number,
-  datos: Partial<AntecedenteClinico>,
-): Observable<AntecedenteClinico> {
-  return this.http.put<AntecedenteClinico>(
-    `${this.pacientesUrl}/antecedentes/${antecedenteId}`,
-    datos,
-  );
-}
+  actualizarAntecedente(
+    antecedenteId: number,
+    datos: Partial<AntecedenteClinico>,
+  ): Observable<AntecedenteClinico> {
+    return this.http.put<AntecedenteClinico>(
+      `${this.pacientesUrl}/antecedentes/${antecedenteId}`,
+      datos,
+    );
+  }
 }

@@ -69,6 +69,22 @@ export const routes: Routes = [
     canActivate: [authGuard],
   },
   {
+    path: 'registrar-consulta-clinica',
+    loadComponent: () =>
+      import(
+        './features/gestion-historial-clinico/casos-uso/cu15-registrar-consulta-clinica/pages/registrar-consulta/registrar-consulta'
+      ).then((m) => m.RegistrarConsulta),
+    canActivate: [authGuard],
+  },
+  {
+    path: 'registrar-diagnostico',
+    loadComponent: () =>
+      import(
+        './features/gestion-historial-clinico/casos-uso/cu16-registrar-diagnostico/pages/registrar-diagnostico/registrar-diagnostico'
+      ).then((m) => m.RegistrarDiagnostico),
+    canActivate: [authGuard],
+  },
+  {
     path: 'bitacora',
     loadComponent: () =>
       import(
@@ -107,6 +123,15 @@ export const routes: Routes = [
       './features/gestion-agenda-citas/casos-uso/cu12-consultar-historial-citas/pages/consultar-historial-citas/consultar-historial-citas'
     ).then((m) => m.ConsultarHistorialCitas),
   canActivate: [authGuard],
+  },
+  // NUEVA RUTA DE SERVICIOS AQUÍ
+  {
+    path: 'gestion-servicios',
+    loadComponent: () =>
+      import(
+        './features/gestion-servicios/casos-uso/cu21-gestionar-servicios/pages/gestion-servicios/gestion-servicios'
+      ).then((m) => m.GestionServicios),
+    canActivate: [authGuard],
   },
   {
     path: '**',

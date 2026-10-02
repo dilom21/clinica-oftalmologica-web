@@ -1,0 +1,24 @@
+<div style="max-width: 400px; margin: 20px auto; padding: 20px; border: 1px solid #ccc; border-radius: 8px;">
+  <h2>Registrar Usuario</h2>
+  
+  <form (ngSubmit)="guardarUsuario()">
+    <div style="margin-bottom: 15px;">
+      <label>Correo Electrónico:</label><br>
+      <input type="email" [(ngModel)]="nuevoUsuario.correo" name="correo" required style="width: 100%; padding: 8px;">
+    </div>
+
+    <div style="margin-bottom: 15px;">
+      <label>Contraseña:</label><br>
+      <input type="password" [(ngModel)]="nuevoUsuario.password_hash" name="password" required style="width: 100%; padding: 8px;">
+    </div>
+
+    <div style="margin-bottom: 15px;">
+      <label>ID del Rol:</label><br>
+      <input type="number" [(ngModel)]="nuevoUsuario.rol_id" name="rol" required style="width: 100%; padding: 8px;">
+    </div>
+
+    <button type="submit" style="width: 100%; padding: 10px; background-color: #007bff; color: white; border: none; border-radius: 4px; cursor: pointer;">
+      Guardar
+    </button>
+  </form>
+</div>

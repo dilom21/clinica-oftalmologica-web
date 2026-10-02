@@ -1,0 +1,422 @@
+<main class="diagnostico-page">
+  <div class="diagnostico-page__body">
+    <app-sidebar [mobileOpen]="sidebarMovilAbierto()" (mobileClose)="cerrarSidebar()" />
+
+    <div class="diagnostico-page__main">
+      <header class="diagnostico-page__main-header">
+        <button
+          type="button"
+          class="diagnostico-page__hamburger"
+          [attr.aria-expanded]="sidebarMovilAbierto()"
+          [attr.aria-label]="sidebarMovilAbierto() ? 'Cerrar menú' : 'Abrir menú'"
+          (click)="alternarSidebar()"
+        >
+          <span></span><span></span><span></span>
+        </button>
+        <button type="button" class="diagnostico-page__logout" (click)="cerrarSesion()">
+          Cerrar sesión
+        </button>
+      </header>
+
+      <div class="diagnostico-page__content">
+        <div class="diagnostico-page__cabecera">
+          <div>
+            <p class="diagnostico-page__eyebrow">Historial clínico</p>
+            <h1 class="diagnostico-page__titulo">Registrar diagnóstico</h1>
+            <p class="diagnostico-page__subtitulo">
+              Selecciona un paciente, elige una consulta y registra el diagnóstico.
+            </p>
+          </div>
+        </div>
+
+        @if (diagnosticoRegistrado(); as diagnostico) {
+          <section class="diagnostico-exito" role="status" aria-labelledby="exito-titulo">
+            <p class="diagnostico-page__eyebrow">Diagnóstico registrado</p>
+            <h2 id="exito-titulo">El diagnóstico se registró correctamente.</h2>
+            <dl class="diagnostico-exito__datos">
+              <div><dt>Diagnóstico</dt><dd>#{{ diagnostico.id }}</dd></div>
+              @if (pacienteSeleccionado(); as paciente) {
+                <div>
+                  <dt>Paciente</dt>
+                  <dd>{{ paciente.nombres }} {{ paciente.apellidos }}</dd>
+                </div>
+              }
+              @if (consultaSeleccionada(); as consulta) {
+                <div><dt>Consulta</dt><dd>#{{ consulta.id }}</dd></div>
+                <div><dt>Fecha de consulta</dt><dd>{{ formatearFechaHora(consulta.fecha_consulta) }}</dd></div>
+                <div><dt>Oftalmólogo</dt><dd>{{ nombreOftalmologo(consulta) }}</dd></div>
+              }
+              <div><dt>Fecha de diagnóstico</dt><dd>{{ formatearFechaHora(diagnostico.fecha_diagnostico) }}</dd></div>
+              <div><dt>Estado</dt><dd><span [class]="claseEstado(diagnostico.estado)">{{ etiquetaEstado(diagnostico.estado) }}</span></dd></div>
+            </dl>
+
+            @if (diagnostico.nombre) {
+              <p class="diagnostico-exito__nombre">
+                <strong>Nombre:</strong> {{ diagnostico.nombre }}
+              </p>
+            }
+
+            @if (diagnostico.descripcion) {
+              <p class="diagnostico-exito__descripcion">
+                <strong>Descripción:</strong> {{ diagnostico.descripcion }}
+              </p>
+            }
+
+            <div class="diagnostico-exito__acciones">
+              <button type="button" class="diagnostico-boton" (click)="registrarOtroDiagnostico()">
+                Registrar otro diagnóstico
+              </button>
+            </div>
+          </section>
+        } @else {
+          <section class="diagnostico-selector" aria-labelledby="selector-titulo">
+            <div class="diagnostico-selector__encabezado">
+              <h2 id="selector-titulo">Paciente</h2>
+              <p>Busca por nombre, apellido o cédula y elige al paciente.</p>
+            </div>
+            <div class="diagnostico-selector__controles">
+              <label class="diagnostico-selector__busqueda">
+                <span>Buscar paciente</span>
+                <input
+                  type="search"
+                  [value]="buscarTermino()"
+                  (input)="onBuscar($event)"
+                  placeholder="Nombre, apellido o cédula"
+                />
+              </label>
+              <label class="diagnostico-selector__select">
+                <span>Paciente</span>
+                <select
+                  [value]="pacienteId()"
+                  (change)="seleccionarPaciente($event)"
+                  [disabled]="cargandoPacientes() || pacientes().length === 0"
+                >
+                  <option value="">Seleccione un paciente</option>
+                  @for (paciente of pacientesFiltrados(); track paciente.id) {
+                    <option [value]="paciente.id">
+                      {{ paciente.nombres }} {{ paciente.apellidos }} · CI {{ paciente.ci }}
+                    </option>
+                  }
+                </select>
+              </label>
+            </div>
+          </section>
+
+          @if (cargandoPacientes()) {
+            <p class="diagnostico-page__estado" role="status">Cargando pacientes...</p>
+          } @else if (errorCargaPacientes()) {
+            <div class="diagnostico-page__estado diagnostico-page__estado--error" role="alert">
+              <p>No se pudieron cargar los pacientes. Verifica tu conexión e inténtalo nuevamente.</p>
+              <button type="button" class="diagnostico-boton diagnostico-boton--borde" (click)="reintentarPacientes()">
+                Reintentar
+              </button>
+            </div>
+          } @else if (!pacienteId()) {
+            <p class="diagnostico-page__estado" role="status">
+              Selecciona un paciente para continuar con el registro del diagnóstico.
+            </p>
+          } @else if (cargandoHistorial()) {
+            <p class="diagnostico-page__estado" role="status">Cargando historial clínico...</p>
+          } @else if (errorHistorial(); as mensaje) {
+            <div class="diagnostico-page__estado diagnostico-page__estado--error" role="alert">
+              <p>{{ mensaje }}</p>
+              <button type="button" class="diagnostico-boton diagnostico-boton--borde" (click)="reintentarHistorial()">
+                Reintentar
+              </button>
+            </div>
+          } @else if (pacienteSeleccionado(); as paciente) {
+            <section class="diagnostico-resumen" aria-labelledby="paciente-titulo">
+              <div class="diagnostico-resumen__titulo">
+                <div>
+                  <p class="diagnostico-page__eyebrow">Paciente seleccionado</p>
+                  <h2 id="paciente-titulo">{{ paciente.nombres }} {{ paciente.apellidos }}</h2>
+                </div>
+              </div>
+              <dl class="diagnostico-resumen__datos">
+                <div><dt>Cédula</dt><dd>{{ paciente.ci }}</dd></div>
+                <div><dt>Fecha de nacimiento</dt><dd>{{ formatearFecha(paciente.fecha_nacimiento) }}</dd></div>
+                <div><dt>Sexo</dt><dd>{{ paciente.sexo }}</dd></div>
+                <div><dt>Teléfono</dt><dd>{{ paciente.telefono }}</dd></div>
+              </dl>
+            </section>
+
+            @if (historial(); as registro) {
+              <section class="diagnostico-historial" aria-labelledby="historial-titulo">
+                <div class="diagnostico-historial__cabecera">
+                  <div>
+                    <p class="diagnostico-page__eyebrow">Registro clínico</p>
+                    <h2 id="historial-titulo">Historial y antecedentes</h2>
+                  </div>
+                  <p class="diagnostico-historial__fecha">
+                    Apertura: {{ formatearFecha(registro.fecha_apertura) }}
+                  </p>
+                </div>
+
+                @if (registro.observaciones_generales) {
+                  <div class="diagnostico-historial__observaciones">
+                    <h3>Observaciones generales</h3>
+                    <p>{{ registro.observaciones_generales }}</p>
+                  </div>
+                }
+
+                <div class="diagnostico-antecedentes">
+                  <div class="diagnostico-antecedentes__cabecera">
+                    <h3>Antecedentes clínicos</h3>
+                    <span>{{ registro.antecedentes.length }} registros</span>
+                  </div>
+                  @if (registro.antecedentes.length === 0) {
+                    <p class="diagnostico-page__estado">No hay antecedentes clínicos registrados.</p>
+                  } @else {
+                    <ul class="diagnostico-antecedentes__lista">
+                      @for (antecedente of registro.antecedentes; track antecedente.id) {
+                        <li>
+                          <div class="diagnostico-antecedentes__meta">
+                            <strong>{{ antecedente.tipo }}</strong>
+                            <time>{{ formatearFecha(antecedente.fecha_registro) }}</time>
+                          </div>
+                          <p>{{ antecedente.descripcion }}</p>
+                        </li>
+                      }
+                    </ul>
+                  }
+                </div>
+              </section>
+
+              <section class="diagnostico-consultas" aria-labelledby="consultas-titulo">
+                <div class="diagnostico-consultas__encabezado">
+                  <h2 id="consultas-titulo">Consultas clínicas del paciente</h2>
+                  <p>
+                    Selecciona la consulta clínica sobre la que deseas registrar el diagnóstico.
+                  </p>
+                </div>
+
+                @if (cargandoConsultas()) {
+                  <p class="diagnostico-page__estado" role="status">Cargando consultas clínicas...</p>
+                } @else if (errorConsultas(); as mensaje) {
+                  <div class="diagnostico-page__estado diagnostico-page__estado--error" role="alert">
+                    <p>{{ mensaje }}</p>
+                    <button type="button" class="diagnostico-boton diagnostico-boton--borde" (click)="reintentarConsultas()">
+                      Reintentar
+                    </button>
+                  </div>
+                } @else if (consultas().length === 0) {
+                  <p class="diagnostico-page__estado" role="status">
+                    Este paciente no tiene consultas clínicas registradas.
+                  </p>
+                } @else {
+                  <div class="diagnostico-consultas__lista">
+                    @for (consulta of consultas(); track consulta.id) {
+                      <article
+                        class="diagnostico-consulta-tarjeta"
+                        [class.diagnostico-consulta-tarjeta--seleccionada]="consultaSeleccionadaId() === consulta.id"
+                        (click)="seleccionarConsulta(consulta.id)"
+                        tabindex="0"
+                        (keydown.enter)="seleccionarConsulta(consulta.id)"
+                        (keydown.space)="seleccionarConsulta(consulta.id)"
+                      >
+                        <div class="diagnostico-consulta-tarjeta__cabecera">
+                          <div>
+                            <strong>Consulta #{{ consulta.id }}</strong>
+                            <span [class]="'diagnostico-consulta-estado ' + claseEstado(consulta.estado)">
+                              {{ etiquetaEstado(consulta.estado) }}
+                            </span>
+                          </div>
+                          <time>{{ formatearFechaHora(consulta.fecha_consulta) }}</time>
+                        </div>
+                        <dl class="diagnostico-consulta-tarjeta__datos">
+                          <div>
+                            <dt>Motivo</dt>
+                            <dd>{{ consulta.motivo_consulta ?? '—' }}</dd>
+                          </div>
+                          <div>
+                            <dt>Oftalmólogo</dt>
+                            <dd>{{ nombreOftalmologo(consulta) }}</dd>
+                          </div>
+                          <div>
+                            <dt>Cita</dt>
+                            <dd>
+                              @if (consulta.cita_id) {
+                                #{{ consulta.cita_id }}
+                              } @else {
+                                Sin cita asociada
+                              }
+                            </dd>
+                          </div>
+                        </dl>
+                        @if (consulta.anamnesis) {
+                          <p class="diagnostico-consulta-tarjeta__anamnesis">
+                            <strong>Anamnesis:</strong> {{ consulta.anamnesis }}
+                          </p>
+                        }
+                      </article>
+                    }
+                  </div>
+                }
+              </section>
+
+              @if (consultaSeleccionada(); as consulta) {
+                <section class="diagnostico-consulta-detalle" aria-labelledby="consulta-detalle-titulo">
+                  <div class="diagnostico-consulta-detalle__encabezado">
+                    <div>
+                      <p class="diagnostico-page__eyebrow">Consulta seleccionada</p>
+                      <h2 id="consulta-detalle-titulo">Consulta #{{ consulta.id }}</h2>
+                    </div>
+                    <span [class]="'diagnostico-consulta-estado ' + claseEstado(consulta.estado)">
+                      {{ etiquetaEstado(consulta.estado) }}
+                    </span>
+                  </div>
+                  <dl class="diagnostico-consulta-detalle__datos">
+                    <div>
+                      <dt>Fecha</dt>
+                      <dd>{{ formatearFechaHora(consulta.fecha_consulta) }}</dd>
+                    </div>
+                    <div>
+                      <dt>Motivo</dt>
+                      <dd>{{ consulta.motivo_consulta ?? '—' }}</dd>
+                    </div>
+                    <div>
+                      <dt>Oftalmólogo</dt>
+                      <dd>{{ nombreOftalmologo(consulta) }}</dd>
+                    </div>
+                    <div>
+                      <dt>Cita</dt>
+                      <dd>
+                        @if (consulta.cita_id) {
+                          #{{ consulta.cita_id }}
+                        } @else {
+                          Sin cita asociada
+                        }
+                      </dd>
+                    </div>
+                  </dl>
+
+                  @if (consulta.anamnesis) {
+                    <div class="diagnostico-consulta-detalle__anamnesis">
+                      <h3>Anamnesis</h3>
+                      <p>{{ consulta.anamnesis }}</p>
+                    </div>
+                  }
+
+                  @if (consulta.observaciones) {
+                    <div class="diagnostico-consulta-detalle__observaciones">
+                      <h3>Observaciones</h3>
+                      <p>{{ consulta.observaciones }}</p>
+                    </div>
+                  }
+                </section>
+
+                <section class="diagnosticos-existentes" aria-labelledby="diagnosticos-titulo">
+                  <div class="diagnosticos-existentes__encabezado">
+                    <h2 id="diagnosticos-titulo">Diagnósticos registrados</h2>
+                    <p>La consulta puede tener múltiples diagnósticos.</p>
+                  </div>
+
+                  @if (cargandoDiagnosticos()) {
+                    <p class="diagnostico-page__estado" role="status">Cargando diagnósticos...</p>
+                  } @else if (errorDiagnosticos(); as mensaje) {
+                    <div class="diagnostico-page__estado diagnostico-page__estado--error" role="alert">
+                      <p>{{ mensaje }}</p>
+                      <button type="button" class="diagnostico-boton diagnostico-boton--borde" (click)="reintentarDiagnosticos()">
+                        Reintentar
+                      </button>
+                    </div>
+                  } @else if (diagnosticos().length === 0) {
+                    <p class="diagnostico-page__estado">No hay diagnósticos registrados para esta consulta.</p>
+                  } @else {
+                    <ul class="diagnosticos-existentes__lista">
+                      @for (diagnostico of diagnosticos(); track diagnostico.id) {
+                        <li class="diagnostico-item">
+                          <div class="diagnostico-item__principal">
+                            <strong>{{ diagnostico.nombre }}</strong>
+                            <span [class]="'diagnostico-estado ' + claseEstado(diagnostico.estado)">
+                              {{ etiquetaEstado(diagnostico.estado) }}
+                            </span>
+                          </div>
+                          @if (diagnostico.descripcion) {
+                            <p class="diagnostico-item__descripcion">{{ diagnostico.descripcion }}</p>
+                          }
+                          <time class="diagnostico-item__fecha">{{ formatearFechaHora(diagnostico.fecha_diagnostico) }}</time>
+                        </li>
+                      }
+                    </ul>
+                  }
+                </section>
+
+                <form class="diagnostico-form" [formGroup]="form" (ngSubmit)="registrar()" novalidate>
+                  <div class="diagnostico-form__encabezado">
+                    <h2>Datos del diagnóstico</h2>
+                    <p>Los campos marcados con * son obligatorios.</p>
+                  </div>
+
+                  <label class="diagnostico-campo">
+                    <span>Nombre del diagnóstico *</span>
+                    <input
+                      type="text"
+                      formControlName="nombre"
+                      [attr.maxlength]="nombreMax"
+                      placeholder="Ej: Miopía, Catarata, Glaucoma..."
+                    />
+                    <small class="diagnostico-campo__contador">
+                      {{ nombreLongitud() }}/{{ nombreMax }}
+                    </small>
+                    @if (campoInvalido('nombre')) {
+                      <small class="diagnostico-campo__error" role="alert">
+                        @if (form.controls.nombre.hasError('required')) {
+                          El nombre es obligatorio.
+                        } @else {
+                          El nombre no puede superar los {{ nombreMax }} caracteres.
+                        }
+                      </small>
+                    }
+                  </label>
+
+                  <label class="diagnostico-campo">
+                    <span>Descripción (opcional)</span>
+                    <textarea
+                      formControlName="descripcion"
+                      rows="4"
+                      placeholder="Descripción adicional del diagnóstico..."
+                    ></textarea>
+                  </label>
+
+                  @if (errorEnvio(); as mensaje) {
+                    <div class="diagnostico-page__estado diagnostico-page__estado--error" role="alert">
+                      <p>{{ mensaje }}</p>
+                    </div>
+                  }
+
+                  <div class="diagnostico-form__acciones">
+                    <button type="submit" class="diagnostico-boton" [disabled]="!puedeRegistrar()">
+                      {{ enviando() ? 'Registrando diagnóstico...' : 'Registrar diagnóstico' }}
+                    </button>
+                  </div>
+
+                  <p class="diagnostico-form__aviso">
+                    El diagnóstico se registra a nombre del oftalmólogo autenticado; no es necesario
+                    indicar identificadores internos. El consulta_id viaja en la URL.
+                  </p>
+                </form>
+              } @else {
+                <div class="diagnostico-page__estado diagnostico-page__estado--bloqueo" role="alert">
+                  <p>
+                    Este paciente no tiene un historial clínico disponible. No es posible registrar
+                    el diagnóstico hasta que exista un historial clínico activo.
+                  </p>
+                </div>
+              }
+            }
+          }
+        }
+      </div>
+    </div>
+  </div>
+
+  @if (sidebarMovilAbierto()) {
+    <button
+      type="button"
+      class="diagnostico-page__backdrop"
+      (click)="cerrarSidebar()"
+      aria-label="Cerrar menú"
+    ></button>
+  }
+</main>

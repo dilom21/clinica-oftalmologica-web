@@ -8,9 +8,9 @@ import {
   PacienteModal,
   PacienteModalGuardar,
 } from '../../components/paciente-modal/paciente-modal';
+import { AntecedenteModal } from '../../components/antecedente-modal/antecedente-modal';
 import { Paciente } from '../../models/pacientes.models';
 import { PacientesService } from '../../services/pacientes.service';
-import { AntecedenteModal } from '../../components/antecedente-modal/antecedente-modal';
 @Component({
   selector: 'app-gestion-pacientes',
   imports: [Sidebar, PacientesTable, PacienteModal, AntecedenteModal],
@@ -141,9 +141,7 @@ export class GestionPacientes implements OnInit {
         this.modalAbierto.set(false);
         this.pacienteEnEdicion.set(null);
         this.mostrarExito(
-          paciente
-            ? 'Paciente actualizado correctamente.'
-            : 'Paciente registrado correctamente.',
+          paciente ? 'Paciente actualizado correctamente.' : 'Paciente registrado correctamente.',
         );
         this.cargarPacientes();
       },

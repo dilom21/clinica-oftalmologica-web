@@ -140,6 +140,16 @@
   background: var(--color-background-deep);
 }
 
+.pacientes-table__btn--antecedentes {
+  background: #ecfdf5;
+  border-color: #a7f3d0;
+  color: #047857;
+}
+
+.pacientes-table__btn--antecedentes:hover:not(:disabled) {
+  background: #d1fae5;
+}
+
 /* ---- Móvil: cards (oculta en desktop) ---- */
 .pacientes-table--movil {
   display: none;
