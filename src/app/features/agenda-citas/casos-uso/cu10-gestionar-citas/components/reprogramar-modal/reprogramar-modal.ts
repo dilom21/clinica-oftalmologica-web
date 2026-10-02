@@ -4,6 +4,7 @@ import { CitasService } from '../../services/citas.service';
 import {
   CitaMedica,
   DisponibilidadCita,
+  ETIQUETA_DURACION_CITA,
   fechaActualInput,
   formatearFechaCita,
   formatearHoraCita,
@@ -50,6 +51,9 @@ export class ReprogramarModal implements OnInit {
   protected readonly horarioSeleccionado = signal<IntervaloCita | null>(null);
   protected readonly guardando = signal(false);
   protected readonly errorGuardar = signal<string | null>(null);
+
+  /** Duración oficial de la cita ('30 min'), tomada del modelo de CU10. */
+  protected readonly etiquetaDuracion = ETIQUETA_DURACION_CITA;
 
   ngOnInit(): void {
     const cita = this.cita();
