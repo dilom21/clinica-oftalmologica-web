@@ -108,6 +108,15 @@ export const routes: Routes = [
     ).then((m) => m.ConsultarHistorialCitas),
   canActivate: [authGuard],
   },
+  // NUEVA RUTA DE SERVICIOS AQUÍ
+  {
+    path: 'gestion-servicios',
+    loadComponent: () =>
+      import(
+        './features/gestion-servicios/casos-uso/cu21-gestionar-servicios/pages/gestion-servicios/gestion-servicios'
+      ).then((m) => m.GestionServicios),
+    canActivate: [authGuard],
+  },
   {
     path: '**',
     redirectTo: '',

@@ -1,0 +1,125 @@
+<div style="display: flex; min-height: 100vh; background-color: #f9fafb;">
+  
+  <app-sidebar [mobileOpen]="sidebarMovilAbierto()" (mobileClose)="cerrarSidebar()" />
+
+  <div style="flex-grow: 1; padding: 2rem; position: relative;">
+    
+    <button (click)="alternarSidebar()" style="display: none; margin-bottom: 1rem; padding: 0.5rem; background: white; border: 1px solid #ccc; border-radius: 4px; cursor: pointer;" class="lg:hidden">Menú</button>
+
+    <div style="padding: 1.5rem; max-width: 80rem; margin: 0 auto; background-color: white; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1); border-radius: 0.5rem;">
+      
+      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem;">
+        <h1 style="font-size: 1.5rem; font-weight: bold; color: #1f2937; margin: 0;">Gestión de Servicios Oftalmológicos</h1>
+        <!-- AHORA LLAMA A abrirModalNuevo() -->
+        <button (click)="abrirModalNuevo()" style="background-color: #2563eb; color: white; font-weight: bold; padding: 0.5rem 1rem; border: none; border-radius: 0.25rem; cursor: pointer; box-shadow: 0 1px 3px rgba(0,0,0,0.2);">
+          + Nuevo Servicio
+        </button>
+      </div>
+
+      @if (cargando()) {
+        <div style="text-align: center; padding: 2.5rem; color: #6b7280;">Cargando servicios...</div>
+      }
+
+      @if (errorCarga()) {
+        <div style="background-color: #fee2e2; border: 1px solid #f87171; color: #b91c1c; padding: 1rem; border-radius: 0.25rem; margin-bottom: 1rem;">
+          No se pudieron cargar los servicios del servidor.
+        </div>
+      }
+
+      @if (!cargando() && !errorCarga()) {
+        <div style="overflow-x: auto;">
+          <table style="min-width: 100%; border-collapse: collapse; text-align: left;">
+            <thead style="background-color: #f9fafb; border-bottom: 2px solid #e5e7eb;">
+              <tr>
+                <th style="padding: 0.75rem 1.5rem; font-size: 0.75rem; font-weight: 500; color: #6b7280; text-transform: uppercase;">Nombre</th>
+                <th style="padding: 0.75rem 1.5rem; font-size: 0.75rem; font-weight: 500; color: #6b7280; text-transform: uppercase;">Descripción</th>
+                <th style="padding: 0.75rem 1.5rem; font-size: 0.75rem; font-weight: 500; color: #6b7280; text-transform: uppercase;">Precio (Bs)</th>
+                <th style="padding: 0.75rem 1.5rem; font-size: 0.75rem; font-weight: 500; color: #6b7280; text-transform: uppercase;">Duración (min)</th>
+                <th style="padding: 0.75rem 1.5rem; font-size: 0.75rem; font-weight: 500; color: #6b7280; text-transform: uppercase;">Estado</th>
+                <th style="padding: 0.75rem 1.5rem; font-size: 0.75rem; font-weight: 500; color: #6b7280; text-transform: uppercase; text-align: right;">Acciones</th>
+              </tr>
+            </thead>
+            <tbody style="background-color: white;">
+              @for (servicio of servicios(); track servicio.id) {
+                <tr style="border-bottom: 1px solid #e5e7eb;">
+                  <td style="padding: 1rem 1.5rem; font-size: 0.875rem; font-weight: 500; color: #111827;">{{ servicio.nombre }}</td>
+                  <td style="padding: 1rem 1.5rem; font-size: 0.875rem; color: #6b7280;">{{ servicio.descripcion }}</td>
+                  <td style="padding: 1rem 1.5rem; font-size: 0.875rem; color: #6b7280;">{{ servicio.precio_base }}</td>
+                  <td style="padding: 1rem 1.5rem; font-size: 0.875rem; color: #6b7280;">{{ servicio.duracion_estimada }}</td>
+                  <td style="padding: 1rem 1.5rem; font-size: 0.875rem;">
+                    <span [style.color]="servicio.estado ? '#065f46' : '#991b1b'" [style.backgroundColor]="servicio.estado ? '#d1fae5' : '#fee2e2'" style="padding: 0.25rem 0.5rem; border-radius: 9999px; font-size: 0.75rem; font-weight: 600;">
+                      {{ servicio.estado ? 'Activo' : 'Inactivo' }}
+                    </span>
+                  </td>
+                  <td style="padding: 1rem 1.5rem; font-size: 0.875rem; text-align: right;">
+                    <!-- AHORA LLAMA A abrirModalEditar() -->
+                    <button (click)="abrirModalEditar(servicio)" style="background-color: #ffc107; color: #000; border: none; padding: 6px 12px; border-radius: 4px; cursor: pointer; margin-right: 8px; font-weight: 500;">
+                      Editar
+                    </button>
+                    <!-- ELIMINAR YA ESTÁ CONECTADO A LA API -->
+                    <button (click)="eliminarServicio(servicio)" style="background-color: #dc3545; color: white; border: none; padding: 6px 12px; border-radius: 4px; cursor: pointer; font-weight: 500;">
+                      Eliminar
+                    </button>
+                  </td>
+                </tr>
+              } @empty {
+                <tr><td colspan="6" style="padding: 1rem 1.5rem; text-align: center; font-size: 0.875rem; color: #6b7280;">No hay servicios registrados.</td></tr>
+              }
+            </tbody>
+          </table>
+        </div>
+      }
+    </div>
+
+    <!-- ===== VENTANA MODAL DEL FORMULARIO ===== -->
+    @if (mostrarModal) {
+      <div style="position: fixed; inset: 0; background-color: rgba(0,0,0,0.5); display: flex; align-items: center; justify-content: center; z-index: 50;">
+        <div style="background-color: white; border-radius: 8px; width: 100%; max-width: 500px; padding: 24px; box-shadow: 0 10px 15px -3px rgba(0,0,0,0.1);">
+          <h2 style="font-size: 1.25rem; font-weight: bold; margin-bottom: 16px; color: #1f2937;">
+            {{ modoEdicion ? 'Editar Servicio' : 'Nuevo Servicio' }}
+          </h2>
+
+          <!-- Formulario -->
+          <div style="display: flex; flex-direction: column; gap: 12px; margin-bottom: 20px;">
+            <label style="font-size: 0.875rem; color: #4b5563; font-weight: 500;">
+              Nombre:
+              <input type="text" [(ngModel)]="servicioForm.nombre" style="width: 100%; box-sizing: border-box; margin-top: 4px; padding: 8px; border: 1px solid #d1d5db; border-radius: 4px;">
+            </label>
+
+            <label style="font-size: 0.875rem; color: #4b5563; font-weight: 500;">
+              Descripción:
+              <textarea [(ngModel)]="servicioForm.descripcion" rows="3" style="width: 100%; box-sizing: border-box; margin-top: 4px; padding: 8px; border: 1px solid #d1d5db; border-radius: 4px;"></textarea>
+            </label>
+
+            <div style="display: flex; gap: 12px;">
+              <label style="flex: 1; font-size: 0.875rem; color: #4b5563; font-weight: 500;">
+                Precio (Bs):
+                <input type="number" [(ngModel)]="servicioForm.precio_base" style="width: 100%; box-sizing: border-box; margin-top: 4px; padding: 8px; border: 1px solid #d1d5db; border-radius: 4px;">
+              </label>
+
+              <label style="flex: 1; font-size: 0.875rem; color: #4b5563; font-weight: 500;">
+                Duración (min):
+                <input type="number" [(ngModel)]="servicioForm.duracion_estimada" style="width: 100%; box-sizing: border-box; margin-top: 4px; padding: 8px; border: 1px solid #d1d5db; border-radius: 4px;">
+              </label>
+            </div>
+
+            <label style="display: flex; align-items: center; gap: 8px; font-size: 0.875rem; color: #4b5563; font-weight: 500; margin-top: 8px; cursor: pointer;">
+              <input type="checkbox" [(ngModel)]="servicioForm.estado">
+              Servicio Activo
+            </label>
+          </div>
+
+          <!-- Botones de Acción -->
+          <div style="display: flex; justify-content: flex-end; gap: 12px;">
+            <button (click)="cerrarModal()" style="padding: 8px 16px; background-color: #f3f4f6; color: #374151; border: 1px solid #d1d5db; border-radius: 4px; cursor: pointer; font-weight: 500;">
+              Cancelar
+            </button>
+            <button (click)="guardarServicio()" style="padding: 8px 16px; background-color: #2563eb; color: white; border: none; border-radius: 4px; cursor: pointer; font-weight: 500;">
+              Guardar
+            </button>
+          </div>
+        </div>
+      </div>
+    }
+  </div>
+</div>

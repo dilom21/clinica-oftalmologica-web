@@ -97,7 +97,20 @@
           <span class="sidebar__label">Inicio</span>
         </a>
       </li>
-
+<!-- BOTÓN DE GESTIÓN DE SERVICIOS -->
+      <li class="sidebar__item">
+        <a
+          class="sidebar__link"
+          routerLink="/gestion-servicios"
+          routerLinkActive="sidebar__link--active"
+          title="Gestión de Servicios"
+        >
+          <span class="sidebar__icon">
+            <svg class="sidebar__svg"><use href="#icono-modulo"></use></svg>
+          </span>
+          <span class="sidebar__label">Gestión de Servicios</span>
+        </a>
+      </li>
       @for (modulo of modulos(); track modulo.id) {
         <li class="sidebar__item" [class.sidebar__item--open]="openModuleId() === modulo.id">
           <button
