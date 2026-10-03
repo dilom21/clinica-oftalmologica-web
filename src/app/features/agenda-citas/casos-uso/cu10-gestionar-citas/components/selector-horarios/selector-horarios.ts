@@ -1,5 +1,6 @@
 import { Component, input, output } from '@angular/core';
 import {
+  ETIQUETA_DURACION_CITA,
   formatearHoraCita,
   formatearFechaCita,
   IntervaloCita,
@@ -18,6 +19,9 @@ export class SelectorHorarios {
   readonly deshabilitado = input(false);
 
   readonly seleccionar = output<IntervaloCita>();
+
+  /** Duración oficial de la cita ('30 min'), tomada del modelo de CU10. */
+  protected readonly etiquetaDuracion = ETIQUETA_DURACION_CITA;
 
   esSeleccionado(opcion: IntervaloCita): boolean {
     const actual = this.seleccionado();

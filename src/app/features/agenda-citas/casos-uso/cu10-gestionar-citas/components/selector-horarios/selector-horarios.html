@@ -6,7 +6,7 @@
 } @else {
   <div class="selector-horarios__contenido">
     <p class="selector-horarios__hint">
-      Selecciona un horario de inicio. Cada cita dura 1 hora.
+      Selecciona un horario de inicio. Cada cita dura {{ etiquetaDuracion }}.
     </p>
     <ul class="selector-horarios__lista">
       @for (opcion of opciones(); track opcion.hora_inicio) {
@@ -27,7 +27,7 @@
               @if (esSeleccionado(opcion)) {
                 Seleccionado
               } @else {
-                1 hora
+                {{ etiquetaDuracion }}
               }
             </span>
           </button>
