@@ -27,6 +27,8 @@ export class Sidebar implements OnInit {
     ['registrar consulta clínica', '/registrar-consulta-clinica'],
     ['registrar diagnóstico', '/registrar-diagnostico'],
     ['registrar diagnostico', '/registrar-diagnostico'],
+    ['programar controles médicos', '/programar-controles-medicos'],
+    ['programar controles medicos', '/programar-controles-medicos'],
     ['consultar bitácora', '/bitacora'],
     ['consultar agenda y disponibilidad médica', '/agenda-disponibilidad'],
     ['configurar disponibilidad del oftalmólogo', '/configurar-disponibilidad'],

@@ -1,10 +1,11 @@
 import { Component, computed, inject, OnInit, signal } from '@angular/core';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
-import { Router } from '@angular/router';
+import { Router, RouterLink } from '@angular/router';
 import { catchError, of } from 'rxjs';
 
 import { Sidebar } from '../../../../../../core/layouts/sidebar/sidebar';
 import { AuthService } from '../../../../../../features/autenticacion-seguridad/Auth/services/auth.service';
+import { ID_ROL_USUARIO } from '../../../../../../features/autenticacion-seguridad/Auth/models/auth.models';
 import {
   CitaMedica,
   claseEstadoCita,
@@ -39,7 +40,7 @@ function normalizarTexto(valor: string | null | undefined): string | null {
 
 @Component({
   selector: 'app-registrar-consulta',
-  imports: [Sidebar, ReactiveFormsModule],
+  imports: [Sidebar, ReactiveFormsModule, RouterLink],
   templateUrl: './registrar-consulta.html',
   styleUrl: './registrar-consulta.css',
 })
@@ -317,6 +318,10 @@ export class RegistrarConsulta implements OnInit {
     if (pacienteId) {
       this.cargarCitas(pacienteId);
     }
+  }
+
+  protected puedeProgramarControl(): boolean {
+    return this.authService.obtenerRolIdActual() === ID_ROL_USUARIO.OFTALMOLOGO;
   }
 
   private reiniciarFormulario(): void {

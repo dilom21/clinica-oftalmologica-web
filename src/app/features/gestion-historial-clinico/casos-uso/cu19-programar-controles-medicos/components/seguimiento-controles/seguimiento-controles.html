@@ -1,0 +1,149 @@
+<section class="controles-panel" aria-label="Seguimiento y controles médicos">
+  <div class="controles-panel__cabecera">
+    <div>
+      <h2>Controles médicos posteriores</h2>
+      <p>Consulta el seguimiento del paciente y programa un control desde su atención previa.</p>
+    </div>
+    <button type="button" class="controles-boton controles-boton--borde" (click)="cargar()"
+      [disabled]="cargandoConsultas() || cargandoControles() || enviando()">Actualizar</button>
+  </div>
+
+  @if (errorPermisos(); as mensaje) {
+    <p class="controles-estado controles-estado--error" role="alert">{{ mensaje }}</p>
+  }
+  @if (cargandoSesion()) {
+    <p class="controles-estado" role="status">Verificando permisos y perfil del oftalmólogo...</p>
+  } @else if (!errorPermisos()) {
+    @if (motivoSesion(); as mensaje) {
+      <p class="controles-estado" role="status">{{ mensaje }}</p>
+    }
+  }
+  @if (exito(); as mensaje) {
+    <p class="controles-estado controles-estado--exito" role="status">{{ mensaje }}</p>
+  }
+
+  <div class="controles-consultas">
+    <h3>Atenciones previas</h3>
+    @if (cargandoConsultas()) {
+      <p class="controles-estado" role="status">Cargando consultas clínicas...</p>
+    } @else if (errorConsultas(); as mensaje) {
+      <p class="controles-estado controles-estado--error" role="alert">{{ mensaje }}</p>
+    } @else if (consultas().length === 0) {
+      <p class="controles-estado">El paciente todavía no tiene consultas clínicas registradas.</p>
+    } @else {
+      <div class="controles-consultas__lista">
+        @for (consulta of consultas(); track consulta.id) {
+          <article class="controles-consulta">
+            <div>
+              <strong>Consulta #{{ consulta.id }} · {{ fecha(fechaConsulta(consulta.fecha_consulta)) }}</strong>
+              <p>{{ consulta.motivo_consulta || 'Sin motivo registrado' }}</p>
+              <small>Oftalmólogo: {{ nombreOftalmologo(consulta) }}</small>
+            </div>
+            @if (puedeAdministrarConsulta(consulta)) {
+              <button type="button" class="controles-boton" (click)="programar(consulta)"
+                [disabled]="enviando() || !contextoDisponible()">Programar control</button>
+            } @else if (!motivoSesion()) {
+              @if (motivoConsulta(consulta); as mensaje) {
+                <p class="controles-estado">{{ mensaje }}</p>
+              }
+            }
+          </article>
+        }
+      </div>
+    }
+  </div>
+
+  <div class="controles-listado">
+    <div class="controles-listado__cabecera">
+      <h3>Seguimiento registrado</h3>
+      <label class="controles-campo controles-campo--filtro">
+        <span>Filtrar por atención</span>
+        <select [value]="filtroConsultaId() ?? ''" (change)="cambiarFiltro($event)" [disabled]="cargandoConsultas()">
+          <option value="">Todas las atenciones</option>
+          @for (consulta of consultas(); track consulta.id) {
+            <option [value]="consulta.id" [selected]="consulta.id === filtroConsultaId()">Consulta #{{ consulta.id }} · {{ fecha(fechaConsulta(consulta.fecha_consulta)) }}</option>
+          }
+        </select>
+      </label>
+    </div>
+    @if (cargandoControles()) {
+      <p class="controles-estado" role="status">Cargando controles médicos...</p>
+    } @else if (errorControles(); as mensaje) {
+      <p class="controles-estado controles-estado--error" role="alert">{{ mensaje }}</p>
+    } @else if (controlesFiltrados().length === 0) {
+      <p class="controles-estado">No hay controles médicos registrados para esta selección.</p>
+    } @else {
+      <ul class="controles-listado__lista">
+        @for (control of controlesFiltrados(); track control.id) {
+          <li class="control-tarjeta">
+            <div class="control-tarjeta__cabecera">
+              <strong>{{ fecha(control.fecha_programada) }} · Control #{{ control.id }}</strong>
+              <span class="control-estado" [class.control-estado--realizado]="control.estado === 'REALIZADO'"
+                [class.control-estado--cancelado]="control.estado === 'CANCELADO'">{{ etiquetaEstado(control.estado) }}</span>
+            </div>
+            <p class="control-tarjeta__motivo">{{ control.motivo || 'Sin motivo registrado' }}</p>
+            @if (control.observaciones) { <p class="control-tarjeta__observaciones">{{ control.observaciones }}</p> }
+            <div class="control-tarjeta__acciones">
+              <small>{{ control.consulta_clinica_id ? 'Atención previa #' + control.consulta_clinica_id : 'Registro anterior sin atención asociada' }}</small>
+              @if (puedeEditar(control)) {
+                <button type="button" class="controles-boton controles-boton--borde" (click)="editar(control)"
+                  [disabled]="enviando() || !contextoDisponible()">Administrar control</button>
+              }
+            </div>
+          </li>
+        }
+      </ul>
+    }
+  </div>
+
+  @if (formularioAbierto()) {
+    @if (consultaFormulario(); as consulta) {
+      <form class="controles-form" [formGroup]="form" (ngSubmit)="guardar()" novalidate>
+        <div>
+          <h3>{{ controlEnEdicion() ? 'Administrar control médico' : 'Programar control médico' }}</h3>
+          <p>Atención previa #{{ consulta.id }} · {{ nombreOftalmologo(consulta) }}</p>
+          <p>Los campos marcados con * son obligatorios.</p>
+        </div>
+        <fieldset [disabled]="enviando()">
+          <label class="controles-campo">
+            <span>Fecha programada *</span>
+            <input type="date" formControlName="fecha_programada" [min]="fechaMinima()"
+              [attr.aria-invalid]="campoInvalido('fecha_programada')" />
+            @if (campoInvalido('fecha_programada')) {
+              <small class="controles-campo__error" role="alert">Ingresa una fecha válida desde {{ fecha(fechaMinima()) }}.</small>
+            }
+          </label>
+          <label class="controles-campo">
+            <span>Motivo del control *</span>
+            <input type="text" formControlName="motivo" [attr.maxlength]="motivoMax"
+              [attr.aria-invalid]="campoInvalido('motivo')" placeholder="Motivo del seguimiento" />
+            @if (campoInvalido('motivo')) {
+              <small class="controles-campo__error" role="alert">Ingresa el motivo del control (máximo {{ motivoMax }} caracteres).</small>
+            }
+          </label>
+          <label class="controles-campo">
+            <span>Observaciones</span>
+            <textarea rows="3" formControlName="observaciones" placeholder="Indicaciones para el próximo control"></textarea>
+          </label>
+          @if (controlEnEdicion()) {
+            <label class="controles-campo">
+              <span>Estado *</span>
+              <select formControlName="estado">
+                @for (estado of estados; track estado) { <option [value]="estado">{{ etiquetaEstado(estado) }}</option> }
+              </select>
+            </label>
+          } @else { <p>El control se registrará en estado Programado.</p> }
+        </fieldset>
+        <div class="controles-form__acciones">
+          <button type="button" class="controles-boton controles-boton--borde" (click)="cerrarFormulario()" [disabled]="enviando()">Cancelar edición</button>
+          <button type="submit" class="controles-boton" [disabled]="enviando() || !contextoDisponible() || form.invalid">
+            {{ enviando() ? 'Guardando...' : controlEnEdicion() ? 'Guardar cambios' : 'Programar control' }}
+          </button>
+        </div>
+      </form>
+    }
+  }
+  @if (errorEnvio(); as mensaje) {
+    <p class="controles-estado controles-estado--error" role="alert">{{ mensaje }}</p>
+  }
+</section>
