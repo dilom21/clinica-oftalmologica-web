@@ -90,6 +90,10 @@ export class Sidebar implements OnInit {
     return '/historial-clinico';
   }
 
+  if (clave.includes('historial') && clave.includes('cita')) {
+  return '/historial-citas';
+}
+
   if (clave.includes('bitácora') || clave.includes('bitacora')) {
     return '/bitacora';
   }

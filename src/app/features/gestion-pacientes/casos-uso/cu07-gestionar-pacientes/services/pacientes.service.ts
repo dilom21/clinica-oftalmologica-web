@@ -2,12 +2,7 @@ import { HttpClient } from '@angular/common/http';
 import { Injectable } from '@angular/core';
 import { Observable } from 'rxjs';
 import { environment } from '../../../../../../environments/environment';
-import {
-  AntecedenteClinico,
-  AntecedenteClinicoActualizar,
-  AntecedenteClinicoCrear,
-  HistorialClinicoRespuesta,
-} from '../models/antecedentes.models';
+import { AntecedenteClinico } from '../models/antecedentes.models';
 import { Paciente, PacienteActualizar, PacienteCrear } from '../models/pacientes.models';
 
 @Injectable({ providedIn: 'root' })
@@ -33,20 +28,29 @@ export class PacientesService {
     return this.http.put<Paciente>(`${this.pacientesUrl}/${pacienteId}`, datos);
   }
 
-  obtenerHistorialClinico(pacienteId: number): Observable<HistorialClinicoRespuesta> {
-    return this.http.get<HistorialClinicoRespuesta>(`${this.historialClinicoUrl}/${pacienteId}`);
+  listarAntecedentesPorHistorial(
+    historialClinicoId: number,
+  ): Observable<AntecedenteClinico[]> {
+    return this.http.get<AntecedenteClinico[]>(
+      `${this.pacientesUrl}/historial/${historialClinicoId}/antecedentes`,
+    );
   }
 
-  crearAntecedente(datos: AntecedenteClinicoCrear): Observable<AntecedenteClinico> {
-    return this.http.post<AntecedenteClinico>(`${this.historialClinicoUrl}/antecedentes`, datos);
+  crearAntecedente(
+    datos: Partial<AntecedenteClinico>,
+  ): Observable<AntecedenteClinico> {
+    return this.http.post<AntecedenteClinico>(
+      `${this.pacientesUrl}/antecedentes`,
+      datos,
+    );
   }
 
   actualizarAntecedente(
     antecedenteId: number,
-    datos: AntecedenteClinicoActualizar,
+    datos: Partial<AntecedenteClinico>,
   ): Observable<AntecedenteClinico> {
     return this.http.put<AntecedenteClinico>(
-      `${this.historialClinicoUrl}/antecedentes/${antecedenteId}`,
+      `${this.pacientesUrl}/antecedentes/${antecedenteId}`,
       datos,
     );
   }
