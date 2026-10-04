@@ -1,0 +1,176 @@
+.estado-dialog__backdrop {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.5);
+  z-index: 1099;
+  animation: estadoFadeIn 0.2s ease;
+}
+
+.estado-dialog__ventana {
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 90%;
+  max-width: 420px;
+  background: var(--color-white);
+  border-radius: var(--radius-lg);
+  box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.15);
+  padding: 1.5rem;
+  text-align: center;
+  z-index: 1100;
+  animation: estadoSlideUp 0.3s ease;
+}
+
+@keyframes estadoFadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes estadoSlideUp {
+  from {
+    opacity: 0;
+    transform: translate(-50%, -45%);
+  }
+  to {
+    opacity: 1;
+    transform: translate(-50%, -50%);
+  }
+}
+
+.estado-dialog__icono {
+  width: 56px;
+  height: 56px;
+  margin: 0 auto 0.9rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+}
+
+.estado-dialog__icono svg {
+  width: 28px;
+  height: 28px;
+}
+
+.estado-dialog__icono--activar {
+  background: #ecfdf5;
+  color: #059669;
+}
+
+.estado-dialog__icono--desactivar {
+  background: #fef2f2;
+  color: #dc2626;
+}
+
+.estado-dialog__titulo {
+  margin: 0 0 0.5rem;
+  font-size: 1.15rem;
+  font-weight: 700;
+  color: var(--color-primary-dark);
+  line-height: 1.4;
+}
+
+.estado-dialog__texto {
+  color: var(--color-text-soft);
+  font-size: 0.9rem;
+  line-height: 1.6;
+}
+
+.estado-dialog__error {
+  margin: 0.9rem 0 0;
+  padding: 0.7rem 0.9rem;
+  background: #fef2f2;
+  border: 1px solid #fecaca;
+  border-radius: var(--radius-md);
+  color: #dc2626;
+  font-size: 0.85rem;
+  line-height: 1.5;
+  text-align: left;
+}
+
+.estado-dialog__acciones {
+  display: flex;
+  gap: 0.75rem;
+  justify-content: center;
+  margin-top: 1.25rem;
+}
+
+.estado-dialog__btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  padding: 0.6rem 1.4rem;
+  border: none;
+  border-radius: var(--radius-sm);
+  font-size: 0.875rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition:
+    background 0.2s ease,
+    color 0.2s ease;
+}
+
+.estado-dialog__btn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.estado-dialog__btn--cancelar {
+  background: var(--color-white);
+  border: 1px solid var(--color-border);
+  color: var(--color-text);
+}
+
+.estado-dialog__btn--cancelar:hover:not(:disabled) {
+  background: var(--color-background-soft);
+}
+
+.estado-dialog__btn--activar {
+  background: #059669;
+  color: var(--color-white);
+}
+
+.estado-dialog__btn--activar:hover:not(:disabled) {
+  background: #047857;
+}
+
+.estado-dialog__btn--desactivar {
+  background: #dc2626;
+  color: var(--color-white);
+}
+
+.estado-dialog__btn--desactivar:hover:not(:disabled) {
+  background: #b91c1c;
+}
+
+.estado-dialog__spinner {
+  display: inline-block;
+  width: 14px;
+  height: 14px;
+  border: 2px solid rgba(255, 255, 255, 0.3);
+  border-top-color: var(--color-white);
+  border-radius: 50%;
+  animation: estadoSpin 0.6s linear infinite;
+}
+
+@keyframes estadoSpin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+@media (max-width: 560px) {
+  .estado-dialog__acciones {
+    flex-direction: column-reverse;
+  }
+
+  .estado-dialog__btn {
+    width: 100%;
+  }
+}

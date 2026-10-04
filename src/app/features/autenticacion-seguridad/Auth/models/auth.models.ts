@@ -20,3 +20,13 @@ export interface RestablecerPasswordRequest {
 export interface MensajeRespuesta {
   mensaje: string;
 }
+
+export const ID_ROL_USUARIO = {
+  ADMINISTRADOR: 1,
+  OFTALMOLOGO: 2,
+  RECEPCIONISTA: 3,
+  PACIENTE: 4,
+} as const;
+
+export type IdRolUsuario =
+  (typeof ID_ROL_USUARIO)[keyof typeof ID_ROL_USUARIO];

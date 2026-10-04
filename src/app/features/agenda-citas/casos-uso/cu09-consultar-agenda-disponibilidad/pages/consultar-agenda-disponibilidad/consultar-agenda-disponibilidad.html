@@ -1,0 +1,272 @@
+<main class="agenda-page">
+  <div class="agenda-page__body">
+    <app-sidebar [mobileOpen]="sidebarMovilAbierto()" (mobileClose)="cerrarSidebar()" />
+
+    <div class="agenda-page__main">
+      <header class="agenda-page__main-header">
+        <button
+          type="button"
+          class="agenda-page__hamburger"
+          [attr.aria-expanded]="sidebarMovilAbierto()"
+          [attr.aria-label]="sidebarMovilAbierto() ? 'Cerrar menú' : 'Abrir menú'"
+          (click)="alternarSidebar()"
+        >
+          <span></span><span></span><span></span>
+        </button>
+        <button type="button" class="agenda-page__logout" (click)="cerrarSesion()">
+          Cerrar sesión
+        </button>
+      </header>
+
+      <div class="agenda-page__content">
+        <div class="agenda-page__cabecera">
+          <div>
+            <p class="agenda-page__eyebrow">Agenda y Citas</p>
+            <h1 class="agenda-page__titulo">Consultar agenda y disponibilidad médica</h1>
+            @if (esPaciente()) {
+              <p class="agenda-page__subtitulo">
+                Selecciona un oftalmólogo y una fecha para consultar los intervalos
+                disponibles.
+              </p>
+            } @else if (esOftalmologo()) {
+              <p class="agenda-page__subtitulo">
+                Revisa tu disponibilidad y tu agenda del día seleccionando una fecha.
+              </p>
+            } @else {
+              <p class="agenda-page__subtitulo">
+                Selecciona un oftalmólogo y una fecha para revisar su agenda y los intervalos
+                disponibles.
+              </p>
+            }
+          </div>
+        </div>
+
+        <section class="agenda-filtros" aria-label="Filtros de consulta">
+          <div class="agenda-filtros__grid">
+            <label class="agenda-filtros__campo">
+              <span>Oftalmólogo</span>
+              <select
+                [value]="oftalmologoSeleccionado()"
+                (change)="onCambiarOftalmologo($event)"
+                [disabled]="
+                  cargandoOftalmologos() || oftalmologos().length === 0 || esOftalmologo()
+                "
+              >
+                <option value="">Selecciona un oftalmólogo</option>
+                @for (oftalmologo of oftalmologos(); track oftalmologo.id) {
+                  <option [value]="oftalmologo.id">
+                    {{ oftalmologo.nombres }} {{ oftalmologo.apellidos }}
+                  </option>
+                }
+              </select>
+            </label>
+
+            <label class="agenda-filtros__campo">
+              <span>Fecha</span>
+              <input
+                type="date"
+                [value]="fecha()"
+                (change)="onCambiarFecha($event)"
+                [disabled]="cargandoOftalmologos()"
+              />
+            </label>
+
+            <div class="agenda-filtros__acciones">
+              <button
+                type="button"
+                class="agenda-filtros__limpiar"
+                (click)="limpiar()"
+                [disabled]="consultando() || cargandoOftalmologos()"
+              >
+                Limpiar
+              </button>
+              <button
+                type="button"
+                class="agenda-filtros__buscar"
+                (click)="consultar()"
+                [disabled]="!puedeConsultar()"
+              >
+                Consultar disponibilidad
+              </button>
+            </div>
+          </div>
+        </section>
+
+        @if (cargandoOftalmologos()) {
+          <p class="agenda-page__estado" role="status">Cargando oftalmólogos...</p>
+        } @else if (errorOftalmologos(); as mensajeOftalmologos) {
+          <div class="agenda-page__estado agenda-page__estado--error" role="alert">
+            <strong>No se pudieron cargar los oftalmólogos.</strong>
+            <span>{{ mensajeOftalmologos }}</span>
+            <button
+              type="button"
+              class="agenda-filtros__limpiar"
+              (click)="reintentarCargaOftalmologos()"
+            >
+              Reintentar
+            </button>
+          </div>
+        } @else if (oftalmologos().length === 0) {
+          <div class="agenda-page__estado" role="status">
+            <strong>No hay oftalmólogos activos</strong>
+            <span>Por el momento no existen oftalmólogos activos registrados para consultar.</span>
+          </div>
+        } @else {
+          @if (consultando()) {
+            <p class="agenda-page__estado" role="status">
+              {{
+                esPaciente()
+                  ? 'Consultando disponibilidad...'
+                  : 'Consultando agenda y disponibilidad...'
+              }}
+            </p>
+          } @else if (errorConsulta(); as mensajeConsulta) {
+            <div class="agenda-page__estado agenda-page__estado--error" role="alert">
+              <strong>No se pudo completar la consulta.</strong>
+              <span>{{ mensajeConsulta }}</span>
+              <button type="button" class="agenda-filtros__limpiar" (click)="reintentarConsulta()">
+                Reintentar
+              </button>
+            </div>
+          } @else if (disponibilidad(); as d) {
+            <article class="agenda-resultado">
+              <header class="agenda-resultado__resumen">
+                <div class="agenda-resultado__info">
+                  <span class="agenda-resultado__etiqueta">Oftalmólogo consultado</span>
+                  <h2 class="agenda-resultado__nombre">
+                    {{ d.oftalmologo.nombres }} {{ d.oftalmologo.apellidos }}
+                  </h2>
+                  <p class="agenda-resultado__detalles">
+                    @if (d.oftalmologo.especialidad) {
+                      <span class="agenda-resultado__chip">{{ d.oftalmologo.especialidad }}</span>
+                    }
+                    <span class="agenda-resultado__chip">
+                      Matrícula {{ d.oftalmologo.matricula }}
+                    </span>
+                  </p>
+                </div>
+                <div class="agenda-resultado__fecha">
+                  <span>Fecha consultada</span>
+                  <strong>{{ formatearFecha(d.fecha) }}</strong>
+                </div>
+              </header>
+
+              <div class="agenda-resultado__grid">
+                <section class="agenda-panel">
+                  <header class="agenda-panel__cabecera">
+                    <h3 class="agenda-panel__titulo">Disponibilidad</h3>
+                  </header>
+
+                  @if (!d.tiene_horario) {
+                    <div class="agenda-panel__aviso">
+                      <strong>Sin horario configurado</strong>
+                      <span>
+                        Este oftalmólogo no tiene un horario base activo para la fecha seleccionada.
+                      </span>
+                    </div>
+                  } @else {
+                    @if (d.horarios_base.length > 0) {
+                      <p class="agenda-panel__subetiqueta">Horario base del día</p>
+                      <ul class="agenda-horarios">
+                        @for (base of d.horarios_base; track $index) {
+                          <li class="agenda-horarios__item">
+                            {{ formatearHora(base.hora_inicio) }} –
+                            {{ formatearHora(base.hora_fin) }}
+                          </li>
+                        }
+                      </ul>
+                    }
+
+                    @if (d.intervalos_disponibles.length === 0) {
+                      <div class="agenda-panel__aviso">
+                        <strong>Sin intervalos disponibles</strong>
+                        <span>
+                          El horario de la fecha seleccionada está completamente ocupado o
+                          bloqueado.
+                        </span>
+                      </div>
+                    } @else {
+                      <p class="agenda-panel__subetiqueta">Intervalos disponibles</p>
+                      <ul class="agenda-intervalos">
+                        @for (intervalo of d.intervalos_disponibles; track $index) {
+                          <li class="agenda-intervalos__item">
+                            <time>{{ formatearHora(intervalo.hora_inicio) }}</time>
+                            <span class="agenda-intervalos__separador" aria-hidden="true">a</span>
+                            <time>{{ formatearHora(intervalo.hora_fin) }}</time>
+                            <span class="agenda-intervalos__badge">Disponible</span>
+                          </li>
+                        }
+                      </ul>
+                    }
+                  }
+                </section>
+
+                @if (puedeVerAgenda() && agenda(); as a) {
+                  <section class="agenda-panel">
+                    <header class="agenda-panel__cabecera">
+                      <h3 class="agenda-panel__titulo">
+                        {{ esOftalmologo() ? 'Mi agenda' : 'Agenda del día' }}
+                      </h3>
+                      @if (a.tiene_horario && a.citas.length > 0) {
+                        <span class="agenda-panel__contador">{{ a.citas.length }} cita(s)</span>
+                      }
+                    </header>
+
+                    @if (!a.tiene_horario) {
+                      <div class="agenda-panel__aviso">
+                        <strong>Sin horario configurado</strong>
+                        <span>
+                          No se pueden mostrar citas porque no hay horario base para la fecha
+                          seleccionada.
+                        </span>
+                      </div>
+                    } @else if (a.citas.length === 0) {
+                      <div class="agenda-panel__aviso">
+                        <strong>Sin citas programadas</strong>
+                        <span>No hay citas registradas para esta fecha.</span>
+                      </div>
+                    } @else {
+                      <ul class="agenda-citas">
+                        @for (cita of a.citas; track cita.id) {
+                          <li class="agenda-citas__item">
+                            <div class="agenda-citas__hora">
+                              <time>{{ formatearHora(cita.hora_inicio) }}</time>
+                              <span>a</span>
+                              <time>{{ formatearHora(cita.hora_fin) }}</time>
+                            </div>
+                            <div class="agenda-citas__detalle">
+                              <span class="agenda-citas__estado">{{ cita.estado }}</span>
+                              @if (cita.motivo) {
+                                <p>{{ cita.motivo }}</p>
+                              }
+                            </div>
+                          </li>
+                        }
+                      </ul>
+                    }
+                  </section>
+                }
+              </div>
+            </article>
+          } @else {
+            <div class="agenda-page__estado" role="status">
+              <strong>Sin consulta realizada</strong>
+              <span>
+                Elige un oftalmólogo y una fecha, luego presiona «Consultar disponibilidad».
+              </span>
+            </div>
+          }
+        }
+      </div>
+    </div>
+  </div>
+
+  @if (sidebarMovilAbierto()) {
+    <button
+      type="button"
+      class="agenda-page__backdrop"
+      (click)="cerrarSidebar()"
+      aria-label="Cerrar menú"
+    ></button>
+  }
+</main>

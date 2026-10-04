@@ -69,12 +69,60 @@ export const routes: Routes = [
     canActivate: [authGuard],
   },
   {
+    path: 'registrar-consulta-clinica',
+    loadComponent: () =>
+      import(
+        './features/gestion-historial-clinico/casos-uso/cu15-registrar-consulta-clinica/pages/registrar-consulta/registrar-consulta'
+      ).then((m) => m.RegistrarConsulta),
+    canActivate: [authGuard],
+  },
+  {
+    path: 'registrar-diagnostico',
+    loadComponent: () =>
+      import(
+        './features/gestion-historial-clinico/casos-uso/cu16-registrar-diagnostico/pages/registrar-diagnostico/registrar-diagnostico'
+      ).then((m) => m.RegistrarDiagnostico),
+    canActivate: [authGuard],
+  },
+  {
     path: 'bitacora',
     loadComponent: () =>
       import(
         './features/autenticacion-seguridad/casos-uso/cu06-consultar-bitacora/pages/consultar-bitacora/consultar-bitacora'
       ).then((m) => m.ConsultarBitacora),
     canActivate: [authGuard],
+  },
+  {
+    path: 'agenda-disponibilidad',
+    loadComponent: () =>
+      import(
+        './features/agenda-citas/casos-uso/cu09-consultar-agenda-disponibilidad/pages/consultar-agenda-disponibilidad/consultar-agenda-disponibilidad'
+      ).then((m) => m.ConsultarAgendaDisponibilidad),
+    canActivate: [authGuard],
+  },
+  {
+    path: 'configurar-disponibilidad',
+    loadComponent: () =>
+      import(
+        './features/agenda-citas/casos-uso/cu11-configurar-disponibilidad/pages/configurar-disponibilidad/configurar-disponibilidad'
+      ).then((m) => m.ConfigurarDisponibilidad),
+    canActivate: [authGuard],
+  },
+  {
+    path: 'gestionar-citas',
+    loadComponent: () =>
+      import(
+        './features/agenda-citas/casos-uso/cu10-gestionar-citas/pages/gestionar-citas/gestionar-citas'
+      ).then((m) => m.GestionarCitas),
+    canActivate: [authGuard],
+  },
+  {
+  path: 'historial-citas',
+  loadComponent: () =>
+    import(
+      './features/gestion-agenda-citas/casos-uso/cu12-consultar-historial-citas/pages/consultar-historial-citas/consultar-historial-citas'
+    ).then((m) => m.ConsultarHistorialCitas),
+  canActivate: [authGuard],
   },
   {
     path: '**',

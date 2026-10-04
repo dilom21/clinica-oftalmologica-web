@@ -1,0 +1,79 @@
+@if (abierto()) {
+  <div class="estado-dialog">
+    <div class="estado-dialog__backdrop" (click)="cancelar()" aria-hidden="true"></div>
+    <div
+      class="estado-dialog__ventana"
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="estado-dialog-titulo"
+    >
+      <div
+        class="estado-dialog__icono"
+        [class.estado-dialog__icono--activar]="activa()"
+        [class.estado-dialog__icono--desactivar]="!activa()"
+        aria-hidden="true"
+      >
+        @if (activa()) {
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+          >
+            <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path>
+            <polyline points="22 4 12 14.01 9 11.01"></polyline>
+          </svg>
+        } @else {
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+          >
+            <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"></path>
+            <line x1="12" y1="9" x2="12" y2="13"></line>
+            <line x1="12" y1="17" x2="12.01" y2="17"></line>
+          </svg>
+        }
+      </div>
+      <h2 id="estado-dialog-titulo" class="estado-dialog__titulo">
+        {{ titulo() }}
+      </h2>
+      <p class="estado-dialog__texto">{{ detalle() }}</p>
+      @if (error(); as mensajeError) {
+        <p class="estado-dialog__error" role="alert">{{ mensajeError }}</p>
+      }
+      <div class="estado-dialog__acciones">
+        <button
+          type="button"
+          class="estado-dialog__btn estado-dialog__btn--cancelar"
+          (click)="cancelar()"
+          [disabled]="procesando()"
+        >
+          Cancelar
+        </button>
+        <button
+          type="button"
+          class="estado-dialog__btn"
+          [class.estado-dialog__btn--activar]="activa()"
+          [class.estado-dialog__btn--desactivar]="!activa()"
+          (click)="confirm.emit()"
+          [disabled]="procesando()"
+        >
+          @if (procesando()) {
+            <span class="estado-dialog__spinner" aria-hidden="true"></span>
+            Procesando...
+          } @else {
+            {{ botonConfirmar() }}
+          }
+        </button>
+      </div>
+    </div>
+  </div>
+}

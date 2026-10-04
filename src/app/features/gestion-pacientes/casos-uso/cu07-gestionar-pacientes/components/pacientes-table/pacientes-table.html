@@ -39,6 +39,13 @@
             <td class="pacientes-table__acciones">
               <button
                 type="button"
+                class="pacientes-table__btn pacientes-table__btn--antecedentes"
+                (click)="verAntecedentes.emit(paciente)"
+              >
+                Antecedentes
+              </button>
+              <button
+                type="button"
                 class="pacientes-table__btn pacientes-table__btn--editar"
                 (click)="editar.emit(paciente)"
               >
@@ -76,6 +83,13 @@
             {{ paciente.estado ? 'Activo' : 'Inactivo' }}
           </span>
           <div class="pacientes-table__acciones">
+            <button
+              type="button"
+              class="pacientes-table__btn pacientes-table__btn--antecedentes"
+              (click)="verAntecedentes.emit(paciente)"
+            >
+              Antecedentes
+            </button>
             <button
               type="button"
               class="pacientes-table__btn pacientes-table__btn--editar"

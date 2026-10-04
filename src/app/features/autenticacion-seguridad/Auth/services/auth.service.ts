@@ -33,4 +33,56 @@ export class AuthService {
   logout(): void {
     localStorage.removeItem('access_token');
   }
+
+  obtenerUsuarioIdActual(): number | null {
+    const claims = this.leerPayloadToken();
+    if (!claims) {
+      return null;
+    }
+    for (const clave of ['sub', 'user_id', 'usuario_id', 'id']) {
+      const numero = this.numeroPositivo(claims[clave]);
+      if (numero !== null) {
+        return numero;
+      }
+    }
+    return null;
+  }
+
+  obtenerRolIdActual(): number | null {
+    const claims = this.leerPayloadToken();
+    return claims ? this.numeroPositivo(claims['rol_id']) : null;
+  }
+
+  private leerPayloadToken(): Record<string, unknown> | null {
+    const token = localStorage.getItem('access_token');
+    if (!token) {
+      return null;
+    }
+    try {
+      const segmento = token.split('.')[1];
+      if (!segmento) {
+        return null;
+      }
+      const base64 = segmento.replace(/-/g, '+').replace(/_/g, '/');
+      const binario = atob(base64);
+      const bytes = Uint8Array.from(binario, (caracter) =>
+        caracter.charCodeAt(0),
+      );
+      const claims = JSON.parse(new TextDecoder().decode(bytes)) as Record<
+        string,
+        unknown
+      >;
+      return claims && typeof claims === 'object' ? claims : null;
+    } catch {
+      return null;
+    }
+  }
+
+  private numeroPositivo(valor: unknown): number | null {
+    if (valor === null || valor === undefined) {
+      return null;
+    }
+    const numero = Number(valor);
+    return Number.isInteger(numero) && numero > 0 ? numero : null;
+  }
 }

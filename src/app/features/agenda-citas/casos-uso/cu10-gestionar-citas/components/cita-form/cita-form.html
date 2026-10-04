@@ -1,0 +1,362 @@
+<section class="cita-form">
+  <header class="cita-form__cabecera">
+    <div class="cita-form__cabecera-texto">
+      <h2 class="cita-form__titulo">Registrar nueva cita</h2>
+      <p class="cita-form__subtitulo">
+        Selecciona paciente, oftalmólogo y fecha. Consulta la disponibilidad y registra la cita.
+      </p>
+    </div>
+    <button
+      type="button"
+      class="cita-form__limpiar"
+      (click)="limpiarFormulario()"
+      [disabled]="consultando() || guardando()"
+    >
+      Limpiar
+    </button>
+  </header>
+
+  <ol class="cita-form__pasos">
+    <li [class.cita-form__paso--completo]="!!pacienteSeleccionado()">
+      <span class="cita-form__paso-numero">1</span>
+      <span>Paciente</span>
+    </li>
+    <li [class.cita-form__paso--completo]="oftalmologoId() !== ''">
+      <span class="cita-form__paso-numero">2</span>
+      <span>Oftalmólogo</span>
+    </li>
+    <li [class.cita-form__paso--completo]="fecha() !== ''">
+      <span class="cita-form__paso-numero">3</span>
+      <span>Fecha</span>
+    </li>
+    <li [class.cita-form__paso--completo]="!!horarioSeleccionado()">
+      <span class="cita-form__paso-numero">4</span>
+      <span>Horario</span>
+    </li>
+    <li [class.cita-form__paso--completo]="puedeRegistrar()">
+      <span class="cita-form__paso-numero">5</span>
+      <span>Confirmar</span>
+    </li>
+  </ol>
+
+
+  @if (errorLocal(); as mensajeLocal) {
+    <div class="cita-form__alerta" role="alert">{{ mensajeLocal }}</div>
+  }
+
+  <div class="cita-form__grid">
+    <!-- Paciente -->
+    <div class="cita-form__campo cita-form__campo--paciente">
+      <span class="cita-form__label">
+        Paciente <span class="cita-form__obligatorio">*</span>
+      </span>
+      <div class="cita-paciente">
+        <button
+          type="button"
+          class="cita-paciente__campo"
+          [class.cita-paciente__campo--abierto]="buscadorAbierto()"
+          (click)="alternarBuscadorPaciente()"
+          aria-haspopup="listbox"
+          [attr.aria-expanded]="buscadorAbierto()"
+        >
+          <svg
+            class="cita-paciente__icono"
+            xmlns="http://www.w3.org/2000/svg"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+            aria-hidden="true"
+          >
+            <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
+            <circle cx="12" cy="7" r="4"></circle>
+          </svg>
+          @if (pacienteSeleccionado(); as seleccion) {
+            <span class="cita-paciente__seleccion">
+              <strong>{{ seleccion.nombres }} {{ seleccion.apellidos }}</strong>
+              <small>CI: {{ seleccion.ci }}</small>
+            </span>
+          } @else {
+            <span class="cita-paciente__placeholder">Buscar paciente por nombre o CI</span>
+          }
+          <svg
+            class="cita-paciente__chevron"
+            xmlns="http://www.w3.org/2000/svg"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+            aria-hidden="true"
+          >
+            <polyline points="6 9 12 15 18 9"></polyline>
+          </svg>
+        </button>
+
+        @if (buscadorAbierto()) {
+          <div class="cita-paciente__panel">
+            <div class="cita-paciente__buscar">
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                aria-hidden="true"
+              >
+                <circle cx="11" cy="11" r="8"></circle>
+                <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+              </svg>
+              <input
+                type="search"
+                placeholder="Escribe nombre o CI del paciente…"
+                [value]="busquedaPaciente()"
+                (input)="buscarPaciente($event)"
+                aria-label="Buscar paciente"
+              />
+            </div>
+
+            @if (pacientesFiltrados().length === 0) {
+              <p class="cita-paciente__vacio">No se encontraron pacientes.</p>
+            } @else {
+              <ul class="cita-paciente__lista" role="listbox">
+                @for (paciente of pacientesFiltrados(); track paciente.id) {
+                  <li class="cita-paciente__opcion">
+                    <button type="button" role="option" (click)="seleccionarPaciente(paciente)">
+                      <span class="cita-paciente__opcion-nombre">
+                        {{ paciente.nombres }} {{ paciente.apellidos }}
+                      </span>
+                      <span class="cita-paciente__opcion-ci">{{ paciente.ci }}</span>
+                    </button>
+                  </li>
+                }
+              </ul>
+            }
+          </div>
+        }
+      </div>
+    </div>
+
+    <!-- Oftalmólogo -->
+    <div class="cita-form__campo">
+      <span class="cita-form__label">
+        Oftalmólogo <span class="cita-form__obligatorio">*</span>
+      </span>
+      <select
+        class="cita-form__input"
+        [value]="oftalmologoId()"
+        (change)="cambiarOftalmologo($event)"
+        [disabled]="consultando() || guardando()"
+      >
+        <option value="">Selecciona un oftalmólogo</option>
+        @for (oftalmologo of oftalmologos(); track oftalmologo.id) {
+          <option [value]="oftalmologo.id">
+            {{ oftalmologo.nombres }} {{ oftalmologo.apellidos }}
+            @if (oftalmologo.especialidad) {
+              — {{ oftalmologo.especialidad }}
+            } @else {
+              — Matrícula {{ oftalmologo.matricula }}
+            }
+          </option>
+        }
+      </select>
+      @if (oftalmologoSeleccionado(); as oftalmologo) {
+        <p class="cita-form__ayuda-chip">
+          @if (oftalmologo.especialidad) {
+            <span>{{ oftalmologo.especialidad }}</span>
+          }
+          <span>Matrícula {{ oftalmologo.matricula }}</span>
+        </p>
+      }
+    </div>
+
+    <!-- Fecha -->
+    <div class="cita-form__campo">
+      <span class="cita-form__label">
+        Fecha <span class="cita-form__obligatorio">*</span>
+      </span>
+      <input
+        class="cita-form__input"
+        type="date"
+        [value]="fecha()"
+        [min]="fechaMinima"
+        (change)="cambiarFecha($event)"
+        [disabled]="consultando() || guardando()"
+      />
+    </div>
+  </div>
+
+  <div class="cita-form__consulta">
+    <div class="cita-form__consulta-textos">
+      <p class="cita-form__consulta-titulo">Disponibilidad del oftalmólogo</p>
+      <p class="cita-form__consulta-texto">
+        Consulta los horarios libres del oftalmólogo para la fecha seleccionada.
+      </p>
+    </div>
+    <button
+      type="button"
+      class="cita-form__boton cita-form__boton--consultar"
+      (click)="consultarDisponibilidad()"
+      [disabled]="!puedeConsultar()"
+    >
+      @if (consultando()) {
+        <span class="cita-form__spinner" aria-hidden="true"></span>
+        Consultando…
+      } @else {
+        Consultar disponibilidad
+      }
+    </button>
+  </div>
+
+  @if (errorConsulta(); as mensajeConsulta) {
+    <div class="cita-form__alerta cita-form__alerta--error" role="alert">
+      <strong>No se pudo consultar la disponibilidad.</strong>
+      <span>{{ mensajeConsulta }}</span>
+    </div>
+  }
+
+  @if (disponibilidad(); as disp) {
+    <section class="cita-form__panel cita-form__panel--horarios" aria-label="Horarios disponibles">
+      <header class="cita-form__panel-cabecera">
+        <div class="cita-form__panel-titulo-grupo">
+          <p class="cita-form__panel-etiqueta">Disponibilidad consultada</p>
+          <h3 class="cita-form__panel-titulo">
+            {{ disp.oftalmologo.nombres }} {{ disp.oftalmologo.apellidos }}
+          </h3>
+        </div>
+        <div class="cita-form__panel-fecha">
+          <span>Fecha</span>
+          <strong>{{ formatearFecha(disp.fecha) }}</strong>
+        </div>
+      </header>
+
+      @if (!disp.tiene_horario) {
+        <div class="cita-form__aviso">
+          <strong>Sin horario configurado</strong>
+          <span>
+            El oftalmólogo no tiene un horario base activo para la fecha seleccionada.
+          </span>
+        </div>
+      } @else {
+        <div class="cita-form__horarios-bloque">
+          <p class="cita-form__panel-subtitulo">Horarios disponibles</p>
+          <app-cu10-selector-horarios
+            [opciones]="opcionesHorarios()"
+            [fecha]="fecha()"
+            [seleccionado]="horarioSeleccionado()"
+            [deshabilitado]="guardando()"
+            (seleccionar)="seleccionarHorario($event)"
+          />
+        </div>
+      }
+    </section>
+
+    @if (horarioSeleccionado(); as horario) {
+      <section class="cita-form__panel cita-form__panel--detalle" aria-label="Resumen de la cita">
+        <header class="cita-form__panel-cabecera">
+          <div class="cita-form__panel-titulo-grupo">
+            <p class="cita-form__panel-etiqueta">Cita seleccionada</p>
+            <h3 class="cita-form__panel-titulo">Resumen de la cita</h3>
+          </div>
+          <span class="cita-form__chip-horario">
+            {{ formatearHora(horario.hora_inicio) }} a {{ formatearHora(horario.hora_fin) }}
+          </span>
+        </header>
+
+        @if (errorRegistro(); as mensajeRegistro) {
+          <div class="cita-form__alerta cita-form__alerta--error" role="alert">
+            <strong>No se pudo registrar la cita.</strong>
+            <span>{{ mensajeRegistro }}</span>
+          </div>
+        }
+
+        @if (pacienteSeleccionado(); as seleccion) {
+          <ul class="cita-form__resumen">
+            <li>
+              <span>Paciente</span>
+              <strong>{{ seleccion.nombres }} {{ seleccion.apellidos }}</strong>
+              <small>CI: {{ seleccion.ci }}</small>
+            </li>
+            @if (oftalmologoSeleccionado(); as oftalmologo) {
+              <li>
+                <span>Oftalmólogo</span>
+                <strong>{{ oftalmologo.nombres }} {{ oftalmologo.apellidos }}</strong>
+                <small>
+                  @if (oftalmologo.especialidad) {
+                    {{ oftalmologo.especialidad }}
+                  } @else {
+                    Matrícula {{ oftalmologo.matricula }}
+                  }
+                </small>
+              </li>
+            }
+            <li>
+              <span>Fecha</span>
+              <strong>{{ formatearFecha(fecha()) }}</strong>
+            </li>
+            <li>
+              <span>Hora</span>
+              <strong>{{ formatearHora(horario.hora_inicio) }}</strong>
+            </li>
+          </ul>
+        }
+
+        <div class="cita-form__campos-finales">
+          <label class="cita-form__campo-texto">
+            <span class="cita-form__label">
+              Motivo de consulta <span class="cita-form__opcional">(opcional)</span>
+            </span>
+            <textarea
+              rows="3"
+              [value]="motivo()"
+              (input)="escribirMotivo($event)"
+              placeholder="Ej: control de agudeza visual, revisión postoperatoria…"
+              [disabled]="guardando()"
+            ></textarea>
+          </label>
+          <label class="cita-form__campo-texto">
+            <span class="cita-form__label">
+              Observaciones <span class="cita-form__opcional">(opcional)</span>
+            </span>
+            <textarea
+              rows="2"
+              [value]="observaciones()"
+              (input)="escribirObservaciones($event)"
+              placeholder="Notas adicionales para la cita…"
+              [disabled]="guardando()"
+            ></textarea>
+          </label>
+        </div>
+
+        <div class="cita-form__acciones">
+          <button
+            type="button"
+            class="cita-form__boton cita-form__boton--secundario"
+            (click)="quitarHorario()"
+            [disabled]="guardando()"
+          >
+            Quitar horario
+          </button>
+          <button
+            type="button"
+            class="cita-form__boton cita-form__boton--registrar"
+            (click)="registrarCita()"
+            [disabled]="!puedeRegistrar()"
+          >
+            @if (guardando()) {
+              <span class="cita-form__spinner" aria-hidden="true"></span>
+              Registrando…
+            } @else {
+              Registrar cita
+            }
+          </button>
+        </div>
+      </section>
+    }
+  }
+</section>

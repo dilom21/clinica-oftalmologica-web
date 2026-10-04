@@ -1,0 +1,675 @@
+.citas-page {
+  height: 100dvh;
+  display: flex;
+  background:
+    radial-gradient(800px 400px at 80% 20%, rgba(56, 189, 248, 0.1), transparent 60%),
+    linear-gradient(180deg, #f4fafe 0%, var(--color-white) 100%);
+}
+
+.citas-page__body {
+  flex: 1;
+  display: flex;
+  min-width: 0;
+  min-height: 0;
+}
+
+.citas-page__main {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  min-height: 0;
+}
+
+.citas-page__main-header {
+  flex: 0 0 auto;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  padding: 0.9rem 1.5rem;
+  background: var(--color-white);
+  border-bottom: 1px solid var(--color-border-soft);
+  box-shadow: var(--shadow-xs);
+}
+
+.citas-page__hamburger {
+  display: none;
+  align-items: center;
+  justify-content: center;
+  width: 40px;
+  height: 40px;
+  padding: 0;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-sm);
+  background: var(--color-white);
+  color: var(--color-primary-dark);
+  cursor: pointer;
+}
+
+.citas-page__hamburger svg {
+  width: 20px;
+  height: 20px;
+}
+
+.citas-page__logout {
+  margin-left: auto;
+  padding: 0.6rem 1.3rem;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-sm);
+  background: var(--color-white);
+  color: var(--color-primary);
+  font-size: 0.875rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition:
+    background 0.25s ease,
+    color 0.25s ease;
+}
+
+.citas-page__logout:hover {
+  background: var(--color-background-sky);
+}
+
+.citas-page__content {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 1.1rem;
+  padding: 1.8rem 1.5rem 2rem;
+}
+
+.citas-page__cabecera {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  flex-wrap: wrap;
+}
+
+.citas-page__titulo {
+  font-size: 1.5rem;
+  font-weight: 800;
+  color: var(--color-primary-dark);
+  letter-spacing: -0.02em;
+  margin-bottom: 0.25rem;
+}
+
+.citas-page__subtitulo {
+  font-size: 0.9375rem;
+  color: var(--color-text-soft);
+}
+
+.citas-page__controles {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  padding: 0.3rem;
+  border: 1px solid var(--color-border-soft);
+  border-radius: var(--radius-pill);
+  background: var(--color-background-mist);
+}
+
+.citas-page__control {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.45rem;
+  padding: 0.55rem 1.1rem;
+  border: none;
+  border-radius: var(--radius-pill);
+  background: transparent;
+  color: var(--color-text-soft);
+  font-size: 0.875rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition:
+    background 0.2s ease,
+    color 0.2s ease,
+    box-shadow 0.2s ease;
+}
+
+.citas-page__control:hover {
+  color: var(--color-primary);
+}
+
+.citas-page__control--activo {
+  background: var(--color-white);
+  color: var(--color-primary);
+  box-shadow: var(--shadow-xs);
+}
+
+.citas-page__control svg {
+  width: 16px;
+  height: 16px;
+}
+
+.citas-page__aviso {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  flex-wrap: wrap;
+  padding: 0.8rem 1rem;
+  border: 1px solid #fecaca;
+  border-radius: var(--radius-md);
+  background: #fef2f2;
+  color: #b91c1c;
+  font-size: 0.9rem;
+  font-weight: 600;
+}
+
+.citas-page__aviso--permiso {
+  border-color: #fde68a;
+  background: #fffbeb;
+  color: #92400e;
+}
+
+.citas-page__aviso-accion {
+  padding: 0.4rem 1rem;
+  border: 1px solid currentColor;
+  border-radius: var(--radius-pill);
+  background: transparent;
+  color: inherit;
+  font-size: 0.8rem;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+/* ---- Tarjetas resumen ---- */
+.citas-resumen {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 0.9rem;
+}
+
+.citas-resumen__tarjeta {
+  display: flex;
+  flex-direction: column;
+  gap: 0.2rem;
+  padding: 1rem 1.2rem;
+  border: 1px solid var(--color-border-soft);
+  border-radius: var(--radius-md);
+  background: var(--color-white);
+  box-shadow: var(--shadow-xs);
+}
+
+.citas-resumen__etiqueta {
+  color: var(--color-text-soft);
+  font-size: 0.72rem;
+  font-weight: 800;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+.citas-resumen__valor {
+  font-size: 2rem;
+  font-weight: 800;
+  color: var(--color-primary-dark);
+  font-variant-numeric: tabular-nums;
+  line-height: 1.2;
+}
+
+.citas-resumen__tarjeta--total {
+  border-left: 4px solid var(--color-primary);
+}
+
+.citas-resumen__tarjeta--total .citas-resumen__etiqueta {
+  color: var(--color-primary);
+}
+
+.citas-resumen__tarjeta--programadas {
+  border-left: 4px solid #38bdf8;
+}
+
+.citas-resumen__tarjeta--programadas .citas-resumen__etiqueta {
+  color: #0284c7;
+}
+
+.citas-resumen__tarjeta--confirmadas {
+  border-left: 4px solid #10b981;
+}
+
+.citas-resumen__tarjeta--confirmadas .citas-resumen__etiqueta {
+  color: #047857;
+}
+
+.citas-resumen__tarjeta--canceladas {
+  border-left: 4px solid #ef4444;
+}
+
+.citas-resumen__tarjeta--canceladas .citas-resumen__etiqueta {
+  color: #dc2626;
+}
+
+/* ---- Selector principal de fecha ---- */
+.citas-fecha {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+  padding: 0.65rem 1rem;
+  border: 1px solid var(--color-border-soft);
+  border-radius: var(--radius-md);
+  background: var(--color-white);
+  box-shadow: var(--shadow-xs);
+}
+
+.citas-fecha__nav {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 34px;
+  height: 34px;
+  padding: 0;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-pill);
+  background: var(--color-white);
+  color: var(--color-primary);
+  cursor: pointer;
+  transition: background 0.2s ease;
+}
+
+.citas-fecha__nav:hover {
+  background: var(--color-background-sky);
+}
+
+.citas-fecha__nav svg {
+  width: 18px;
+  height: 18px;
+}
+
+.citas-fecha__texto {
+  border: none;
+  background: transparent;
+  color: var(--color-primary-dark);
+  font-size: 1.05rem;
+  font-weight: 800;
+  letter-spacing: 0.01em;
+  cursor: pointer;
+  padding: 0.25rem 0.6rem;
+  border-radius: var(--radius-sm);
+  font-variant-numeric: tabular-nums;
+}
+
+.citas-fecha__texto:hover {
+  background: var(--color-background-sky);
+}
+
+.citas-fecha__calendario {
+  position: relative;
+}
+
+.citas-fecha__icono {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 36px;
+  height: 36px;
+  padding: 0;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-pill);
+  background: var(--color-white);
+  color: var(--color-primary);
+  cursor: pointer;
+  transition: background 0.2s ease;
+}
+
+.citas-fecha__icono:hover {
+  background: var(--color-background-sky);
+}
+
+.citas-fecha__icono svg {
+  width: 18px;
+  height: 18px;
+}
+
+.citas-fecha__popover {
+  position: absolute;
+  top: calc(100% + 8px);
+  right: 0;
+  z-index: 60;
+  width: 250px;
+  padding: 0.9rem;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  background: var(--color-white);
+  box-shadow: var(--shadow-md);
+  animation: citasPopoverEntrar 0.15s ease;
+}
+
+@keyframes citasPopoverEntrar {
+  from {
+    opacity: 0;
+    transform: translateY(-4px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.citas-fecha__input {
+  width: 100%;
+  padding: 0.5rem 0.7rem;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-sm);
+  font-family: inherit;
+  font-size: 0.9rem;
+}
+
+.citas-fecha__input:focus {
+  outline: none;
+  border-color: var(--color-primary);
+}
+
+.citas-fecha__popover p {
+  margin-top: 0.5rem;
+  font-size: 0.75rem;
+  color: var(--color-text-soft);
+  text-align: center;
+}
+
+/* ---- Sección Citas del día ---- */
+.citas-dia {
+  display: flex;
+  flex-direction: column;
+  gap: 0.9rem;
+}
+
+.citas-dia__cabecera {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 1rem;
+  flex-wrap: wrap;
+}
+
+.citas-dia__titulo {
+  font-size: 1.1rem;
+  font-weight: 800;
+  color: var(--color-primary-dark);
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+}
+
+.citas-dia__fecha {
+  font-size: 0.875rem;
+  color: var(--color-text-soft);
+  text-transform: capitalize;
+}
+
+.citas-dia__contador {
+  padding: 0.3rem 0.85rem;
+  border-radius: var(--radius-pill);
+  background: var(--color-background-sky);
+  border: 1px solid var(--color-border);
+  color: var(--color-primary);
+  font-size: 0.78rem;
+  font-weight: 800;
+}
+
+.citas-dia__cargando {
+  color: var(--color-text-soft);
+  font-size: 0.8rem;
+  font-weight: 600;
+}
+
+.citas-dia__estado {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.6rem;
+  padding: 2.6rem 1.5rem;
+  border: 1px dashed var(--color-border);
+  border-radius: var(--radius-lg);
+  background: var(--color-background-mist);
+  color: var(--color-text-soft);
+  font-size: 0.9375rem;
+  text-align: center;
+}
+
+.citas-dia__estado--vacio {
+  border-style: dashed;
+  color: var(--color-text-soft);
+}
+
+.citas-dia__spinner {
+  display: inline-block;
+  width: 18px;
+  height: 18px;
+  border: 2px solid var(--color-border);
+  border-top-color: var(--color-primary);
+  border-radius: 50%;
+  animation: citasSpin 0.7s linear infinite;
+}
+
+@keyframes citasSpin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+/* ---- Filtros secundarios ---- */
+.citas-filtros {
+  display: grid;
+  grid-template-columns:
+    minmax(220px, 1.6fr) minmax(180px, 1.2fr) minmax(160px, 1fr)
+    auto;
+  align-items: end;
+  gap: 0.8rem;
+  padding: 1rem;
+  border: 1px solid var(--color-border-soft);
+  border-radius: var(--radius-md);
+  background: var(--color-white);
+  box-shadow: var(--shadow-xs);
+}
+
+.citas-filtros__campo {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+  min-width: 0;
+}
+
+.citas-filtros__campo > span {
+  color: var(--color-text-soft);
+  font-size: 0.72rem;
+  font-weight: 700;
+}
+
+.citas-filtros__campo select {
+  width: 100%;
+  padding: 0.55rem 0.7rem;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-sm);
+  background: var(--color-white);
+  color: var(--color-text);
+  font-size: 0.85rem;
+  font-family: inherit;
+}
+
+.citas-filtros__campo select:focus {
+  outline: none;
+  border-color: var(--color-primary);
+  box-shadow: 0 0 0 3px rgba(56, 189, 248, 0.1);
+}
+
+.citas-filtros__busqueda {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0 0.7rem;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-sm);
+  background: var(--color-white);
+  transition: border-color 0.2s ease;
+}
+
+.citas-filtros__busqueda:focus-within {
+  border-color: var(--color-primary);
+  box-shadow: 0 0 0 3px rgba(56, 189, 248, 0.1);
+}
+
+.citas-filtros__busqueda svg {
+  flex: 0 0 auto;
+  width: 16px;
+  height: 16px;
+  color: var(--color-text-soft);
+}
+
+.citas-filtros__busqueda input {
+  flex: 1;
+  min-width: 0;
+  padding: 0.55rem 0;
+  border: none;
+  background: transparent;
+  font-size: 0.85rem;
+  color: var(--color-text);
+}
+
+.citas-filtros__busqueda input:focus {
+  outline: none;
+}
+
+.citas-filtros__limpiar {
+  padding: 0.58rem 1.1rem;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-pill);
+  background: var(--color-white);
+  color: var(--color-primary);
+  font-size: 0.8125rem;
+  font-weight: 700;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: background 0.2s ease;
+}
+
+.citas-filtros__limpiar:hover {
+  background: var(--color-background-sky);
+}
+
+/* ---- Vista nueva cita ---- */
+.citas-nueva {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.citas-page__backdrop {
+  display: none;
+  position: fixed;
+  inset: 0;
+  z-index: 35;
+  border: 0;
+  background: rgba(16, 42, 67, 0.5);
+}
+
+.citas-page__toast {
+  position: fixed;
+  bottom: 1.5rem;
+  right: 1.5rem;
+  padding: 0.95rem 1.4rem;
+  border-radius: var(--radius-md);
+  font-size: 0.9375rem;
+  font-weight: 600;
+  line-height: 1.5;
+  z-index: 2000;
+  animation: citasToastEntrar 0.3s ease;
+}
+
+@keyframes citasToastEntrar {
+  from {
+    opacity: 0;
+    transform: translateX(100%);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+.citas-page__toast--exito {
+  background: #ecfdf5;
+  color: #059669;
+  border: 1px solid #a7f3d0;
+}
+
+.citas-page__toast--error {
+  background: #fef2f2;
+  color: #dc2626;
+  border: 1px solid #fecaca;
+}
+
+@media (max-width: 1180px) {
+  .citas-resumen {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  .citas-filtros {
+    grid-template-columns: repeat(3, 1fr);
+  }
+}
+
+@media (max-width: 980px) {
+  .citas-filtros {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+@media (max-width: 820px) {
+  .citas-page__hamburger {
+    display: flex;
+  }
+
+  .citas-page__backdrop {
+    display: block;
+  }
+
+  .citas-page__content {
+    padding: 1.4rem 1rem 1.6rem;
+  }
+
+  .citas-page__cabecera {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .citas-page__controles {
+    width: 100%;
+  }
+
+  .citas-page__control {
+    flex: 1;
+  }
+
+  .citas-filtros {
+    grid-template-columns: 1fr;
+  }
+
+  .citas-page__toast {
+    bottom: 1rem;
+    right: 1rem;
+    left: 1rem;
+    max-width: calc(100% - 2rem);
+  }
+}
+
+@media (max-width: 480px) {
+  .citas-resumen {
+    grid-template-columns: 1fr;
+  }
+
+  .citas-fecha__popover {
+    position: fixed;
+    left: 1rem;
+    right: 1rem;
+    width: auto;
+    top: auto;
+    bottom: 1rem;
+  }
+}

@@ -24,7 +24,14 @@ export class Sidebar implements OnInit {
     ['gestionar roles y permisos', '/roles'],
     ['gestionar pacientes', '/pacientes'],
     ['consultar historial clínico', '/historial-clinico'],
+    ['registrar consulta clínica', '/registrar-consulta-clinica'],
+    ['registrar diagnóstico', '/registrar-diagnostico'],
+    ['registrar diagnostico', '/registrar-diagnostico'],
     ['consultar bitácora', '/bitacora'],
+    ['consultar agenda y disponibilidad médica', '/agenda-disponibilidad'],
+    ['configurar disponibilidad del oftalmólogo', '/configurar-disponibilidad'],
+    ['gestionar citas médicas', '/gestionar-citas'],
+    ['consultar historial de citas', '/historial-citas'],
   ]);
 
   private readonly iconosPorNombre: ReadonlyArray<{
@@ -85,6 +92,29 @@ export class Sidebar implements OnInit {
 
   if (clave.includes('bitácora') || clave.includes('bitacora')) {
     return '/bitacora';
+  }
+
+  if (clave.includes('agenda') && clave.includes('disponibilidad')) {
+    return '/agenda-disponibilidad';
+  }
+
+  if (clave.includes('disponibilidad') && clave.includes('configurar')) {
+    return '/configurar-disponibilidad';
+  }
+
+  if (clave.includes('historial') && clave.includes('cita')) {
+    return '/historial-citas';
+}
+  if (clave.includes('cita') && clave.includes('gestionar')) {
+    return '/gestionar-citas';
+  }
+
+  if (clave.includes('registrar') && (clave.includes('diagnóstico') || clave.includes('diagnostico'))) {
+    return '/registrar-diagnostico';
+  }
+
+  if (clave.includes('registrar') && clave.includes('consulta')) {
+    return '/registrar-consulta-clinica';
   }
 
   return null;

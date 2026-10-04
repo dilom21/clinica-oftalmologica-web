@@ -1,0 +1,38 @@
+@if (opciones().length === 0) {
+  <div class="selector-horarios__vacio">
+    <strong>Sin horarios disponibles</strong>
+    <span>No existen horarios disponibles para esta fecha.</span>
+  </div>
+} @else {
+  <div class="selector-horarios__contenido">
+    <p class="selector-horarios__hint">
+      Selecciona un horario de inicio. Cada cita dura 1 hora.
+    </p>
+    <ul class="selector-horarios__lista">
+      @for (opcion of opciones(); track opcion.hora_inicio) {
+        <li class="selector-horarios__item">
+          <button
+            type="button"
+            class="selector-horarios__boton"
+            [class.selector-horarios__boton--activo]="esSeleccionado(opcion)"
+            [disabled]="deshabilitado()"
+            [title]="
+              formatearFecha(fecha()) + ' ' + formatearHora(opcion.hora_inicio) + ' - ' +
+              formatearHora(opcion.hora_fin)
+            "
+            (click)="seleccionar.emit(opcion)"
+          >
+            <time class="selector-horarios__hora">{{ formatearHora(opcion.hora_inicio) }}</time>
+            <span class="selector-horarios__badge" aria-hidden="true">
+              @if (esSeleccionado(opcion)) {
+                Seleccionado
+              } @else {
+                1 hora
+              }
+            </span>
+          </button>
+        </li>
+      }
+    </ul>
+  </div>
+}

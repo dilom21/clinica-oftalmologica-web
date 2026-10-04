@@ -1,0 +1,35 @@
+.conf-paneles { display: grid; grid-template-columns: repeat(auto-fit, minmax(360px, 1fr)); gap: 1.25rem; align-items: start; }
+.conf-panel { display: flex; flex-direction: column; gap: .9rem; padding: 1.1rem 1.2rem; }
+.conf-panel__cabecera { display: flex; align-items: flex-start; justify-content: space-between; gap: 1rem; flex-wrap: wrap; padding-bottom: .8rem; border-bottom: 1px solid var(--color-border-soft); }
+.conf-panel__titulo { color: var(--color-primary-dark); font-size: 1.05rem; font-weight: 800; }
+.conf-panel__subtitulo { color: var(--color-text-soft); font-size: .8rem; }
+.conf-panel__crear { display: inline-flex; align-items: center; justify-content: center; gap: .45rem; padding: .55rem 1rem; background: var(--color-primary); color: var(--color-white); border: none; border-radius: var(--radius-sm); font-size: .8125rem; font-weight: 600; cursor: pointer; }
+.conf-panel__crear:hover:not(:disabled) { background: var(--color-primary-dark); }
+.conf-panel__crear:disabled { opacity: .6; cursor: not-allowed; }
+.conf-panel__crear svg { width: 16px; height: 16px; }
+.conf-panel__vacio { display: flex; flex-direction: column; gap: .3rem; padding: 1.3rem; border: 1px dashed var(--color-border); border-radius: var(--radius-sm); background: var(--color-background-mist); color: var(--color-text-soft); font-size: .8125rem; text-align: center; }
+.conf-panel__vacio strong { color: var(--color-primary-dark); font-size: .9rem; }
+.conf-semanal { display: flex; flex-direction: column; gap: .9rem; }
+.conf-semanal__dia { border: 1px solid var(--color-border-soft); border-radius: var(--radius-sm); background: var(--color-background-mist); padding: .7rem .85rem; }
+.conf-semanal__dia-nombre { color: var(--color-primary-dark); font-size: .85rem; font-weight: 800; margin-bottom: .55rem; }
+.conf-semanal__vacio { color: var(--color-text-soft); font-size: .8rem; font-style: italic; }
+.conf-semanal__lista, .conf-bloqueos { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: .55rem; }
+.conf-registro { display: flex; align-items: center; justify-content: space-between; gap: .75rem; flex-wrap: wrap; padding: .7rem .85rem; border: 1px solid var(--color-border); border-radius: var(--radius-sm); background: var(--color-white); }
+.conf-registro--inactivo { background: var(--color-background-mist); opacity: .72; }
+.conf-registro__principal { display: flex; flex-direction: column; gap: .35rem; min-width: 0; }
+.conf-registro__rango { display: flex; align-items: baseline; gap: .35rem; flex-wrap: wrap; }
+.conf-registro__rango time { color: var(--color-primary-dark); font-size: .92rem; font-weight: 800; font-variant-numeric: tabular-nums; }
+.conf-registro__rango span { color: var(--color-text-soft); font-size: .65rem; text-transform: uppercase; }
+.conf-registro__badge { align-self: flex-start; padding: .2rem .6rem; border-radius: var(--radius-pill); font-size: .68rem; font-weight: 800; width: fit-content; }
+.conf-registro__badge--activo { background: #ecfdf5; color: #047857; }
+.conf-registro__badge--inactivo { background: #f1f5f9; color: #64748b; }
+.conf-registro__motivo { flex-basis: 100%; color: var(--color-text-soft); font-size: .8rem; }
+.conf-registro__acciones { display: flex; align-items: center; gap: .45rem; flex-wrap: wrap; }
+.conf-registro__accion { padding: .4rem .8rem; border: 1px solid transparent; border-radius: var(--radius-sm); font-size: .75rem; font-weight: 700; cursor: pointer; }
+.conf-registro__accion:disabled { opacity: .5; cursor: not-allowed; }
+.conf-registro__accion--editar { border-color: var(--color-border); background: var(--color-white); color: var(--color-primary); }
+.conf-registro__accion--desactivar { background: #fef2f2; border-color: #fecaca; color: #b91c1c; }
+.conf-registro__accion--reactivar { background: #ecfdf5; border-color: #a7f3d0; color: #047857; }
+.conf-bloqueos { max-height: 560px; overflow-y: auto; padding-right: .2rem; }
+@media (max-width: 980px) { .conf-paneles { grid-template-columns: 1fr; } }
+@media (max-width: 560px) { .conf-registro { flex-direction: column; align-items: flex-start; } .conf-registro__acciones { width: 100%; } .conf-registro__acciones .conf-registro__accion { flex: 1; } }
