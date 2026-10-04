@@ -1,0 +1,180 @@
+:host {
+  display: block;
+  min-width: 0;
+}
+
+.navegacion-clinica {
+  display: flex;
+  align-items: center;
+  gap: 0.3rem;
+  padding: 0.35rem;
+  border: 1px solid var(--color-border-soft);
+  border-radius: var(--radius-lg);
+  background: var(--color-surface);
+  box-shadow: var(--shadow-xs);
+  overflow-x: auto;
+  scrollbar-width: thin;
+  scroll-snap-type: x proximity;
+  -webkit-overflow-scrolling: touch;
+}
+
+.navegacion-clinica__sprite {
+  position: absolute;
+  width: 0;
+  height: 0;
+  overflow: hidden;
+}
+
+.navegacion-clinica__tab {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45rem;
+  flex: 0 0 auto;
+  padding: 0.5rem 0.85rem;
+  border: 1px solid transparent;
+  border-radius: var(--radius-md);
+  background: transparent;
+  color: var(--color-text-soft);
+  font: inherit;
+  font-size: 0.82rem;
+  font-weight: 700;
+  white-space: nowrap;
+  cursor: pointer;
+  scroll-snap-align: start;
+  transition:
+    background 0.18s ease,
+    border-color 0.18s ease,
+    color 0.18s ease,
+    box-shadow 0.18s ease;
+}
+
+.navegacion-clinica__tab:hover {
+  background: var(--color-background-mist);
+  color: var(--color-text);
+}
+
+.navegacion-clinica__tab:focus-visible {
+  outline: 2px solid var(--color-primary);
+  outline-offset: 1px;
+}
+
+.navegacion-clinica__icono {
+  display: grid;
+  place-items: center;
+  flex: 0 0 auto;
+  width: 22px;
+  height: 22px;
+  border-radius: 8px;
+  background: var(--color-background-mist);
+  color: var(--color-text-soft);
+  transition:
+    background 0.18s ease,
+    color 0.18s ease;
+}
+
+.navegacion-clinica__icono svg {
+  width: 14px;
+  height: 14px;
+}
+
+.navegacion-clinica__etiqueta {
+  min-width: 0;
+}
+
+.navegacion-clinica__contador {
+  flex: 0 0 auto;
+  min-width: 20px;
+  padding: 0.05rem 0.4rem;
+  border-radius: var(--radius-pill);
+  background: var(--color-background-sky);
+  color: var(--color-text-soft);
+  font-size: 0.68rem;
+  font-weight: 800;
+  font-variant-numeric: tabular-nums;
+  text-align: center;
+}
+
+/* ===== Color por tipo de información clínica ===== */
+.navegacion-clinica__tab--diagnosticos .navegacion-clinica__icono {
+  color: var(--color-seccion-diagnostico);
+}
+
+.navegacion-clinica__tab--tratamientos .navegacion-clinica__icono {
+  color: var(--color-seccion-tratamiento);
+}
+
+.navegacion-clinica__tab--indicaciones .navegacion-clinica__icono {
+  color: var(--color-seccion-indicacion);
+}
+
+.navegacion-clinica__tab--recetas .navegacion-clinica__icono {
+  color: var(--color-seccion-receta);
+}
+
+.navegacion-clinica__tab--examenes .navegacion-clinica__icono {
+  color: var(--color-seccion-examen);
+}
+
+.navegacion-clinica__tab--diagnosticos.navegacion-clinica__tab--activa {
+  border-color: var(--color-seccion-diagnostico);
+  background: var(--color-seccion-diagnostico-bg);
+  color: var(--color-seccion-diagnostico);
+  box-shadow: 0 6px 16px rgba(37, 99, 235, 0.16);
+}
+
+.navegacion-clinica__tab--tratamientos.navegacion-clinica__tab--activa {
+  border-color: var(--color-seccion-tratamiento);
+  background: var(--color-seccion-tratamiento-bg);
+  color: var(--color-seccion-tratamiento);
+  box-shadow: 0 6px 16px rgba(13, 148, 136, 0.16);
+}
+
+.navegacion-clinica__tab--indicaciones.navegacion-clinica__tab--activa {
+  border-color: var(--color-seccion-indicacion);
+  background: var(--color-seccion-indicacion-bg);
+  color: var(--color-seccion-indicacion);
+  box-shadow: 0 6px 16px rgba(8, 145, 178, 0.16);
+}
+
+.navegacion-clinica__tab--recetas.navegacion-clinica__tab--activa {
+  border-color: var(--color-seccion-receta);
+  background: var(--color-seccion-receta-bg);
+  color: var(--color-seccion-receta);
+  box-shadow: 0 6px 16px rgba(124, 58, 237, 0.16);
+}
+
+.navegacion-clinica__tab--examenes.navegacion-clinica__tab--activa {
+  border-color: var(--color-seccion-examen);
+  background: var(--color-seccion-examen-bg);
+  color: var(--color-seccion-examen);
+  box-shadow: 0 6px 16px rgba(194, 65, 12, 0.16);
+}
+
+.navegacion-clinica__tab--activa .navegacion-clinica__icono {
+  background: color-mix(in srgb, currentColor 16%, transparent);
+  color: inherit;
+}
+
+.navegacion-clinica__tab--activa .navegacion-clinica__contador {
+  background: color-mix(in srgb, currentColor 18%, transparent);
+  color: inherit;
+}
+
+@media (max-width: 620px) {
+  .navegacion-clinica__tab {
+    padding: 0.45rem 0.7rem;
+    font-size: 0.78rem;
+  }
+
+  .navegacion-clinica__icono {
+    width: 20px;
+    height: 20px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .navegacion-clinica__tab {
+    transition: none;
+  }
+}

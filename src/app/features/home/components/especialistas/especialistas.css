@@ -1,8 +1,8 @@
-.especialistas {
+﻿.especialistas {
   padding-block: 96px;
   background:
     radial-gradient(700px 350px at 15% 10%, rgba(56, 189, 248, 0.09), transparent 60%),
-    linear-gradient(180deg, var(--color-white) 0%, var(--color-background-faint) 100%);
+    linear-gradient(180deg, var(--color-surface) 0%, var(--color-background-faint) 100%);
 }
 
 .especialistas__panel {
@@ -49,7 +49,7 @@
 }
 
 .especialistas__card {
-  background: var(--color-white);
+  background: var(--color-surface);
   border: 1px solid var(--color-border-soft);
   border-radius: var(--radius-lg);
   box-shadow: var(--shadow-sm);
@@ -99,7 +99,7 @@
 .especialistas__card-name {
   font-size: 1.125rem;
   font-weight: 700;
-  color: var(--color-primary-dark);
+  color: var(--color-heading);
   margin-bottom: 0.5rem;
 }
 

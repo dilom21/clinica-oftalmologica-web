@@ -1,4 +1,4 @@
-.contacto {
+﻿.contacto {
   padding-block: 96px;
   background:
     radial-gradient(700px 350px at 90% 100%, rgba(56, 189, 248, 0.1), transparent 60%),
@@ -39,7 +39,7 @@
 .contacto__name {
   font-size: 1.25rem;
   font-weight: 700;
-  color: var(--color-primary-dark);
+  color: var(--color-heading);
   margin-bottom: 1.75rem;
 }
 
@@ -85,7 +85,7 @@
 .contacto__item-title {
   font-size: 0.9375rem;
   font-weight: 700;
-  color: var(--color-primary-dark);
+  color: var(--color-heading);
   margin-bottom: 0.2rem;
 }
 

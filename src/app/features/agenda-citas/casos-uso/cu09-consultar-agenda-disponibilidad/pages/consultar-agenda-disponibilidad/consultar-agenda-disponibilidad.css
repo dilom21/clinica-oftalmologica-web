@@ -1,7 +1,7 @@
-.agenda-page {
+﻿.agenda-page {
   height: 100dvh;
   display: flex;
-  background: linear-gradient(180deg, #f4fafe 0%, var(--color-white) 100%);
+  background: linear-gradient(180deg, var(--color-app-bg-1) 0%, var(--color-app-bg-2) 100%);
 }
 
 .agenda-page__body,
@@ -26,7 +26,7 @@
   align-items: center;
   justify-content: flex-end;
   padding: 0.9rem 1.5rem;
-  background: var(--color-white);
+  background: var(--color-surface);
   border-bottom: 1px solid var(--color-border-soft);
   box-shadow: var(--shadow-xs);
 }
@@ -38,7 +38,7 @@
   padding: 0.6rem;
   border: 1px solid var(--color-border);
   border-radius: var(--radius-sm);
-  background: var(--color-white);
+  background: var(--color-surface);
   cursor: pointer;
 }
 
@@ -53,7 +53,7 @@
   padding: 0.6rem 1.3rem;
   border: 1px solid var(--color-border);
   border-radius: var(--radius-sm);
-  background: var(--color-white);
+  background: var(--color-surface);
   color: var(--color-primary);
   font-size: 0.875rem;
   font-weight: 600;
@@ -92,7 +92,7 @@
 
 .agenda-page__titulo {
   margin-bottom: 0.35rem;
-  color: var(--color-primary-dark);
+  color: var(--color-heading);
   font-size: 1.6rem;
   font-weight: 800;
 }
@@ -106,7 +106,7 @@
 .agenda-filtros {
   border: 1px solid var(--color-border-soft);
   border-radius: var(--radius-md);
-  background: var(--color-white);
+  background: var(--color-surface);
 }
 
 .agenda-filtros__grid {
@@ -132,7 +132,7 @@
   padding: 0.62rem 0.7rem;
   border: 1px solid var(--color-border);
   border-radius: var(--radius-sm);
-  background: var(--color-white);
+  background: var(--color-surface);
   color: var(--color-text);
   font-size: 0.875rem;
   font-weight: 400;
@@ -168,7 +168,7 @@
 
 .agenda-filtros__limpiar {
   border: 1px solid var(--color-border);
-  background: var(--color-white);
+  background: var(--color-surface);
   color: var(--color-primary);
 }
 
@@ -197,7 +197,7 @@
 }
 
 .agenda-page__estado strong {
-  color: var(--color-primary-dark);
+  color: var(--color-heading);
   font-size: 1rem;
 }
 
@@ -206,13 +206,13 @@
 }
 
 .agenda-page__estado--error {
-  border-color: #fecaca;
-  background: #fef2f2;
+  border-color: var(--color-danger-border);
+  background: var(--color-danger-bg);
   color: #dc2626;
 }
 
 .agenda-page__estado--error strong {
-  color: #b91c1c;
+  color: var(--color-danger-text);
 }
 
 .agenda-page__backdrop {
@@ -234,7 +234,7 @@
 .agenda-panel {
   border: 1px solid var(--color-border-soft);
   border-radius: var(--radius-md);
-  background: var(--color-white);
+  background: var(--color-surface);
 }
 
 .agenda-resultado__resumen {
@@ -256,7 +256,7 @@
 }
 
 .agenda-resultado__nombre {
-  color: var(--color-primary-dark);
+  color: var(--color-heading);
   font-size: 1.25rem;
   font-weight: 800;
 }
@@ -295,7 +295,7 @@
 }
 
 .agenda-resultado__fecha strong {
-  color: var(--color-primary-dark);
+  color: var(--color-heading);
   font-size: 1rem;
 }
 
@@ -323,7 +323,7 @@
 }
 
 .agenda-panel__titulo {
-  color: var(--color-primary-dark);
+  color: var(--color-heading);
   font-size: 1rem;
   font-weight: 800;
 }
@@ -371,7 +371,7 @@
 }
 
 .agenda-panel__aviso strong {
-  color: var(--color-primary-dark);
+  color: var(--color-heading);
   font-size: 0.9rem;
 }
 
@@ -409,12 +409,12 @@
 
 .agenda-citas__item {
   justify-content: space-between;
-  background: var(--color-white);
+  background: var(--color-surface);
 }
 
 .agenda-intervalos__item time,
 .agenda-citas__hora time {
-  color: var(--color-primary-dark);
+  color: var(--color-heading);
   font-size: 0.95rem;
   font-weight: 800;
   font-variant-numeric: tabular-nums;
@@ -503,3 +503,11 @@
     align-items: flex-start;
   }
 }
+
+/* El header solo aporta la hamburguesa en movil: en escritorio no se muestra. */
+@media (min-width: 821px) {
+  .agenda-page__main-header {
+    display: none;
+  }
+}
+

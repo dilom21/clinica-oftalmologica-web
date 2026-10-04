@@ -1,4 +1,4 @@
-.usuario-estado-dialog {
+﻿.usuario-estado-dialog {
   position: fixed;
   inset: 0;
   z-index: 110;
@@ -23,7 +23,7 @@
   flex-direction: column;
   gap: 0.85rem;
   padding: 1.6rem 1.6rem 1.4rem;
-  background: var(--color-white);
+  background: var(--color-surface);
   border: 1px solid var(--color-border-soft);
   border-radius: var(--radius-lg);
   box-shadow: var(--shadow-lg);
@@ -51,15 +51,15 @@
 }
 
 .usuario-estado-dialog__icono--deshabilitar {
-  background: #fef2f2;
+  background: var(--color-danger-bg);
   color: #dc2626;
-  border: 1px solid #fecaca;
+  border: 1px solid var(--color-danger-border);
 }
 
 .usuario-estado-dialog__titulo {
   font-size: 1.25rem;
   font-weight: 800;
-  color: var(--color-primary-dark);
+  color: var(--color-heading);
   letter-spacing: -0.02em;
 }
 
@@ -70,14 +70,14 @@
 }
 
 .usuario-estado-dialog__texto strong {
-  color: var(--color-primary-dark);
+  color: var(--color-heading);
 }
 
 .usuario-estado-dialog__error {
   font-size: 0.875rem;
   color: #ef4444;
-  background: #fef2f2;
-  border: 1px solid #fecaca;
+  background: var(--color-danger-bg);
+  border: 1px solid var(--color-danger-border);
   border-radius: var(--radius-sm);
   padding: 0.7rem 1rem;
 }
@@ -113,7 +113,7 @@
 }
 
 .usuario-estado-dialog__btn--cancel {
-  background: var(--color-white);
+  background: var(--color-surface);
   border-color: var(--color-border);
   color: var(--color-text-soft);
 }

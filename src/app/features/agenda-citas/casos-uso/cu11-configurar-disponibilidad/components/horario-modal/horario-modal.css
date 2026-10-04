@@ -1,4 +1,4 @@
-.horario-modal__backdrop {
+﻿.horario-modal__backdrop {
   position: fixed;
   inset: 0;
   background: rgba(0, 0, 0, 0.5);
@@ -14,7 +14,7 @@
   width: 90%;
   max-width: 480px;
   max-height: 90vh;
-  background: var(--color-white);
+  background: var(--color-surface);
   border-radius: var(--radius-lg);
   box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1);
   display: flex;
@@ -56,7 +56,7 @@
   margin: 0;
   font-size: 1.25rem;
   font-weight: 700;
-  color: var(--color-primary-dark);
+  color: var(--color-heading);
   line-height: 1.4;
 }
 
@@ -67,7 +67,7 @@
   padding: 0;
   border: 1px solid var(--color-border);
   border-radius: var(--radius-sm);
-  background: var(--color-white);
+  background: var(--color-surface);
   color: var(--color-text);
   cursor: pointer;
   display: flex;
@@ -103,8 +103,8 @@
 
 .horario-modal__error-server {
   padding: 0.75rem 1rem;
-  background: #fef2f2;
-  border: 1px solid #fecaca;
+  background: var(--color-danger-bg);
+  border: 1px solid var(--color-danger-border);
   border-radius: var(--radius-md);
   color: #dc2626;
   font-size: 0.875rem;
@@ -140,7 +140,7 @@
   font-size: 0.875rem;
   font-family: inherit;
   color: var(--color-text);
-  background: var(--color-white);
+  background: var(--color-surface);
   transition:
     border-color 0.2s ease,
     box-shadow 0.2s ease;
@@ -154,7 +154,7 @@
 
 .horario-modal__input--error {
   border-color: #fca5a5;
-  background: #fef2f2;
+  background: var(--color-danger-bg);
 }
 
 .horario-modal__error {
@@ -165,8 +165,8 @@
 }
 
 .horario-modal__error--orden {
-  background: #fef2f2;
-  border: 1px solid #fecaca;
+  background: var(--color-danger-bg);
+  border: 1px solid var(--color-danger-border);
   border-radius: var(--radius-md);
   padding: 0.6rem 0.85rem;
 }
@@ -202,7 +202,7 @@
 }
 
 .horario-modal__btn--cancel {
-  background: var(--color-white);
+  background: var(--color-surface);
   border: 1px solid var(--color-border);
   color: var(--color-text);
 }

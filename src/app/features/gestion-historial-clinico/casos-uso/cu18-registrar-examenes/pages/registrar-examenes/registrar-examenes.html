@@ -1,0 +1,400 @@
+<main class="cu18-page">
+  <div class="cu18-page__body">
+    <app-sidebar
+      [mobileOpen]="sidebarMovilAbierto()"
+      (mobileClose)="cerrarSidebar()"
+    />
+
+    <div class="cu18-page__main">
+      <header class="cu18-page__main-header">
+        <button
+          type="button"
+          class="cu18-page__hamburger"
+          [attr.aria-expanded]="sidebarMovilAbierto()"
+          [attr.aria-label]="sidebarMovilAbierto() ? 'Cerrar menú' : 'Abrir menú'"
+          (click)="alternarSidebar()"
+        >
+          <span></span><span></span><span></span>
+        </button>
+      </header>
+
+      <div class="cu18-page__content">
+        <header class="cu18-hero">
+          <div class="cu18-hero__contenido">
+            <span class="cu18-hero__eyebrow">
+              <span class="cu18-hero__punto" aria-hidden="true"></span>
+              Estudios y resultados
+            </span>
+            <h1 class="cu18-hero__titulo">Exámenes oftalmológicos</h1>
+            <p class="cu18-hero__subtitulo">
+              Registra estudios y resultados asociados a una consulta clínica.
+            </p>
+          </div>
+          <div class="cu18-hero__decor" aria-hidden="true">
+            <span class="cu18-hero__globo cu18-hero__globo--uno"></span>
+            <span class="cu18-hero__globo cu18-hero__globo--dos"></span>
+            <span class="cu18-hero__anillo"></span>
+          </div>
+        </header>
+
+        <div class="cu18-grid">
+          <section class="cu18-panel cu18-panel--pacientes" aria-labelledby="cu18-pacientes-titulo">
+            <header class="cu18-panel__cabecera">
+              <div>
+                <h2 id="cu18-pacientes-titulo">Pacientes</h2>
+                <p class="cu18-panel__hint">
+                  Busca al paciente y elige la consulta sobre la que registrarás los exámenes.
+                </p>
+              </div>
+              @if (pacienteId() !== null) {
+                <button type="button" class="cu18-panel__accion" (click)="limpiarSeleccion()">
+                  Cambiar
+                </button>
+              }
+            </header>
+
+            <label class="cu18-busqueda">
+              <span class="visually-hidden">Buscar paciente por nombre, apellido o CI</span>
+              <svg
+                class="cu18-busqueda__lupa"
+                xmlns="http://www.w3.org/2000/svg"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                aria-hidden="true"
+              >
+                <circle cx="11" cy="11" r="7"></circle>
+                <path d="m20 20-3.5-3.5"></path>
+              </svg>
+              <input
+                type="search"
+                [value]="buscarTermino()"
+                (input)="onBuscar($event)"
+                placeholder="Buscar por nombre, apellido o CI"
+              />
+            </label>
+
+            @if (cargandoPacientes()) {
+              <p class="cu18-estado" role="status">Cargando pacientes…</p>
+            } @else if (errorCargaPacientes()) {
+              <div class="cu18-estado cu18-estado--error" role="alert">
+                <p>No se pudo cargar la lista de pacientes.</p>
+                <button type="button" class="cu18-btn cu18-btn--borde" (click)="reintentarPacientes()">
+                  Reintentar
+                </button>
+              </div>
+            } @else if (pacientesFiltrados().length === 0) {
+              <p class="cu18-estado">No se encontraron pacientes.</p>
+            } @else {
+              <ul class="cu18-pacientes" role="list">
+                @for (paciente of pacientesFiltrados(); track paciente.id) {
+                  <li>
+                    <button
+                      type="button"
+                      class="cu18-paciente"
+                      [class.cu18-paciente--activo]="esPacienteActivo(paciente)"
+                      [attr.aria-pressed]="esPacienteActivo(paciente)"
+                      (click)="seleccionarPaciente(paciente)"
+                    >
+                      <span class="cu18-paciente__avatar" aria-hidden="true">
+                        {{ iniciales(paciente) }}
+                      </span>
+                      <span class="cu18-paciente__datos">
+                        <span class="cu18-paciente__nombre">
+                          {{ paciente.nombres }} {{ paciente.apellidos }}
+                        </span>
+                        <span class="cu18-paciente__meta">CI {{ paciente.ci }}</span>
+                      </span>
+                    </button>
+                  </li>
+                }
+              </ul>
+            }
+          </section>
+
+          <section class="cu18-panel cu18-panel--detalle" aria-labelledby="cu18-detalle-titulo">
+            @if (pacienteId() === null) {
+              <div class="cu18-vacio">
+                <h2 id="cu18-detalle-titulo">Ningún paciente seleccionado</h2>
+                <p>
+                  Selecciona un paciente para ver sus consultas clínicas y registrar los
+                  exámenes oftalmológicos.
+                </p>
+              </div>
+            } @else if (consultaSeleccionada(); as consulta) {
+              <header class="cu18-panel__cabecera cu18-panel__cabecera--compacta">
+                <h2 id="cu18-detalle-titulo">Consulta seleccionada</h2>
+                <button type="button" class="cu18-panel__accion" (click)="volverAConsultas()">
+                  Cambiar consulta
+                </button>
+              </header>
+
+              <app-contexto-consulta
+                [paciente]="pacienteSeleccionado()"
+                [consulta]="consulta"
+                [diagnosticos]="diagnosticos()"
+                [cargandoDiagnosticos]="cargandoDiagnosticos()"
+                [errorDiagnosticos]="errorDiagnosticos()"
+                (reintentarDiagnosticos)="reintentarDiagnosticos()"
+              />
+            } @else {
+              <header class="cu18-panel__cabecera">
+                <div>
+                  <h2 id="cu18-detalle-titulo">Consultas clínicas</h2>
+                  <p class="cu18-panel__hint">
+                    Elige la consulta a la que pertenecen los exámenes.
+                  </p>
+                </div>
+              </header>
+
+              @if (cargandoHistorial() || cargandoConsultas()) {
+                <p class="cu18-estado" role="status">Cargando consultas clínicas…</p>
+              } @else if (errorHistorial(); as mensajeHistorial) {
+                <div class="cu18-estado cu18-estado--error" role="alert">
+                  <p>{{ mensajeHistorial }}</p>
+                  <button type="button" class="cu18-btn cu18-btn--borde" (click)="reintentarHistorial()">
+                    Reintentar
+                  </button>
+                </div>
+              } @else if (errorConsultas(); as mensajeConsultas) {
+                <div class="cu18-estado cu18-estado--error" role="alert">
+                  <p>{{ mensajeConsultas }}</p>
+                  <button type="button" class="cu18-btn cu18-btn--borde" (click)="reintentarConsultas()">
+                    Reintentar
+                  </button>
+                </div>
+              } @else if (consultas().length === 0) {
+                <p class="cu18-estado cu18-estado--vacio">
+                  Este paciente no tiene consultas clínicas registradas. Registra primero una
+                  consulta clínica (CU15) para poder asociar exámenes.
+                </p>
+              } @else {
+                <ul class="cu18-consultas" role="list">
+                  @for (consulta of consultas(); track consulta.id) {
+                    <li>
+                      <div
+                        class="cu18-consulta"
+                        [class.cu18-consulta--activa]="esConsultaActiva(consulta.id)"
+                      >
+                        <div class="cu18-consulta__cuerpo">
+                          <span class="cu18-consulta__fecha">
+                            {{ formatearFechaHora(consulta.fecha_consulta) }}
+                          </span>
+                          <p class="cu18-consulta__motivo">
+                            {{ consulta.motivo_consulta || 'Sin motivo registrado' }}
+                          </p>
+                          <span class="cu18-consulta__oftalmologo">
+                            {{ nombreOftalmologo(consulta) }}
+                          </span>
+                        </div>
+                        <button
+                          type="button"
+                          class="cu18-btn cu18-btn--primario cu18-btn--sm"
+                          (click)="seleccionarConsulta(consulta.id)"
+                        >
+                          Seleccionar
+                        </button>
+                      </div>
+                    </li>
+                  }
+                </ul>
+              }
+            }
+          </section>
+        </div>
+
+        @if (consultaSeleccionada()) {
+          <section class="cu18-workspace" aria-labelledby="cu18-examenes-titulo">
+            <header class="cu18-workspace__cabecera">
+              <div>
+                <h2 id="cu18-examenes-titulo">Exámenes registrados</h2>
+                <p>Estudios oftalmológicos de la consulta y sus resultados.</p>
+              </div>
+              @if (examenes().length > 0) {
+                <span class="cu18-workspace__contador">
+                  {{ examenes().length }}
+                  {{ examenes().length === 1 ? 'examen' : 'exámenes' }}
+                </span>
+              }
+            </header>
+
+            <div class="cu18-workspace__grid">
+              <div class="cu18-workspace__principal">
+                @if (cargandoExamenes()) {
+                  <p class="cu18-estado" role="status">Cargando exámenes…</p>
+                } @else if (errorExamenes(); as mensajeExamenes) {
+                  <div class="cu18-estado cu18-estado--error" role="alert">
+                    <p>{{ mensajeExamenes }}</p>
+                    <button
+                      type="button"
+                      class="cu18-btn cu18-btn--borde"
+                      (click)="reintentarExamenes()"
+                    >
+                      Reintentar
+                    </button>
+                  </div>
+                } @else if (examenes().length === 0) {
+                  <div class="cu18-vacio cu18-vacio--compacto">
+                    <h3>Sin exámenes registrados</h3>
+                    <p>
+                      Registra el primer examen oftalmológico de esta consulta con el formulario
+                      «Registrar examen».
+                    </p>
+                  </div>
+                } @else {
+                  <app-registro-navegador
+                    etiqueta="Examen actual"
+                    [indice]="indiceExamen()"
+                    [total]="examenes().length"
+                    (anterior)="anteriorExamen()"
+                    (siguiente)="siguienteExamen()"
+                  >
+                    @if (examenActual(); as examen) {
+                      <app-examen-card
+                        class="cu18-registro-actual"
+                        [examen]="examen"
+                        [resultados]="resultadosDelExamenActual()"
+                        [cargandoResultados]="cargandoResultados()"
+                        [errorResultados]="errorResultados()"
+                        (reintentarResultados)="reintentarResultados()"
+                      />
+                    }
+                  </app-registro-navegador>
+                }
+              </div>
+
+              <aside class="cu18-workspace__lateral">
+                <form
+                  class="cu18-form"
+                  [formGroup]="formExamen"
+                  (ngSubmit)="registrarExamen()"
+                  novalidate
+                >
+                  <div class="cu18-form__encabezado">
+                    <h3>Registrar examen</h3>
+                    <p>Agrega un estudio oftalmológico a esta consulta.</p>
+                  </div>
+
+                  <label class="cu18-campo">
+                    <span>Nombre del examen *</span>
+                    <input
+                      type="text"
+                      formControlName="nombre_examen"
+                      placeholder="Ej: Tonometría, Agudeza visual…"
+                    />
+                    @if (campoExamenInvalido()) {
+                      <small class="cu18-campo__error" role="alert">
+                        El nombre del examen es obligatorio.
+                      </small>
+                    }
+                  </label>
+
+                  <label class="cu18-campo">
+                    <span>Observaciones</span>
+                    <textarea
+                      rows="3"
+                      formControlName="observaciones"
+                      placeholder="Ojo evaluado, indicaciones del estudio…"
+                    ></textarea>
+                  </label>
+
+                  @if (errorExamen(); as mensaje) {
+                    <div class="cu18-aviso cu18-aviso--error" role="alert">
+                      <p>{{ mensaje }}</p>
+                    </div>
+                  }
+                  @if (exitoExamen(); as mensajeExito) {
+                    <div class="cu18-aviso cu18-aviso--exito" role="status">
+                      <p>{{ mensajeExito }}</p>
+                    </div>
+                  }
+
+                  <div class="cu18-form__acciones">
+                    <button
+                      type="submit"
+                      class="cu18-btn cu18-btn--primario"
+                      [disabled]="!puedeRegistrarExamen()"
+                    >
+                      {{ enviandoExamen() ? 'Registrando…' : 'Registrar examen' }}
+                    </button>
+                  </div>
+                </form>
+
+                <form
+                  class="cu18-form"
+                  [formGroup]="formResultado"
+                  (ngSubmit)="registrarResultado()"
+                  novalidate
+                >
+                  <div class="cu18-form__encabezado">
+                    <h3>Registrar resultado</h3>
+                    @if (examenActual(); as examen) {
+                      <p>Se asociará al examen «{{ examen.nombre_examen }}».</p>
+                    } @else {
+                      <p>Selecciona o registra un examen para añadir resultados.</p>
+                    }
+                  </div>
+
+                  <label class="cu18-campo">
+                    <span>Resultado *</span>
+                    <textarea
+                      rows="3"
+                      formControlName="resultado"
+                      placeholder="Ej: OD 16 mmHg · OI 15 mmHg"
+                    ></textarea>
+                    @if (campoResultadoInvalido()) {
+                      <small class="cu18-campo__error" role="alert">
+                        El resultado es obligatorio.
+                      </small>
+                    }
+                  </label>
+
+                  <label class="cu18-campo">
+                    <span>URL del archivo (opcional)</span>
+                    <input type="url" formControlName="archivo_url" placeholder="https://…" />
+                    <small class="cu18-campo__nota">
+                      Próximamente se integrará carga de archivos.
+                    </small>
+                  </label>
+
+                  @if (errorResultado(); as mensaje) {
+                    <div class="cu18-aviso cu18-aviso--error" role="alert">
+                      <p>{{ mensaje }}</p>
+                    </div>
+                  }
+                  @if (exitoResultado(); as mensajeExito) {
+                    <div class="cu18-aviso cu18-aviso--exito" role="status">
+                      <p>{{ mensajeExito }}</p>
+                    </div>
+                  }
+
+                  <div class="cu18-form__acciones">
+                    <button
+                      type="submit"
+                      class="cu18-btn cu18-btn--primario"
+                      [disabled]="!puedeRegistrarResultado()"
+                    >
+                      {{ enviandoResultado() ? 'Registrando…' : 'Registrar resultado' }}
+                    </button>
+                  </div>
+                </form>
+              </aside>
+            </div>
+          </section>
+        }
+      </div>
+    </div>
+  </div>
+
+  @if (sidebarMovilAbierto()) {
+    <button
+      type="button"
+      class="cu18-page__backdrop"
+      (click)="cerrarSidebar()"
+      aria-label="Cerrar menú"
+    ></button>
+  }
+</main>

@@ -78,7 +78,7 @@ export class Login {
 
     this.authService.login(request).subscribe({
       next: (response) => {
-        localStorage.setItem('access_token', response.access_token);
+        this.authService.registrarSesion(response.access_token, request.correo);
         this.loading.set(false);
         this.router.navigate(['/inicio']);
       },

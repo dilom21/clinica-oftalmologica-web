@@ -1,4 +1,4 @@
-.footer {
+﻿.footer {
   background: linear-gradient(180deg, var(--color-primary-dark) 0%, #0c2239 100%);
   color: rgba(255, 255, 255, 0.82);
   padding-block: 72px 32px;
@@ -41,7 +41,7 @@
   height: 44px;
   object-fit: contain;
   border-radius: 12px;
-  background: var(--color-white);
+  background: var(--color-surface);
   padding: 4px;
   box-shadow: var(--shadow-sm);
 }

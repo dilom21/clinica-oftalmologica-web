@@ -1,4 +1,4 @@
-<main class="historial-page">
+﻿<main class="historial-page">
   <div class="historial-page__body">
     <app-sidebar
       [mobileOpen]="sidebarMovilAbierto()"
@@ -16,144 +16,253 @@
         >
           <span></span><span></span><span></span>
         </button>
-        <button type="button" class="historial-page__logout" (click)="cerrarSesion()">
-          Cerrar sesión
-        </button>
       </header>
 
       <div class="historial-page__content">
-        <div class="historial-page__cabecera">
+        <header class="historial-page__cabecera">
           <div>
             <p class="historial-page__eyebrow">Paciente e historial clínico</p>
-            <h1 class="historial-page__titulo">Consultar historial clínico</h1>
+            <h1 class="historial-page__titulo">Historial clínico</h1>
             <p class="historial-page__subtitulo">
-              Revisa la información clínica registrada de un paciente.
+              Consulta la evolución clínica y los registros médicos del paciente.
             </p>
           </div>
-        </div>
+          @if (pacienteSeleccionado()) {
+            <button
+              type="button"
+              class="historial-page__cambiar"
+              (click)="limpiarSeleccion()"
+            >
+              Cambiar paciente
+            </button>
+          }
+        </header>
 
-        <section class="historial-selector" aria-labelledby="selector-titulo">
-          <div class="historial-selector__encabezado">
-            <div>
-              <h2 id="selector-titulo">Seleccionar paciente</h2>
-              <p>Busca por nombre, apellido o cédula y elige un paciente para consultar.</p>
-            </div>
-          </div>
-          <div class="historial-selector__controles">
-            <label class="historial-selector__busqueda">
-              <span>Buscar paciente</span>
+        <section class="selector" aria-labelledby="selector-titulo">
+          <div class="selector__encabezado">
+            <h2 id="selector-titulo" class="selector__titulo">Seleccionar paciente</h2>
+            <label class="selector__busqueda">
+              <span class="visually-hidden">Buscar paciente por nombre, apellido o CI</span>
+              <svg
+                class="selector__lupa"
+                xmlns="http://www.w3.org/2000/svg"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                aria-hidden="true"
+              >
+                <circle cx="11" cy="11" r="7"></circle>
+                <path d="m20 20-3.5-3.5"></path>
+              </svg>
               <input
                 type="search"
                 [value]="buscarTermino()"
                 (input)="onBuscar($event)"
-                placeholder="Nombre, apellido o cédula"
+                placeholder="Buscar por nombre, apellido o CI"
               />
             </label>
-            <label class="historial-selector__select">
-              <span>Paciente</span>
-              <select
-                [value]="pacienteId()"
-                (change)="seleccionarPaciente($event)"
-                [disabled]="cargandoPacientes() || pacientes().length === 0"
-              >
-                <option value="">Seleccione un paciente</option>
-                @for (paciente of pacientesFiltrados(); track paciente.id) {
-                  <option [value]="paciente.id">
-                    {{ paciente.nombres }} {{ paciente.apellidos }} · CI {{ paciente.ci }}
-                  </option>
-                }
-              </select>
-            </label>
           </div>
+
+          @if (!cargandoPacientes() && !errorCargaPacientes()) {
+            @if (pacientesFiltrados().length === 0) {
+              <p class="selector__vacio">No se encontraron pacientes.</p>
+            } @else {
+              <ul class="selector__lista" role="list">
+                @for (paciente of pacientesFiltrados(); track paciente.id) {
+                  <li>
+                    <button
+                      type="button"
+                      class="selector__paciente"
+                      [class.selector__paciente--activo]="esPacienteActivo(paciente)"
+                      [attr.aria-pressed]="esPacienteActivo(paciente)"
+                      (click)="seleccionarPaciente(paciente)"
+                    >
+                      <span class="selector__avatar" aria-hidden="true">
+                        {{ iniciales(paciente) }}
+                      </span>
+                      <span class="selector__nombre">
+                        {{ paciente.nombres }} {{ paciente.apellidos }}
+                      </span>
+                      <span class="selector__ci">CI {{ paciente.ci }}</span>
+                    </button>
+                  </li>
+                }
+              </ul>
+            }
+          }
         </section>
 
+
         @if (cargandoPacientes()) {
-          <p class="historial-page__estado" role="status">Cargando pacientes...</p>
+          <p class="estado" role="status">Cargando pacientes...</p>
         } @else if (errorCargaPacientes()) {
-          <div class="historial-page__estado historial-page__estado--error" role="alert">
+          <div class="estado estado--error" role="alert">
             <p>No se pudieron cargar los pacientes. Verifica tu conexión e inténtalo nuevamente.</p>
-            <button type="button" class="historial-page__accion" (click)="reintentarPacientes()">
-              Reintentar
-            </button>
+            <button type="button" class="boton" (click)="reintentarPacientes()">Reintentar</button>
           </div>
-        } @else if (!pacienteId()) {
-          <p class="historial-page__estado" role="status">
-            Seleccione un paciente para consultar su historial clínico.
+        } @else if (pacienteId() === null) {
+          <p class="estado" role="status">
+            Selecciona un paciente para consultar su historial clínico.
           </p>
         } @else if (cargandoHistorial()) {
-          <p class="historial-page__estado" role="status">Consultando historial clínico...</p>
-        } @else if (errorConsulta(); as mensaje) {
-          <div class="historial-page__estado historial-page__estado--error" role="alert">
+          <p class="estado" role="status">Consultando historial clínico...</p>
+        } @else if (errorHistorial(); as mensaje) {
+          <div class="estado estado--error" role="alert">
             <p>{{ mensaje }}</p>
-            <button type="button" class="historial-page__accion" (click)="reintentarConsulta()">
-              Reintentar consulta
-            </button>
+            <button type="button" class="boton" (click)="reintentarHistorial()">Reintentar</button>
           </div>
         } @else if (pacienteSeleccionado(); as paciente) {
-          <section class="historial-resumen" aria-labelledby="paciente-titulo">
-            <div class="historial-resumen__titulo">
-              <span class="historial-resumen__avatar" aria-hidden="true">
-                {{ paciente.nombres.charAt(0) }}{{ paciente.apellidos.charAt(0) }}
-              </span>
-              <div>
-                <p class="historial-page__eyebrow">Paciente seleccionado</p>
-                <h2 id="paciente-titulo">{{ paciente.nombres }} {{ paciente.apellidos }}</h2>
-              </div>
+          <section class="paciente-card" aria-labelledby="paciente-titulo">
+            <span class="paciente-card__avatar" aria-hidden="true">{{ iniciales(paciente) }}</span>
+            <div class="paciente-card__identidad">
+              <h2 id="paciente-titulo" class="paciente-card__nombre">
+                {{ paciente.nombres }} {{ paciente.apellidos }}
+              </h2>
+              <p class="paciente-card__ci">CI {{ paciente.ci }}</p>
             </div>
-            <dl class="historial-resumen__datos">
-              <div><dt>Cédula</dt><dd>{{ paciente.ci }}</dd></div>
-              <div><dt>Fecha de nacimiento</dt><dd>{{ formatearFecha(paciente.fecha_nacimiento) }}</dd></div>
+            <dl class="paciente-card__datos">
+              <div><dt>Nacimiento</dt><dd>{{ formatearFecha(paciente.fecha_nacimiento) }}</dd></div>
               <div><dt>Sexo</dt><dd>{{ paciente.sexo }}</dd></div>
               <div><dt>Teléfono</dt><dd>{{ paciente.telefono }}</dd></div>
             </dl>
           </section>
 
-          @if (historial(); as registro) {
-            <section class="historial-detalle" aria-labelledby="historial-titulo">
-              <div class="historial-detalle__cabecera">
-                <div>
-                  <p class="historial-page__eyebrow">Registro clínico</p>
-                  <h2 id="historial-titulo">Historial clínico</h2>
-                </div>
-                <p class="historial-detalle__fecha">
-                  Apertura: {{ formatearFecha(registro.fecha_apertura) }}
-                </p>
-              </div>
+          <app-historial-metricas [metricas]="metricas()" [cargando]="cargandoConsultas()" />
 
-              @if (registro.observaciones_generales) {
-                <div class="historial-detalle__observaciones">
-                  <h3>Observaciones generales</h3>
-                  <p>{{ registro.observaciones_generales }}</p>
-                </div>
-              }
+          <div class="tabs" role="tablist" aria-label="Secciones del historial clínico">
+            @for (tab of tabs; track tab.id; let i = $index) {
+              <button
+                type="button"
+                role="tab"
+                class="tabs__tab"
+                [class.tabs__tab--activa]="tabActiva() === tab.id"
+                [id]="'historial-tab-' + tab.id"
+                [attr.aria-selected]="tabActiva() === tab.id"
+                [attr.aria-controls]="'historial-panel-' + tab.id"
+                [attr.tabindex]="tabActiva() === tab.id ? 0 : -1"
+                (click)="cambiarTab(tab.id)"
+                (keydown)="onTabKeydown($event, i)"
+              >
+                {{ tab.etiqueta }}
+                @if (tab.id === 'consultas' && consultas().length > 0) {
+                  <span class="tabs__badge">{{ consultas().length }}</span>
+                }
+                @if (tab.id === 'antecedentes' && metricas().antecedentes > 0) {
+                  <span class="tabs__badge">{{ metricas().antecedentes }}</span>
+                }
+              </button>
+            }
+          </div>
 
-              <div class="historial-antecedentes">
-                <div class="historial-antecedentes__cabecera">
-                  <h3>Antecedentes clínicos</h3>
-                  <span>{{ registro.antecedentes.length }} registros</span>
-                </div>
-                @if (registro.antecedentes.length === 0) {
-                  <p class="historial-page__estado">No hay antecedentes clínicos registrados.</p>
+          <div
+            class="panel"
+            role="tabpanel"
+            id="historial-panel-resumen"
+            aria-labelledby="historial-tab-resumen"
+            [hidden]="tabActiva() !== 'resumen'"
+          >
+            @if (historial(); as registro) {
+              <section class="bloque" aria-labelledby="resumen-observaciones">
+                <h3 id="resumen-observaciones" class="bloque__titulo">Observaciones generales</h3>
+                @if (registro.observaciones_generales) {
+                  <p class="bloque__texto">{{ registro.observaciones_generales }}</p>
                 } @else {
-                  <ul class="historial-antecedentes__lista">
-                    @for (antecedente of registro.antecedentes; track antecedente.id) {
-                      <li>
-                        <div class="historial-antecedentes__meta">
-                          <strong>{{ antecedente.tipo }}</strong>
-                          <time>{{ formatearFecha(antecedente.fecha_registro) }}</time>
-                        </div>
-                        <p>{{ antecedente.descripcion }}</p>
-                      </li>
-                    }
-                  </ul>
+                  <p class="estado-vacio">Sin observaciones generales registradas</p>
+                }
+              </section>
+            } @else {
+              <section class="bloque">
+                <h3 class="bloque__titulo">Observaciones generales</h3>
+                <p class="estado-vacio">Este paciente aún no tiene un historial clínico abierto.</p>
+              </section>
+            }
+
+            <section class="bloque" aria-labelledby="resumen-ultima">
+              <h3 id="resumen-ultima" class="bloque__titulo">Última atención</h3>
+              @if (ultimaConsulta(); as ultima) {
+                <p class="bloque__fecha">{{ formatearFechaHora(ultima.consulta.fecha_consulta) }}</p>
+                <p class="bloque__meta">{{ nombreOftalmologo(ultima.consulta) }}</p>
+                @if (ultima.consulta.motivo_consulta) {
+                  <p class="bloque__texto">{{ ultima.consulta.motivo_consulta }}</p>
+                }
+              } @else if (cargandoConsultas()) {
+                <p class="estado-vacio" role="status">Cargando consultas…</p>
+              } @else {
+                <p class="estado-vacio">Sin consultas registradas</p>
+              }
+            </section>
+          </div>
+
+          <div
+            class="panel"
+            role="tabpanel"
+            id="historial-panel-consultas"
+            aria-labelledby="historial-tab-consultas"
+            [hidden]="tabActiva() !== 'consultas'"
+          >
+            <div class="panel__cabecera">
+              <h3 class="panel__titulo">Consultas clínicas</h3>
+              <span class="panel__contador">{{ consultas().length }} registros</span>
+            </div>
+
+            @if (cargandoConsultas()) {
+              <p class="estado" role="status">Cargando consultas clínicas…</p>
+            } @else if (errorConsultas(); as mensaje) {
+              <div class="estado estado--error" role="alert">
+                <p>{{ mensaje }}</p>
+                <button type="button" class="boton" (click)="reintentarConsultas()">Reintentar</button>
+              </div>
+            } @else if (consultas().length === 0) {
+              <p class="estado-vacio estado-vacio--centrado">Sin consultas clínicas registradas</p>
+            } @else {
+              <div class="timeline">
+                @for (item of consultas(); track item.consulta.id) {
+                  <app-consulta-clinica-card
+                    [registro]="item"
+                    (reintentarRegistros)="reintentarRegistros($event)"
+                    (solicitarResultadosExamenes)="solicitarResultadosExamenes($event)"
+                    (reintentarResultadosExamenes)="reintentarResultadosExamenes($event)"
+                  />
                 }
               </div>
-            </section>
-          } @else {
-            <p class="historial-page__estado" role="status">
-              No existen registros de historial clínico para este paciente.
-            </p>
-          }
+            }
+          </div>
+
+          <div
+            class="panel"
+            role="tabpanel"
+            id="historial-panel-antecedentes"
+            aria-labelledby="historial-tab-antecedentes"
+            [hidden]="tabActiva() !== 'antecedentes'"
+          >
+            <div class="panel__cabecera">
+              <h3 class="panel__titulo">Antecedentes clínicos</h3>
+              <span class="panel__contador">{{ metricas().antecedentes }} registros</span>
+            </div>
+
+            @if (historial(); as registro) {
+              @if (registro.antecedentes.length === 0) {
+                <p class="estado-vacio estado-vacio--centrado">Sin antecedentes clínicos registrados</p>
+              } @else {
+                <ul class="antecedentes" role="list">
+                  @for (antecedente of registro.antecedentes; track antecedente.id) {
+                    <li class="antecedente">
+                      <span class="antecedente__tipo">{{ antecedente.tipo }}</span>
+                      <p class="antecedente__descripcion">{{ antecedente.descripcion }}</p>
+                      <time class="antecedente__fecha" [attr.datetime]="antecedente.fecha_registro">
+                        {{ formatearFecha(antecedente.fecha_registro) }}
+                      </time>
+                    </li>
+                  }
+                </ul>
+              }
+            } @else {
+              <p class="estado-vacio estado-vacio--centrado">Sin antecedentes clínicos registrados</p>
+            }
+          </div>
         }
       </div>
     </div>

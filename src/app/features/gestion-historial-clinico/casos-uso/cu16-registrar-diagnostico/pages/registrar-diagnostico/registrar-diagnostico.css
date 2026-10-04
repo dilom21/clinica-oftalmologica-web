@@ -1,31 +1,31 @@
-.diagnostico-page { min-height: 100dvh; display: flex; background: linear-gradient(180deg, #f4fafe 0%, var(--color-white) 100%); }
+﻿.diagnostico-page { min-height: 100dvh; display: flex; background: linear-gradient(180deg, var(--color-app-bg-1) 0%, var(--color-app-bg-2) 100%); }
 .diagnostico-page__body, .diagnostico-page__main { display: flex; min-width: 0; min-height: 0; }
 .diagnostico-page__body { flex: 1; }
 .diagnostico-page__main { flex: 1; flex-direction: column; }
-.diagnostico-page__main-header { display: flex; align-items: center; justify-content: flex-end; gap: .75rem; padding: .9rem 1.5rem; background: var(--color-white); border-bottom: 1px solid var(--color-border-soft); box-shadow: var(--shadow-xs); }
-.diagnostico-page__hamburger { display: none; align-items: center; justify-content: center; width: 40px; height: 40px; padding: 0; border: 1px solid var(--color-border); border-radius: var(--radius-sm); background: var(--color-white); cursor: pointer; }
+.diagnostico-page__main-header { display: flex; align-items: center; justify-content: flex-end; gap: .75rem; padding: .9rem 1.5rem; background: var(--color-surface); border-bottom: 1px solid var(--color-border-soft); box-shadow: var(--shadow-xs); }
+.diagnostico-page__hamburger { display: none; align-items: center; justify-content: center; width: 40px; height: 40px; padding: 0; border: 1px solid var(--color-border); border-radius: var(--radius-sm); background: var(--color-surface); cursor: pointer; }
 .diagnostico-page__hamburger span { display: block; width: 18px; height: 2px; margin: 2px 0; background: var(--color-primary-dark); }
 .diagnostico-page__content { flex: 1; min-height: 0; overflow-y: auto; display: flex; flex-direction: column; gap: 1.25rem; padding: 2rem 1.5rem; }
 .diagnostico-page__eyebrow { margin: 0 0 .3rem; color: var(--color-primary); font-size: .75rem; font-weight: 800; letter-spacing: .08em; text-transform: uppercase; }
-.diagnostico-page__titulo { margin-bottom: .35rem; color: var(--color-primary-dark); font-size: 1.6rem; font-weight: 800; }
+.diagnostico-page__titulo { margin-bottom: .35rem; color: var(--color-heading); font-size: 1.6rem; font-weight: 800; }
 .diagnostico-boton { padding: .7rem 1.4rem; border: 1px solid var(--color-primary); border-radius: var(--radius-sm); background: var(--color-primary); color: var(--color-white); font-size: .9rem; font-weight: 700; cursor: pointer; }
 .diagnostico-boton:disabled { opacity: .55; cursor: not-allowed; }
-.diagnostico-boton--borde, .diagnostico-page__logout { border: 1px solid var(--color-border); background: var(--color-white); color: var(--color-primary); font-weight: 600; }
+.diagnostico-boton--borde, .diagnostico-page__logout { border: 1px solid var(--color-border); background: var(--color-surface); color: var(--color-primary); font-weight: 600; }
 .diagnostico-boton--borde:hover, .diagnostico-page__logout:hover { background: var(--color-background-sky); }
 .diagnostico-page__logout { padding: .6rem 1.3rem; border-radius: var(--radius-sm); font-size: .875rem; cursor: pointer; }
-.diagnostico-selector, .diagnostico-resumen, .diagnostico-historial, .diagnostico-consultas, .diagnostico-consulta-detalle, .diagnosticos-existentes, .diagnostico-form, .diagnostico-exito { padding: 1.35rem; border: 1px solid var(--color-border-soft); border-radius: var(--radius-md); background: var(--color-white); box-shadow: var(--shadow-xs); }
-.diagnostico-selector h2, .diagnostico-resumen h2, .diagnostico-historial h2, .diagnostico-consultas h2, .diagnostico-consulta-detalle h2, .diagnosticos-existentes h2, .diagnostico-form h2, .diagnostico-exito h2, .diagnostico-historial h3, .diagnostico-consulta-detalle h3 { color: var(--color-primary-dark); }
+.diagnostico-selector, .diagnostico-resumen, .diagnostico-historial, .diagnostico-consultas, .diagnostico-consulta-detalle, .diagnosticos-existentes, .diagnostico-form, .diagnostico-exito { padding: 1.35rem; border: 1px solid var(--color-border-soft); border-radius: var(--radius-md); background: var(--color-surface); box-shadow: var(--shadow-xs); }
+.diagnostico-selector h2, .diagnostico-resumen h2, .diagnostico-historial h2, .diagnostico-consultas h2, .diagnostico-consulta-detalle h2, .diagnosticos-existentes h2, .diagnostico-form h2, .diagnostico-exito h2, .diagnostico-historial h3, .diagnostico-consulta-detalle h3 { color: var(--color-heading); }
 .diagnostico-selector h2, .diagnostico-historial h2, .diagnostico-consultas h2, .diagnostico-consulta-detalle h2, .diagnosticos-existentes h2, .diagnostico-form h2, .diagnostico-exito h2 { margin-bottom: .3rem; font-size: 1.05rem; }
 .diagnostico-selector__encabezado p, .diagnostico-consultas__encabezado p, .diagnosticos-existentes__encabezado p, .diagnostico-form__encabezado p { color: var(--color-text-soft); font-size: .875rem; }
 .diagnostico-selector__controles { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1.4fr); gap: 1rem; margin-top: 1rem; }
 .diagnostico-selector label, .diagnostico-campo { display: flex; flex-direction: column; gap: .4rem; color: var(--color-text-soft); font-size: .8rem; font-weight: 700; }
-.diagnostico-selector input, .diagnostico-selector select, .diagnostico-campo input, .diagnostico-campo textarea { padding: .7rem .8rem; border: 1px solid var(--color-border); border-radius: var(--radius-sm); background: var(--color-white); color: var(--color-text); font: inherit; }
+.diagnostico-selector input, .diagnostico-selector select, .diagnostico-campo input, .diagnostico-campo textarea { padding: .7rem .8rem; border: 1px solid var(--color-border); border-radius: var(--radius-sm); background: var(--color-surface); color: var(--color-text); font: inherit; }
 .diagnostico-selector input, .diagnostico-selector select { min-height: 42px; }
 .diagnostico-campo textarea { resize: vertical; }
 .diagnostico-selector input:focus, .diagnostico-selector select:focus, .diagnostico-campo input:focus, .diagnostico-campo textarea:focus { outline: 2px solid var(--color-primary); outline-offset: 1px; }
 .diagnostico-page__estado { padding: 1rem 1.25rem; border: 1px solid var(--color-border-soft); border-radius: var(--radius-md); background: var(--color-background-mist); color: var(--color-text-soft); text-align: center; line-height: 1.6; }
 .diagnostico-page__estado p { margin: 0; }
-.diagnostico-page__estado--error { display: flex; align-items: center; justify-content: center; gap: 1rem; flex-wrap: wrap; border-color: #fecaca; background: #fef2f2; color: #b91c1c; }
+.diagnostico-page__estado--error { display: flex; align-items: center; justify-content: center; gap: 1rem; flex-wrap: wrap; border-color: var(--color-danger-border); background: var(--color-danger-bg); color: var(--color-danger-text); }
 .diagnostico-page__estado--bloqueo { border-color: #fde68a; background: #fffbeb; color: #92400e; }
 .diagnostico-resumen__titulo { display: flex; align-items: center; gap: .8rem; margin-bottom: 1.25rem; }
 .diagnostico-resumen__titulo h2 { font-size: 1.2rem; }
@@ -44,31 +44,31 @@
 .diagnostico-antecedentes__cabecera span { color: var(--color-text-soft); font-size: .8rem; }
 .diagnostico-antecedentes__lista li, .diagnostico-item { padding: 1rem; border: 1px solid var(--color-border-soft); border-radius: var(--radius-sm); }
 .diagnostico-antecedentes__lista, .diagnosticos-existentes__lista, .diagnostico-consultas__lista { display: grid; gap: .75rem; margin-top: 1rem; }
-.diagnostico-antecedentes__meta { display: flex; justify-content: space-between; gap: 1rem; color: var(--color-primary-dark); }
+.diagnostico-antecedentes__meta { display: flex; justify-content: space-between; gap: 1rem; color: var(--color-heading); }
 .diagnostico-consulta-tarjeta { display: flex; flex-direction: column; gap: .6rem; padding: 1rem; border: 1px solid var(--color-border-soft); border-radius: var(--radius-sm); cursor: pointer; transition: border-color .2s ease, box-shadow .2s ease, background .2s ease; }
 .diagnostico-consulta-tarjeta:hover { border-color: var(--color-primary-light); background: var(--color-background-sky); }
 .diagnostico-consulta-tarjeta:focus-visible { outline: 2px solid var(--color-primary); outline-offset: 1px; }
 .diagnostico-consulta-tarjeta--seleccionada { border-color: var(--color-primary); box-shadow: 0 0 0 2px rgba(37, 99, 235, .25); background: var(--color-background-sky); }
 .diagnostico-consulta-tarjeta__cabecera { display: flex; align-items: center; justify-content: space-between; gap: 1rem; flex-wrap: wrap; }
-.diagnostico-consulta-tarjeta__cabecera strong { color: var(--color-primary-dark); font-size: .95rem; }
+.diagnostico-consulta-tarjeta__cabecera strong { color: var(--color-heading); font-size: .95rem; }
 .diagnostico-consulta-tarjeta__cabecera time { color: var(--color-text-soft); font-size: .8rem; }
 .diagnostico-consulta-tarjeta__anamnesis { color: var(--color-text-soft); font-size: .82rem; line-height: 1.5; }
-.diagnostico-consulta-estado, .diagnostico-estado { display: inline-block; padding: .1rem .5rem; border-radius: 999px; background: var(--color-background-mist); color: var(--color-primary-dark); font-size: .72rem; font-weight: 700; text-transform: uppercase; }
-.diagnostico-estado--activo { background: #dcfce7; color: #166534; }
-.diagnostico-estado--inactivo { background: #e2e8f0; color: #475569; }
+.diagnostico-consulta-estado, .diagnostico-estado { display: inline-block; padding: .1rem .5rem; border-radius: 999px; background: var(--color-background-mist); color: var(--color-heading); font-size: .72rem; font-weight: 700; text-transform: uppercase; }
+.diagnostico-estado--activo { background: var(--color-success-bg-soft); color: var(--color-success-text); }
+.diagnostico-estado--inactivo { background: var(--color-neutral-bg); color: var(--color-neutral-text); }
 .diagnostico-consulta-detalle__encabezado { display: flex; align-items: center; justify-content: space-between; gap: 1rem; margin-bottom: 1.25rem; }
 .diagnostico-item { display: flex; flex-direction: column; gap: .35rem; }
 .diagnostico-item__principal { display: flex; align-items: center; justify-content: space-between; gap: 1rem; }
-.diagnostico-item__principal strong { color: var(--color-primary-dark); font-size: .95rem; }
+.diagnostico-item__principal strong { color: var(--color-heading); font-size: .95rem; }
 .diagnostico-item__descripcion { color: var(--color-text-soft); font-size: .85rem; line-height: 1.5; white-space: pre-line; }
 .diagnostico-item__fecha { color: var(--color-text-soft); font-size: .75rem; }
 .diagnostico-form__encabezado { margin-bottom: 1rem; }
 .diagnostico-campo { margin-bottom: 1rem; font-size: .82rem; }
 .diagnostico-campo__contador { color: var(--color-text-soft); font-size: .75rem; font-weight: 500; align-self: flex-end; }
-.diagnostico-campo__error { color: #b91c1c; font-size: .78rem; font-weight: 600; }
+.diagnostico-campo__error { color: var(--color-danger-text); font-size: .78rem; font-weight: 600; }
 .diagnostico-form__acciones { display: flex; justify-content: flex-end; margin-top: .5rem; }
 .diagnostico-form__aviso { margin-top: .9rem; color: var(--color-text-soft); font-size: .78rem; line-height: 1.5; }
-.diagnostico-exito { border-color: #bbf7d0; background: #f0fdf4; }
+.diagnostico-exito { border-color: var(--color-success-border); background: var(--color-success-bg); }
 .diagnostico-exito__acciones { display: flex; justify-content: flex-end; margin-top: 1.25rem; }
 .diagnostico-exito__datos { margin-top: 1rem; }
 .diagnostico-exito__nombre, .diagnostico-exito__descripcion { margin-top: .75rem; color: var(--color-text); font-size: .9rem; line-height: 1.6; white-space: pre-line; }
@@ -86,3 +86,10 @@
   .diagnostico-page__hamburger { margin-right: auto; }
   .diagnostico-selector, .diagnostico-resumen, .diagnostico-historial, .diagnostico-consultas, .diagnostico-consulta-detalle, .diagnosticos-existentes, .diagnostico-form, .diagnostico-exito { padding: 1rem; }
 }
+/* El header solo aporta la hamburguesa en movil: en escritorio no se muestra. */
+@media (min-width: 821px) {
+  .diagnostico-page__main-header {
+    display: none;
+  }
+}
+

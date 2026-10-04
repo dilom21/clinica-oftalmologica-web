@@ -1,20 +1,28 @@
-import { Injectable } from '@angular/core';
+import { Injectable, inject } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
 import { environment } from '../../../../../environments/environment';
+import { MenuService } from '../../../../core/services/menu.service';
 import {
   LoginRequest,
   LoginResponse,
   MensajeRespuesta,
+  PerfilUsuario,
   RecuperarPasswordRequest,
   RestablecerPasswordRequest,
+  nombreRol,
 } from '../models/auth.models';
+
+const CLAVE_TOKEN = 'access_token';
+const CLAVE_CORREO = 'sesion_correo';
 
 @Injectable({ providedIn: 'root' })
 export class AuthService {
   private readonly loginUrl = `${environment.apiUrl}/seguridad/login`;
   private readonly recuperarPasswordUrl = `${environment.apiUrl}/seguridad/password/recuperar`;
   private readonly restablecerPasswordUrl = `${environment.apiUrl}/seguridad/password/restablecer`;
+
+  private readonly menuService = inject(MenuService);
 
   constructor(private readonly http: HttpClient) {}
 
@@ -30,8 +38,31 @@ export class AuthService {
     return this.http.post<MensajeRespuesta>(this.restablecerPasswordUrl, datos);
   }
 
+  /**
+   * Registra la sesión local tras un login correcto: guarda el token y el
+   * correo con el que se autenticó el usuario (dato real, no inventado) para
+   * poder mostrarlo en la interfaz.
+   */
+  registrarSesion(accessToken: string, correo: string): void {
+    try {
+      localStorage.setItem(CLAVE_TOKEN, accessToken);
+      localStorage.setItem(CLAVE_CORREO, correo.trim());
+    } catch {
+      // Almacenamiento no disponible.
+    }
+    this.menuService.limpiar();
+  }
+
   logout(): void {
-    localStorage.removeItem('access_token');
+    try {
+      localStorage.removeItem(CLAVE_TOKEN);
+      localStorage.removeItem(CLAVE_CORREO);
+    } catch {
+      // Almacenamiento no disponible.
+    }
+    // El menú pertenece a la sesión: se limpia para que el siguiente usuario
+    // vuelva a cargar sus permisos.
+    this.menuService.limpiar();
   }
 
   obtenerUsuarioIdActual(): number | null {
@@ -53,8 +84,90 @@ export class AuthService {
     return claims ? this.numeroPositivo(claims['rol_id']) : null;
   }
 
+  /**
+   * Datos de la sesión actual para la interfaz (sidebar, inicio).
+   *
+   * Se derivan exclusivamente de información disponible: claims del token
+   * (sub, rol_id, nombre/correo si existen) y el correo guardado al iniciar
+   * sesión. Devuelve `null` si no hay token válido.
+   */
+  obtenerPerfilActual(): PerfilUsuario | null {
+    const claims = this.leerPayloadToken();
+    if (!claims) {
+      return null;
+    }
+
+    const usuarioId = this.obtenerUsuarioIdActual();
+    const rolId = this.numeroPositivo(claims['rol_id']);
+
+    const nombreClaim = this.leerTextoClaim(claims, [
+      'nombre',
+      'nombres',
+      'nombre_completo',
+      'name',
+      'full_name',
+    ]);
+    const correoClaim = this.leerTextoClaim(claims, ['correo', 'email', 'mail']);
+    const correoGuardado = this.leerCorreoGuardado();
+    const correo = correoClaim ?? correoGuardado;
+
+    const nombre = nombreClaim;
+    const nombreMostrar = nombre ?? correo ?? 'Sesión activa';
+    const rolNombre = nombreRol(rolId);
+
+    return {
+      usuarioId,
+      rolId,
+      rolNombre,
+      correo,
+      nombre,
+      nombreMostrar,
+      iniciales: this.calcularIniciales(nombreMostrar),
+    };
+  }
+
+  private leerCorreoGuardado(): string | null {
+    try {
+      const valor = localStorage.getItem(CLAVE_CORREO);
+      return valor && valor.trim() ? valor.trim() : null;
+    } catch {
+      return null;
+    }
+  }
+
+  private leerTextoClaim(
+    claims: Record<string, unknown>,
+    claves: ReadonlyArray<string>,
+  ): string | null {
+    for (const clave of claves) {
+      const valor = claims[clave];
+      if (typeof valor === 'string' && valor.trim()) {
+        return valor.trim();
+      }
+    }
+    return null;
+  }
+
+  private calcularIniciales(valor: string): string {
+    const partes = valor
+      .split(/[\s._@-]+/)
+      .map((parte) => parte.trim())
+      .filter(Boolean);
+    if (partes.length === 0) {
+      return 'US';
+    }
+    const primera = partes[0].charAt(0);
+    const segunda = partes.length > 1 ? partes[1].charAt(0) : partes[0].charAt(1);
+    return `${primera}${segunda}`.toUpperCase();
+  }
+
   private leerPayloadToken(): Record<string, unknown> | null {
-    const token = localStorage.getItem('access_token');
+    let token: string | null = null;
+    try {
+      token = localStorage.getItem(CLAVE_TOKEN);
+    } catch {
+      return null;
+    }
     if (!token) {
       return null;
     }

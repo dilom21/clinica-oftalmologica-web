@@ -20,3 +20,13 @@ describe('app.routes — CU16', () => {
     expect(typeof ruta?.loadComponent).toBe('function');
   });
 });
+
+describe('app.routes — CU17', () => {
+  it('expone /tratamientos-recetas protegida por authGuard', () => {
+    const ruta = routes.find((r) => r.path === 'tratamientos-recetas');
+
+    expect(ruta).toBeTruthy();
+    expect(ruta?.canActivate).toContain(authGuard);
+    expect(typeof ruta?.loadComponent).toBe('function');
+  });
+});

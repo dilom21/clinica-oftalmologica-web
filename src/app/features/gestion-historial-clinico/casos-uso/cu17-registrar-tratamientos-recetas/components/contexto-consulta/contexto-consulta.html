@@ -1,0 +1,77 @@
+@if (consulta(); as consulta) {
+  <article class="contexto">
+    <header class="contexto__cabecera">
+      <span class="contexto__avatar" aria-hidden="true">{{ iniciales() }}</span>
+
+      <div class="contexto__titular">
+        @if (paciente(); as p) {
+          <h2 class="contexto__paciente">{{ p.nombres }} {{ p.apellidos }}</h2>
+          <p class="contexto__meta">
+            <span class="contexto__ci">CI {{ p.ci }}</span>
+            <span class="contexto__separador" aria-hidden="true">·</span>
+            <span>Historial #{{ consulta.historial_clinico_id }}</span>
+          </p>
+        } @else {
+          <h2 class="contexto__paciente">Consulta clínica</h2>
+        }
+      </div>
+
+      <span
+        class="contexto__estado"
+        [class.contexto__estado--activo]="consulta.estado"
+        [class.contexto__estado--inactivo]="!consulta.estado"
+      >
+        {{ consulta.estado ? 'Activa' : 'Inactiva' }}
+      </span>
+    </header>
+
+    <dl class="contexto__datos">
+      <div class="contexto__dato">
+        <dt>Fecha de consulta</dt>
+        <dd>{{ fechaConsulta() }}</dd>
+      </div>
+      <div class="contexto__dato">
+        <dt>Oftalmólogo</dt>
+        <dd>{{ nombreOftalmologo() }}</dd>
+      </div>
+      <div class="contexto__dato">
+        <dt>Motivo</dt>
+        <dd>{{ consulta.motivo_consulta || 'Sin motivo registrado' }}</dd>
+      </div>
+      <div class="contexto__dato">
+        <dt>Cita asociada</dt>
+        <dd>
+          {{ consulta.cita_id ? 'Cita #' + consulta.cita_id : 'Sin cita asociada' }}
+        </dd>
+      </div>
+    </dl>
+
+    <section class="contexto__diagnosticos" aria-label="Diagnósticos de la consulta">
+      <div class="contexto__diagnosticos-encabezado">
+        <h3>Diagnósticos</h3>
+        <span class="contexto__contador">{{ diagnosticos().length }}</span>
+      </div>
+
+      @if (cargandoDiagnosticos()) {
+        <p class="contexto__estado-texto" role="status">Cargando diagnósticos…</p>
+      } @else if (errorDiagnosticos(); as mensaje) {
+        <div class="contexto__error" role="alert">
+          <p>{{ mensaje }}</p>
+          <button type="button" class="contexto__reintentar" (click)="reintentarDiagnosticos.emit()">
+            Reintentar
+          </button>
+        </div>
+      } @else if (diagnosticos().length === 0) {
+        <p class="contexto__estado-texto">
+          Sin diagnósticos registrados. CU17 puede registrarse sin diagnóstico previo.
+        </p>
+      } @else {
+        <div class="contexto__chips">
+          @for (diagnostico of diagnosticos(); track diagnostico.id) {
+            <app-diagnostico-chip [diagnostico]="diagnostico" />
+          }
+        </div>
+      }
+    </section>
+  </article>
+}

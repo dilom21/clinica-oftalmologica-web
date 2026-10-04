@@ -1,0 +1,78 @@
+@if (receta(); as item) {
+  <article
+    class="receta"
+    [class.receta--abierta]="abierto()"
+    [class.receta--compacta]="compacta()"
+  >
+    <header class="receta__cabecera">
+      <span class="receta__icono" aria-hidden="true">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M10.5 3.5 3.5 10.5a5 5 0 0 0 7 7l7-7a5 5 0 0 0-7-7Z"></path>
+          <path d="m8.5 8.5 7 7"></path>
+        </svg>
+      </span>
+
+      <div class="receta__titular">
+        <h4 class="receta__titulo">Receta #{{ item.id }}</h4>
+        <p class="receta__meta">
+          <time [attr.datetime]="item.fecha_emision">{{ fechaEmision() }}</time>
+          <span class="receta__separador" aria-hidden="true">·</span>
+          <span>{{ cantidadMedicamentos() }} medicamento(s)</span>
+        </p>
+      </div>
+
+      <span
+        class="receta__estado"
+        [class.receta__estado--activo]="item.estado"
+        [class.receta__estado--inactivo]="!item.estado"
+      >
+        {{ item.estado ? 'Activa' : 'Inactiva' }}
+      </span>
+
+      <button
+        type="button"
+        class="receta__toggle"
+        [attr.aria-expanded]="abierto()"
+        [attr.aria-controls]="panelId()"
+        (click)="alternar()"
+      >
+        {{ abierto() ? 'Ocultar' : 'Ver detalle' }}
+        <svg class="receta__chevron" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+          <polyline points="6 9 12 15 18 9"></polyline>
+        </svg>
+      </button>
+    </header>
+
+    @if (abierto()) {
+      <div class="receta__detalle" [id]="panelId()">
+        @if (item.observaciones) {
+          <p class="receta__observaciones">
+            <span class="receta__observaciones-label">Observaciones</span>
+            {{ item.observaciones }}
+          </p>
+        }
+
+        <ul class="receta__medicamentos" role="list">
+          @for (detalle of item.detalles; track detalle.id) {
+            <li class="medicamento">
+              <h5 class="medicamento__nombre">{{ detalle.medicamento }}</h5>
+
+              <dl class="medicamento__campos">
+                @for (campo of camposDetalle(detalle); track campo.etiqueta) {
+                  <div class="medicamento__campo">
+                    <dt>{{ campo.etiqueta }}</dt>
+                    <dd>{{ campo.valor }}</dd>
+                  </div>
+                }
+              </dl>
+
+              @if (detalle.indicaciones) {
+                <p class="medicamento__indicaciones">{{ detalle.indicaciones }}</p>
+              }
+            </li>
+          }
+        </ul>
+      </div>
+    }
+  </article>
+}

@@ -85,6 +85,22 @@ export const routes: Routes = [
     canActivate: [authGuard],
   },
   {
+    path: 'tratamientos-recetas',
+    loadComponent: () =>
+      import(
+        './features/gestion-historial-clinico/casos-uso/cu17-registrar-tratamientos-recetas/pages/registrar-tratamientos-recetas/registrar-tratamientos-recetas'
+      ).then((m) => m.RegistrarTratamientosRecetas),
+    canActivate: [authGuard],
+  },
+  {
+    path: 'examenes-oftalmologicos',
+    loadComponent: () =>
+      import(
+        './features/gestion-historial-clinico/casos-uso/cu18-registrar-examenes/pages/registrar-examenes/registrar-examenes'
+      ).then((m) => m.RegistrarExamenes),
+    canActivate: [authGuard],
+  },
+  {
     path: 'bitacora',
     loadComponent: () =>
       import(

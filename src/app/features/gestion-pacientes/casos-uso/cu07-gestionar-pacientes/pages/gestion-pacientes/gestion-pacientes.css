@@ -1,9 +1,9 @@
-.pacientes-page {
+﻿.pacientes-page {
   height: 100dvh;
   display: flex;
   background:
     radial-gradient(800px 400px at 80% 20%, rgba(56, 189, 248, 0.1), transparent 60%),
-    linear-gradient(180deg, #f4fafe 0%, var(--color-white) 100%);
+    linear-gradient(180deg, var(--color-app-bg-1) 0%, var(--color-app-bg-2) 100%);
 }
 
 .pacientes-page__body {
@@ -28,7 +28,7 @@
   justify-content: flex-end;
   gap: 0.75rem;
   padding: 0.9rem 1.5rem;
-  background: var(--color-white);
+  background: var(--color-surface);
   border-bottom: 1px solid var(--color-border-soft);
   box-shadow: var(--shadow-xs);
 }
@@ -42,8 +42,8 @@
   padding: 0;
   border: 1px solid var(--color-border);
   border-radius: var(--radius-sm);
-  background: var(--color-white);
-  color: var(--color-primary-dark);
+  background: var(--color-surface);
+  color: var(--color-heading);
   cursor: pointer;
   transition:
     background 0.2s ease,
@@ -65,7 +65,7 @@
   padding: 0.6rem 1.3rem;
   border: 1px solid var(--color-border);
   border-radius: var(--radius-sm);
-  background: var(--color-white);
+  background: var(--color-surface);
   color: var(--color-primary);
   font-size: 0.875rem;
   font-weight: 600;
@@ -102,7 +102,7 @@
 .pacientes-page__titulo {
   font-size: 1.6rem;
   font-weight: 800;
-  color: var(--color-primary-dark);
+  color: var(--color-heading);
   letter-spacing: -0.02em;
   margin-bottom: 0.35rem;
 }
@@ -156,7 +156,7 @@
   align-items: center;
   gap: 0.5rem;
   padding: 0 0.85rem;
-  background: var(--color-white);
+  background: var(--color-surface);
   border: 1px solid var(--color-border);
   border-radius: var(--radius-sm);
   box-shadow: var(--shadow-xs);
@@ -198,8 +198,8 @@
 }
 
 .pacientes-page__estado--error {
-  background: #fef2f2;
-  border-color: #fecaca;
+  background: var(--color-danger-bg);
+  border-color: var(--color-danger-border);
   color: #dc2626;
 }
 
@@ -243,9 +243,9 @@
 }
 
 .pacientes-page__toast--error {
-  background: #fef2f2;
+  background: var(--color-danger-bg);
   color: #dc2626;
-  border: 1px solid #fecaca;
+  border: 1px solid var(--color-danger-border);
 }
 
 @media (max-width: 820px) {
@@ -278,3 +278,10 @@
     max-width: calc(100% - 2rem);
   }
 }
+/* El header solo aporta la hamburguesa en movil: en escritorio no se muestra. */
+@media (min-width: 821px) {
+  .pacientes-page__main-header {
+    display: none;
+  }
+}
+

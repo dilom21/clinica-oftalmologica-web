@@ -1,4 +1,4 @@
-.navbar {
+﻿.navbar {
   position: fixed;
   inset: 0 0 auto;
   z-index: 100;
@@ -38,7 +38,7 @@
   align-items: center;
   gap: 0.75rem;
   text-decoration: none;
-  color: var(--color-primary-dark);
+  color: var(--color-heading);
   line-height: 1.15;
   font-weight: 700;
   font-size: 0.95rem;
@@ -116,7 +116,7 @@
   padding: 0.65rem;
   border: 1px solid var(--color-border);
   border-radius: var(--radius-md);
-  background: var(--color-white);
+  background: var(--color-surface);
   cursor: pointer;
   flex-direction: column;
   justify-content: center;
@@ -171,7 +171,7 @@
     align-items: stretch;
     gap: 0.5rem;
     padding: 1.25rem 24px 1.5rem;
-    background: var(--color-white);
+    background: var(--color-surface);
     border-bottom: 1px solid var(--color-border-soft);
     box-shadow: var(--shadow-md);
     transform: translateY(-8px);

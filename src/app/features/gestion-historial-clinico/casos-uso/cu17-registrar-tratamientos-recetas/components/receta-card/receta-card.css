@@ -1,0 +1,232 @@
+﻿:host {
+  display: block;
+}
+
+.receta {
+  overflow: hidden;
+  border: 1px solid var(--color-border-soft);
+  border-radius: var(--radius-md);
+  background: var(--color-surface);
+  box-shadow: var(--shadow-xs);
+  transition:
+    border-color 0.2s ease,
+    box-shadow 0.2s ease;
+}
+
+.receta--abierta {
+  border-color: var(--color-primary-light);
+  box-shadow: var(--shadow-sm);
+}
+
+.receta__cabecera {
+  display: flex;
+  align-items: center;
+  gap: 0.9rem;
+  padding: 1rem 1.15rem;
+}
+
+.receta__icono {
+  display: grid;
+  place-items: center;
+  flex: 0 0 auto;
+  width: 40px;
+  height: 40px;
+  border-radius: 12px;
+  background: linear-gradient(135deg, #e0f2fe 0%, #dbeafe 100%);
+  color: var(--color-primary);
+}
+
+.receta__icono svg {
+  width: 20px;
+  height: 20px;
+}
+
+.receta__titular {
+  flex: 1;
+  min-width: 0;
+}
+
+.receta__titulo {
+  margin: 0;
+  color: var(--color-heading);
+  font-size: 0.95rem;
+  font-weight: 800;
+}
+
+.receta__meta {
+  display: flex;
+  align-items: center;
+  gap: 0.45rem;
+  margin-top: 0.15rem;
+  color: var(--color-text-soft);
+  font-size: 0.78rem;
+}
+
+.receta__separador {
+  opacity: 0.6;
+}
+
+.receta__estado {
+  flex: 0 0 auto;
+  padding: 0.2rem 0.6rem;
+  border-radius: var(--radius-pill);
+  font-size: 0.68rem;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.receta__estado--activo {
+  background: var(--color-success-bg-soft);
+  color: var(--color-success-text);
+}
+
+.receta__estado--inactivo {
+  background: var(--color-neutral-bg);
+  color: var(--color-neutral-text);
+}
+
+.receta__toggle {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  flex: 0 0 auto;
+  padding: 0.45rem 0.85rem;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-pill);
+  background: var(--color-surface);
+  color: var(--color-primary);
+  font-size: 0.78rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: background 0.2s ease;
+}
+
+.receta__toggle:hover {
+  background: var(--color-background-sky);
+}
+
+.receta--compacta .receta__cabecera {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 0.55rem;
+  padding: 0.8rem;
+}
+
+.receta--compacta .receta__icono {
+  display: none;
+}
+
+.receta--compacta .receta__meta {
+  flex-wrap: wrap;
+  gap: 0.15rem 0.35rem;
+}
+
+.receta--compacta .receta__estado {
+  align-self: start;
+}
+
+.receta--compacta .receta__toggle {
+  grid-column: 1 / -1;
+  justify-content: center;
+  padding-block: 0.32rem;
+}
+
+.receta__chevron {
+  width: 15px;
+  height: 15px;
+  transition: transform 0.2s ease;
+}
+
+.receta--abierta .receta__chevron {
+  transform: rotate(180deg);
+}
+
+.receta__detalle {
+  padding: 0 1.15rem 1.15rem;
+  border-top: 1px solid var(--color-border-soft);
+  background: linear-gradient(180deg, var(--color-background-mist) 0%, var(--color-surface) 100%);
+}
+
+.receta__observaciones {
+  margin-top: 1rem;
+  color: var(--color-text);
+  font-size: 0.85rem;
+  line-height: 1.55;
+  white-space: pre-line;
+}
+
+.receta__observaciones-label {
+  display: block;
+  margin-bottom: 0.2rem;
+  color: var(--color-text-soft);
+  font-size: 0.72rem;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.receta__medicamentos {
+  display: flex;
+  flex-direction: column;
+  gap: 0.85rem;
+  margin: 1rem 0 0;
+  padding: 0;
+  list-style: none;
+}
+
+.medicamento {
+  padding: 0.9rem 1rem;
+  border: 1px solid var(--color-border-soft);
+  border-radius: var(--radius-sm);
+  background: var(--color-surface);
+}
+
+.medicamento__nombre {
+  margin: 0 0 0.6rem;
+  color: var(--color-heading);
+  font-size: 0.9rem;
+  font-weight: 800;
+}
+
+.medicamento__campos {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+  gap: 0.6rem 1rem;
+  margin: 0;
+}
+
+.medicamento__campo dt {
+  color: var(--color-text-soft);
+  font-size: 0.7rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.medicamento__campo dd {
+  margin: 0;
+  color: var(--color-text);
+  font-size: 0.85rem;
+  font-weight: 600;
+}
+
+.medicamento__indicaciones {
+  margin-top: 0.7rem;
+  padding-top: 0.7rem;
+  border-top: 1px dashed var(--color-border-soft);
+  color: var(--color-text-soft);
+  font-size: 0.82rem;
+  line-height: 1.5;
+  white-space: pre-line;
+}
+
+@media (max-width: 640px) {
+  .receta__cabecera {
+    flex-wrap: wrap;
+  }
+
+  .receta__titular {
+    flex: 1 1 60%;
+  }
+}

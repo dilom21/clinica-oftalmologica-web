@@ -39,7 +39,12 @@
         </button>
       </header>
 
-      <form [formGroup]="rolForm" (ngSubmit)="onSubmit()" novalidate>
+      <form
+        class="rol-modal__form"
+        [formGroup]="rolForm"
+        (ngSubmit)="onSubmit()"
+        novalidate
+      >
         <div class="rol-modal__body">
           <div class="rol-modal__field">
             <label class="rol-modal__label" for="rol-nombre">

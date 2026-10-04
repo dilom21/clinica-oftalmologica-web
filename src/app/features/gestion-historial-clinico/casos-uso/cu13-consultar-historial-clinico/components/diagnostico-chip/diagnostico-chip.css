@@ -1,0 +1,64 @@
+﻿.diagnostico-chip {
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+  padding: 0.7rem 0.85rem;
+  border: 1px solid var(--color-border-soft);
+  border-left: 3px solid var(--color-primary);
+  border-radius: var(--radius-sm);
+  background: var(--color-background-mist);
+}
+
+.diagnostico-chip--inactivo {
+  border-left-color: var(--color-text-soft);
+  opacity: 0.85;
+}
+
+.diagnostico-chip__cabecera {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 0.75rem;
+}
+
+.diagnostico-chip__nombre {
+  font-size: 0.9rem;
+  font-weight: 700;
+  color: var(--color-heading);
+}
+
+.diagnostico-chip__estado {
+  flex: 0 0 auto;
+  padding: 0.15rem 0.6rem;
+  border-radius: var(--radius-pill);
+  font-size: 0.6875rem;
+  font-weight: 700;
+  letter-spacing: 0.03em;
+  text-transform: uppercase;
+  border: 1px solid transparent;
+}
+
+.diagnostico-chip__estado--activo {
+  background: #ecfdf5;
+  border-color: #a7f3d0;
+  color: #047857;
+}
+
+.diagnostico-chip__estado--inactivo {
+  background: var(--color-background-faint);
+  border-color: var(--color-border-soft);
+  color: var(--color-text-soft);
+}
+
+.diagnostico-chip__descripcion {
+  color: var(--color-text-soft);
+  font-size: 0.8125rem;
+  line-height: 1.55;
+  white-space: pre-line;
+}
+
+.diagnostico-chip__fecha {
+  color: var(--color-text-soft);
+  font-size: 0.75rem;
+  font-weight: 600;
+}

@@ -1,9 +1,9 @@
-.citas-page {
+﻿.citas-page {
   height: 100dvh;
   display: flex;
   background:
     radial-gradient(800px 400px at 80% 20%, rgba(56, 189, 248, 0.1), transparent 60%),
-    linear-gradient(180deg, #f4fafe 0%, var(--color-white) 100%);
+    linear-gradient(180deg, var(--color-app-bg-1) 0%, var(--color-app-bg-2) 100%);
 }
 
 .citas-page__body {
@@ -28,7 +28,7 @@
   justify-content: space-between;
   gap: 0.75rem;
   padding: 0.9rem 1.5rem;
-  background: var(--color-white);
+  background: var(--color-surface);
   border-bottom: 1px solid var(--color-border-soft);
   box-shadow: var(--shadow-xs);
 }
@@ -42,8 +42,8 @@
   padding: 0;
   border: 1px solid var(--color-border);
   border-radius: var(--radius-sm);
-  background: var(--color-white);
-  color: var(--color-primary-dark);
+  background: var(--color-surface);
+  color: var(--color-heading);
   cursor: pointer;
 }
 
@@ -57,7 +57,7 @@
   padding: 0.6rem 1.3rem;
   border: 1px solid var(--color-border);
   border-radius: var(--radius-sm);
-  background: var(--color-white);
+  background: var(--color-surface);
   color: var(--color-primary);
   font-size: 0.875rem;
   font-weight: 600;
@@ -92,7 +92,7 @@
 .citas-page__titulo {
   font-size: 1.5rem;
   font-weight: 800;
-  color: var(--color-primary-dark);
+  color: var(--color-heading);
   letter-spacing: -0.02em;
   margin-bottom: 0.25rem;
 }
@@ -136,7 +136,7 @@
 }
 
 .citas-page__control--activo {
-  background: var(--color-white);
+  background: var(--color-surface);
   color: var(--color-primary);
   box-shadow: var(--shadow-xs);
 }
@@ -153,10 +153,10 @@
   gap: 0.75rem;
   flex-wrap: wrap;
   padding: 0.8rem 1rem;
-  border: 1px solid #fecaca;
+  border: 1px solid var(--color-danger-border);
   border-radius: var(--radius-md);
-  background: #fef2f2;
-  color: #b91c1c;
+  background: var(--color-danger-bg);
+  color: var(--color-danger-text);
   font-size: 0.9rem;
   font-weight: 600;
 }
@@ -192,7 +192,7 @@
   padding: 1rem 1.2rem;
   border: 1px solid var(--color-border-soft);
   border-radius: var(--radius-md);
-  background: var(--color-white);
+  background: var(--color-surface);
   box-shadow: var(--shadow-xs);
 }
 
@@ -207,7 +207,7 @@
 .citas-resumen__valor {
   font-size: 2rem;
   font-weight: 800;
-  color: var(--color-primary-dark);
+  color: var(--color-heading);
   font-variant-numeric: tabular-nums;
   line-height: 1.2;
 }
@@ -255,7 +255,7 @@
   padding: 0.65rem 1rem;
   border: 1px solid var(--color-border-soft);
   border-radius: var(--radius-md);
-  background: var(--color-white);
+  background: var(--color-surface);
   box-shadow: var(--shadow-xs);
 }
 
@@ -268,7 +268,7 @@
   padding: 0;
   border: 1px solid var(--color-border);
   border-radius: var(--radius-pill);
-  background: var(--color-white);
+  background: var(--color-surface);
   color: var(--color-primary);
   cursor: pointer;
   transition: background 0.2s ease;
@@ -286,7 +286,7 @@
 .citas-fecha__texto {
   border: none;
   background: transparent;
-  color: var(--color-primary-dark);
+  color: var(--color-heading);
   font-size: 1.05rem;
   font-weight: 800;
   letter-spacing: 0.01em;
@@ -313,7 +313,7 @@
   padding: 0;
   border: 1px solid var(--color-border);
   border-radius: var(--radius-pill);
-  background: var(--color-white);
+  background: var(--color-surface);
   color: var(--color-primary);
   cursor: pointer;
   transition: background 0.2s ease;
@@ -337,7 +337,7 @@
   padding: 0.9rem;
   border: 1px solid var(--color-border);
   border-radius: var(--radius-md);
-  background: var(--color-white);
+  background: var(--color-surface);
   box-shadow: var(--shadow-md);
   animation: citasPopoverEntrar 0.15s ease;
 }
@@ -392,7 +392,7 @@
 .citas-dia__titulo {
   font-size: 1.1rem;
   font-weight: 800;
-  color: var(--color-primary-dark);
+  color: var(--color-heading);
   text-transform: uppercase;
   letter-spacing: 0.03em;
 }
@@ -465,7 +465,7 @@
   padding: 1rem;
   border: 1px solid var(--color-border-soft);
   border-radius: var(--radius-md);
-  background: var(--color-white);
+  background: var(--color-surface);
   box-shadow: var(--shadow-xs);
 }
 
@@ -487,7 +487,7 @@
   padding: 0.55rem 0.7rem;
   border: 1px solid var(--color-border);
   border-radius: var(--radius-sm);
-  background: var(--color-white);
+  background: var(--color-surface);
   color: var(--color-text);
   font-size: 0.85rem;
   font-family: inherit;
@@ -506,7 +506,7 @@
   padding: 0 0.7rem;
   border: 1px solid var(--color-border);
   border-radius: var(--radius-sm);
-  background: var(--color-white);
+  background: var(--color-surface);
   transition: border-color 0.2s ease;
 }
 
@@ -540,7 +540,7 @@
   padding: 0.58rem 1.1rem;
   border: 1px solid var(--color-border);
   border-radius: var(--radius-pill);
-  background: var(--color-white);
+  background: var(--color-surface);
   color: var(--color-primary);
   font-size: 0.8125rem;
   font-weight: 700;
@@ -600,9 +600,9 @@
 }
 
 .citas-page__toast--error {
-  background: #fef2f2;
+  background: var(--color-danger-bg);
   color: #dc2626;
-  border: 1px solid #fecaca;
+  border: 1px solid var(--color-danger-border);
 }
 
 @media (max-width: 1180px) {
@@ -673,3 +673,11 @@
     bottom: 1rem;
   }
 }
+
+/* El header solo aporta la hamburguesa en movil: en escritorio no se muestra. */
+@media (min-width: 821px) {
+  .citas-page__main-header {
+    display: none;
+  }
+}
+

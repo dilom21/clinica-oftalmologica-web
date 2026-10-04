@@ -1,9 +1,9 @@
-.roles-page {
+﻿.roles-page {
   height: 100dvh;
   display: flex;
   background:
     radial-gradient(800px 400px at 80% 20%, rgba(56, 189, 248, 0.1), transparent 60%),
-    linear-gradient(180deg, #f4fafe 0%, var(--color-white) 100%);
+    linear-gradient(180deg, var(--color-app-bg-1) 0%, var(--color-app-bg-2) 100%);
 }
 
 .roles-page__body {
@@ -28,7 +28,7 @@
   justify-content: flex-end;
   gap: 0.75rem;
   padding: 0.9rem 1.5rem;
-  background: var(--color-white);
+  background: var(--color-surface);
   border-bottom: 1px solid var(--color-border-soft);
   box-shadow: var(--shadow-xs);
 }
@@ -42,8 +42,8 @@
   padding: 0;
   border: 1px solid var(--color-border);
   border-radius: var(--radius-sm);
-  background: var(--color-white);
-  color: var(--color-primary-dark);
+  background: var(--color-surface);
+  color: var(--color-heading);
   cursor: pointer;
   transition:
     background 0.2s ease,
@@ -65,7 +65,7 @@
   padding: 0.6rem 1.3rem;
   border: 1px solid var(--color-border);
   border-radius: var(--radius-sm);
-  background: var(--color-white);
+  background: var(--color-surface);
   color: var(--color-primary);
   font-size: 0.875rem;
   font-weight: 600;
@@ -102,7 +102,7 @@
 .roles-page__titulo {
   font-size: 1.6rem;
   font-weight: 800;
-  color: var(--color-primary-dark);
+  color: var(--color-heading);
   letter-spacing: -0.02em;
   margin-bottom: 0.35rem;
 }
@@ -173,7 +173,7 @@
   padding: 0.7rem 1rem 0.7rem 2.6rem;
   border: 1px solid var(--color-border);
   border-radius: var(--radius-pill);
-  background: var(--color-white);
+  background: var(--color-surface);
   font-size: 0.9375rem;
   color: var(--color-text);
   box-shadow: var(--shadow-xs);
@@ -205,8 +205,8 @@
 
 .roles-page__estado--error {
   color: #dc2626;
-  background: #fef2f2;
-  border-color: #fecaca;
+  background: var(--color-danger-bg);
+  border-color: var(--color-danger-border);
 }
 
 .roles-page__backdrop {
@@ -246,7 +246,7 @@
   flex-direction: column;
   gap: 1rem;
   padding: 1.6rem 1.6rem 1.4rem;
-  background: var(--color-white);
+  background: var(--color-surface);
   border: 1px solid var(--color-border-soft);
   border-radius: var(--radius-lg);
   box-shadow: var(--shadow-lg);
@@ -256,7 +256,7 @@
 .roles-page__confirmar-titulo {
   font-size: 1.25rem;
   font-weight: 800;
-  color: var(--color-primary-dark);
+  color: var(--color-heading);
   letter-spacing: -0.02em;
 }
 
@@ -269,8 +269,8 @@
 .roles-page__confirmar-error {
   font-size: 0.875rem;
   color: #ef4444;
-  background: #fef2f2;
-  border: 1px solid #fecaca;
+  background: var(--color-danger-bg);
+  border: 1px solid var(--color-danger-border);
   border-radius: var(--radius-sm);
   padding: 0.7rem 1rem;
 }
@@ -305,7 +305,7 @@
 }
 
 .roles-page__confirmar-btn--cancel {
-  background: var(--color-white);
+  background: var(--color-surface);
   border-color: var(--color-border);
   color: var(--color-text-soft);
 }
@@ -348,9 +348,9 @@
 }
 
 .roles-page__toast--error {
-  background: #fef2f2;
+  background: var(--color-danger-bg);
   color: #dc2626;
-  border: 1px solid #fecaca;
+  border: 1px solid var(--color-danger-border);
 }
 
 .roles-page__spinner {
@@ -427,3 +427,11 @@
     animation-duration: 0.01ms !important;
   }
 }
+
+/* El header solo aporta la hamburguesa en movil: en escritorio no se muestra. */
+@media (min-width: 821px) {
+  .roles-page__main-header {
+    display: none;
+  }
+}
+

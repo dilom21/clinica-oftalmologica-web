@@ -1,4 +1,4 @@
-.usuarios-table__vacio {
+﻿.usuarios-table__vacio {
   padding: 3rem 1.5rem;
   border: 1px dashed var(--color-border);
   border-radius: var(--radius-lg);
@@ -14,7 +14,7 @@
 .usuarios-table--desktop {
   border: 1px solid var(--color-border-soft);
   border-radius: var(--radius-md);
-  background: var(--color-white);
+  background: var(--color-surface);
   box-shadow: var(--shadow-xs);
   overflow: hidden;
 }
@@ -66,7 +66,7 @@
 
 .usuarios-table__correo-texto {
   font-weight: 700;
-  color: var(--color-primary-dark);
+  color: var(--color-heading);
   word-break: break-all;
 }
 
@@ -81,7 +81,7 @@
   border-radius: var(--radius-pill);
   background: var(--color-background-sky);
   border: 1px solid var(--color-border);
-  color: var(--color-primary-dark);
+  color: var(--color-heading);
   font-size: 0.8125rem;
   font-weight: 600;
   white-space: nowrap;
@@ -152,7 +152,7 @@
   padding: 0;
   border: 1px solid var(--color-border);
   border-radius: var(--radius-sm);
-  background: var(--color-white);
+  background: var(--color-surface);
   color: var(--color-primary);
   cursor: pointer;
   transition:
@@ -201,8 +201,8 @@
 }
 
 .usuarios-table__btn--deshabilitar {
-  background: #fef2f2;
-  border-color: #fecaca;
+  background: var(--color-danger-bg);
+  border-color: var(--color-danger-border);
   color: #dc2626;
 }
 
@@ -243,7 +243,7 @@
   flex-direction: column;
   gap: 0.75rem;
   padding: 1rem 1.1rem;
-  background: var(--color-white);
+  background: var(--color-surface);
   border: 1px solid var(--color-border-soft);
   border-radius: var(--radius-md);
   box-shadow: var(--shadow-xs);
@@ -268,7 +268,7 @@
 
 .usuarios-table__card-detalles strong {
   margin-right: 0.35rem;
-  color: var(--color-primary-dark);
+  color: var(--color-heading);
 }
 
 .usuarios-table__card-pie {
