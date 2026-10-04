@@ -45,3 +45,12 @@ describe('Sidebar — mapeo de funciones a rutas', () => {
     expect(sidebar.rutaDeFuncion('Función inexistente')).toBeNull();
   });
 });
+
+describe('Sidebar — navegación CU21/CU22', () => {
+  it('reconoce nombres del menú real y variantes sin acento', () => {
+    const sidebar = TestBed.runInInjectionContext(() => new Sidebar({} as MenuService));
+    expect(sidebar.rutaDeFuncion('Gestionar servicios oftalmológicos')).toBe('/gestion-servicios');
+    expect(sidebar.rutaDeFuncion('GESTIONAR SERVICIOS OFTALMOLOGICOS')).toBe('/gestion-servicios');
+    expect(sidebar.rutaDeFuncion('Registrar servicios realizados')).toBe('/registrar-servicios-realizados');
+  });
+});

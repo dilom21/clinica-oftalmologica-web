@@ -1,4 +1,4 @@
-import { Component, input, OnInit, output, signal } from '@angular/core';
+import { Component, computed, input, OnInit, output, signal } from '@angular/core';
 import { RouterLink, RouterLinkActive } from '@angular/router';
 import { MenuModulo } from '../../models/menu.models';
 import { MenuService } from '../../services/menu.service';
@@ -32,7 +32,15 @@ export class Sidebar implements OnInit {
     ['configurar disponibilidad del oftalmólogo', '/configurar-disponibilidad'],
     ['gestionar citas médicas', '/gestionar-citas'],
     ['consultar historial de citas', '/historial-citas'],
+    ['gestionar servicios oftalmológicos', '/gestion-servicios'],
+    ['gestionar servicios oftalmologicos', '/gestion-servicios'],
+    ['registrar servicios realizados', '/registrar-servicios-realizados'],
   ]);
+
+  protected readonly tieneCatalogoEnMenu = computed(() =>
+    this.modulos().some(modulo =>
+      modulo.funciones.some(funcion => this.rutaDeFuncion(funcion.nombre) === '/gestion-servicios')),
+  );
 
   private readonly iconosPorNombre: ReadonlyArray<{
     clave: string;

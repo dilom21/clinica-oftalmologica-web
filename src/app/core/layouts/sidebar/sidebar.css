@@ -1,9 +1,14 @@
-/* ===== Host: se integra como columna fija dentro del body de /inicio ===== */
+/* ===== Columna de navegación: altura independiente del layout de cada página ===== */
 :host {
   display: block;
   flex: 0 0 auto;
-  height: 100%;
+  position: sticky;
+  top: 0;
+  align-self: flex-start;
+  height: 100vh;
+  height: 100dvh;
   min-height: 0;
+  z-index: 40;
 }
 
 /* ===== Contenedor del sidebar ===== */
@@ -351,6 +356,10 @@
 
 /* ===== Modo táctil / móvil: drawer off-canvas controlado por hamburguesa ===== */
 @media (hover: none), (max-width: 768px) {
+  :host {
+    z-index: 100;
+  }
+
   .sidebar {
     position: fixed;
     top: 0;

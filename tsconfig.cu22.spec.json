@@ -1,0 +1,10 @@
+{
+  "extends": "./tsconfig.spec.json",
+  "include": [
+    "src/**/*.d.ts",
+    "src/app/app.routes.spec.ts",
+    "src/app/core/layouts/sidebar/sidebar.spec.ts",
+    "src/app/features/gestion-historial-clinico/casos-uso/cu22-registrar-servicios-realizados/**/*.spec.ts",
+    "src/app/services/servicio-oftalmologico.service.spec.ts"
+  ]
+}

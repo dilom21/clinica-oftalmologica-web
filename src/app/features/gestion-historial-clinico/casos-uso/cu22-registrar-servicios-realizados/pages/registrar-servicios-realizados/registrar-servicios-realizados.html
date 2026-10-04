@@ -1,0 +1,333 @@
+<main class="servicios-page">
+  <div class="servicios-page__body" [attr.inert]="dialogo() ? '' : null">
+    <app-sidebar [mobileOpen]="sidebarMovilAbierto()" (mobileClose)="sidebarMovilAbierto.set(false)" />
+    <div class="servicios-page__main">
+      <header class="servicios-page__header">
+        <button type="button" class="boton boton--menu" aria-label="Abrir menú"
+          [attr.aria-expanded]="sidebarMovilAbierto()" (click)="sidebarMovilAbierto.set(true)">☰</button>
+        <span class="servicios-page__marca">Centro Oftalmológico Visión Clara</span>
+        <button type="button" class="boton boton--secundario" (click)="cerrarSesion()">Cerrar sesión</button>
+      </header>
+      <div class="servicios-page__contenido">
+        <div class="cabecera">
+          <div>
+            <p class="eyebrow">Atención clínica</p>
+            <h1>Servicios realizados</h1>
+            <p class="subtitulo">Registra y consulta los servicios brindados a tus pacientes.</p>
+          </div>
+          <div class="acciones">
+            <a class="boton boton--secundario" routerLink="/gestion-servicios">Ver catálogo de servicios</a>
+            @if (puedeEscribir()) {
+              <button type="button" class="boton" (click)="abrirNuevo()">+ Registrar servicio</button>
+            }
+          </div>
+        </div>
+
+        @if (cargandoPermisos()) {
+          <p class="estado" role="status">Comprobando acceso…</p>
+        } @else if (errorPermisos(); as error) {
+          <div class="aviso aviso--error" role="alert">
+            <span>{{ error }}</span>
+            <button type="button" class="boton boton--secundario" (click)="cargarPermisos()">Reintentar</button>
+          </div>
+        } @else if (!puedeLeer() && !puedeEscribir()) {
+          <section class="estado">
+            <h2>Acceso no autorizado</h2>
+            <p>Tu cuenta no tiene permiso para registrar o consultar servicios realizados. Solicita el acceso al administrador.</p>
+          </section>
+        } @else {
+          @if (mensaje(); as texto) {
+            <div class="aviso aviso--exito" role="status">
+              <span>{{ texto }}</span>
+              <button type="button" class="boton-icono" aria-label="Cerrar notificación" (click)="mensaje.set(null)">×</button>
+            </div>
+          }
+          @if (errorCatalogos(); as error) {
+            <div class="aviso aviso--error" role="alert">
+              <span>{{ error }}</span>
+              <button type="button" class="boton boton--secundario" (click)="cargarCatalogos()">Reintentar carga</button>
+            </div>
+          }
+          @if (puedeLeer()) {
+            <section class="panel" aria-labelledby="filtros-titulo">
+              <div class="panel__titulo"><h2 id="filtros-titulo">Buscar registros</h2></div>
+              <form class="filtros" [formGroup]="filtros" (ngSubmit)="aplicarFiltros()">
+                <label class="campo"><span>Paciente</span>
+                  <select formControlName="paciente_id">
+                    <option value="">Todos los pacientes</option>
+                    @for (paciente of pacientes(); track paciente.id) {
+                      <option [value]="paciente.id">{{ paciente.nombres }} {{ paciente.apellidos }}</option>
+                    }
+                  </select>
+                </label>
+                <label class="campo"><span>Servicio</span>
+                  <select formControlName="servicio_id">
+                    <option value="">Todos los servicios</option>
+                    @for (servicio of catalogo(); track servicio.id) {
+                      <option [value]="servicio.id">{{ servicio.nombre }}</option>
+                    }
+                  </select>
+                </label>
+                <label class="campo"><span>Consulta clínica</span>
+                  <input type="number" min="1" step="1" formControlName="consulta_clinica_id" placeholder="Número de consulta"
+                    [attr.aria-invalid]="filtros.controls.consulta_clinica_id.touched && filtros.controls.consulta_clinica_id.invalid" />
+                </label>
+                <label class="campo"><span>Estado</span>
+                  <select formControlName="estado">
+                    <option value="activos">Activos</option><option value="anulados">Anulados</option>
+                  </select>
+                </label>
+                <label class="campo"><span>Registros por página</span>
+                  <select formControlName="page_size">
+                    <option [ngValue]="10">10</option><option [ngValue]="20">20</option><option [ngValue]="50">50</option>
+                  </select>
+                </label>
+                <label class="campo"><span>Desde</span><input type="date" formControlName="desde" /></label>
+                <label class="campo"><span>Hasta</span><input type="date" formControlName="hasta" /></label>
+                <div class="filtros__acciones">
+                  <button type="button" class="boton boton--secundario" (click)="limpiarFiltros()">Limpiar</button>
+                  <button type="submit" class="boton" [disabled]="cargandoListado()">Buscar</button>
+                </div>
+              </form>
+            </section>
+            <section class="panel registros" aria-labelledby="registros-titulo" [attr.aria-busy]="cargandoListado()">
+              <div class="panel__titulo">
+                <div><h2 id="registros-titulo">Registro de atención</h2>
+                  <p class="subtitulo">{{ resultado().total }} resultado{{ resultado().total === 1 ? '' : 's' }}</p></div>
+                <button type="button" class="boton boton--secundario" [disabled]="cargandoListado()" (click)="cargarListado()">Actualizar</button>
+              </div>
+              @if (cargandoListado()) {
+                <p class="estado" role="status">Cargando servicios realizados…</p>
+              } @else if (errorListado(); as error) {
+                <div class="aviso aviso--error" role="alert">
+                  <span>{{ error }}</span>
+                  <button type="button" class="boton boton--secundario" (click)="cargarListado()">Reintentar</button>
+                </div>
+              } @else if (resultado().items.length === 0) {
+                <div class="vacio">
+                  <span class="vacio__icono" aria-hidden="true">✚</span>
+                  <h3>No se encontraron servicios realizados</h3>
+                  <p>Cambia los filtros o registra el servicio brindado a un paciente.</p>
+                  @if (puedeEscribir()) {
+                    <button type="button" class="boton" (click)="abrirNuevo()">Registrar primer servicio</button>
+                  }
+                </div>
+              } @else {
+                <div class="tabla-contenedor">
+                  <table>
+                    <caption class="solo-lectores">Servicios realizados ordenados del más reciente al más antiguo</caption>
+                    <thead><tr><th>Paciente</th><th>Servicio</th><th>Precio aplicado</th><th>Consulta</th><th>Realización</th><th>Observaciones</th><th>Oftalmólogo</th><th>Estado</th><th>Acciones</th></tr></thead>
+                    <tbody>
+                      @for (registro of resultado().items; track registro.id) {
+                        <tr>
+                          <td data-label="Paciente"><strong>{{ nombrePaciente(registro) }}</strong><small>Registro #{{ registro.id }}</small></td>
+                          <td data-label="Servicio">{{ registro.servicio.nombre }}</td>
+                          <td data-label="Precio aplicado">{{ precioLegible(registro.precio_aplicado) }}</td>
+                          <td data-label="Consulta">{{ registro.consulta_clinica_id ? '#' + registro.consulta_clinica_id : 'Sin consulta registrada' }}</td>
+                          <td data-label="Realización">{{ fechaLegible(registro.fecha_realizacion) }}</td>
+                          <td data-label="Observaciones">{{ registro.observaciones || 'Sin observaciones' }}</td>
+                          <td data-label="Oftalmólogo">{{ registro.oftalmologo.nombres }} {{ registro.oftalmologo.apellidos }}</td>
+                          <td data-label="Estado"><span class="etiqueta" [class.etiqueta--anulado]="!registro.estado">{{ registro.estado ? 'Activo' : 'Anulado' }}</span></td>
+                          <td data-label="Acciones"><div class="acciones acciones--fila">
+                            <button type="button" class="enlace" [attr.aria-label]="'Ver servicio realizado #' + registro.id" (click)="abrirDetalle(registro)">Ver</button>
+                            @if (puedeEscribir() && registro.estado) {
+                              <button type="button" class="enlace" [attr.aria-label]="'Editar servicio realizado #' + registro.id" (click)="abrirEdicion(registro)">Editar</button>
+                              <button type="button" class="enlace enlace--peligro" [attr.aria-label]="'Anular servicio realizado #' + registro.id" (click)="pedirAnulacion(registro)">Anular</button>
+                            }
+                          </div></td>
+                        </tr>
+                      }
+                    </tbody>
+                  </table>
+                </div>
+                <nav class="paginacion" aria-label="Paginación de servicios realizados">
+                  <span>Página {{ pagina() }} de {{ resultado().total_pages }}</span>
+                  <div class="acciones">
+                    <button type="button" class="boton boton--secundario" [disabled]="pagina() === 1" (click)="cambiarPagina(pagina() - 1)">Anterior</button>
+                    <button type="button" class="boton boton--secundario" [disabled]="pagina() >= resultado().total_pages" (click)="cambiarPagina(pagina() + 1)">Siguiente</button>
+                  </div>
+                </nav>
+              }
+            </section>
+          } @else {
+            <section class="estado"><h2>Registro de servicios</h2><p>Tu cuenta permite registrar servicios. Solicita permiso de lectura para consultar los registros existentes.</p></section>
+          }
+        }
+      </div>
+    </div>
+  </div>
+  @if (sidebarMovilAbierto()) {
+    <button type="button" class="menu-fondo" aria-label="Cerrar menú" (click)="sidebarMovilAbierto.set(false)"></button>
+  }
+
+  @if (dialogo()) {
+    <div class="dialogo-fondo">
+      <section class="dialogo" role="dialog" aria-modal="true" aria-labelledby="dialogo-titulo" [attr.aria-busy]="guardando()">
+        <div class="dialogo__cabecera">
+          <div>
+            <p class="eyebrow">Servicios realizados</p>
+            <h2 id="dialogo-titulo" tabindex="-1" data-dialog-focus>
+              @switch (dialogo()) {
+                @case ('formulario') { {{ seleccionado() ? 'Editar servicio realizado' : 'Registrar servicio realizado' }} }
+                @case ('detalle') { Detalle de atención }
+                @case ('anulacion') { Anular servicio realizado }
+              }
+            </h2>
+          </div>
+          <button type="button" class="boton-icono" aria-label="Cerrar ventana" [disabled]="guardando()" (click)="cerrarDialogo()">×</button>
+        </div>
+        @if (errorAccion(); as error) {
+          <div class="aviso aviso--error" role="alert">{{ error }}</div>
+        }
+        @if (dialogo() === 'formulario') {
+          @if (cargandoCatalogos()) { <p class="estado" role="status">Cargando pacientes y catálogo…</p> }
+          @else if (!hayServiciosActivos()) {
+            <div class="aviso aviso--informacion">No hay servicios activos disponibles. Revisa el catálogo antes de registrar una atención.</div>
+          }
+          @if (errorCatalogos(); as error) {
+            <div class="aviso aviso--error" role="alert">{{ error }} <button class="enlace" type="button" (click)="cargarCatalogos()">Reintentar</button></div>
+          }
+          <form [formGroup]="form" (ngSubmit)="guardar()" novalidate>
+            <fieldset [disabled]="guardando() || cargandoCatalogos() || !!errorCatalogos()">
+              <legend class="solo-lectores">Datos de los servicios realizados</legend>
+              <label class="campo"><span>Buscar paciente</span>
+                <input type="search" placeholder="Nombre, apellido o cédula" [value]="buscandoPaciente()"
+                  (input)="buscarPaciente($any($event.target).value)" />
+              </label>
+              <label class="campo"><span>Paciente <span aria-hidden="true">*</span></span>
+                <select formControlName="paciente_id" required
+                  [attr.aria-invalid]="form.controls.paciente_id.touched && form.controls.paciente_id.invalid">
+                  <option [ngValue]="null">Seleccionar paciente</option>
+                  @if (pacienteActualFueraDeLista(); as paciente) {
+                    <option [ngValue]="paciente.id" disabled>{{ paciente.nombres }} {{ paciente.apellidos }} (no disponible)</option>
+                  }
+                  @for (paciente of pacientesFormulario(); track paciente.id) {
+                    <option [ngValue]="paciente.id">{{ paciente.nombres }} {{ paciente.apellidos }}{{ paciente.ci ? ' · ' + paciente.ci : '' }}</option>
+                  }
+                </select>
+                @if (form.controls.paciente_id.touched && form.controls.paciente_id.invalid) {
+                  <small class="campo-error">Selecciona un paciente activo.</small>
+                }
+              </label>
+              @if (!cargandoCatalogos() && pacientesFormulario().length === 0) {
+                <p class="nota">No hay pacientes activos que coincidan con la búsqueda.</p>
+              }
+              <label class="campo"><span>Consulta clínica asociada <small>Opcional</small></span>
+                <select formControlName="consulta_clinica_id"
+                  [attr.aria-invalid]="form.controls.consulta_clinica_id.touched && form.controls.consulta_clinica_id.invalid">
+                  <option [ngValue]="null">Sin consulta asociada</option>
+                  @if (consultaFueraDeLista(); as id) {
+                    <option [ngValue]="id" disabled>Consulta #{{ id }} actualmente asociada (no disponible)</option>
+                  }
+                  @for (consulta of consultas(); track consulta.id) {
+                    <option [ngValue]="consulta.id">#{{ consulta.id }} · {{ fechaLegible(consulta.fecha_consulta) }} · {{ consulta.oftalmologo.nombres }} {{ consulta.oftalmologo.apellidos }}</option>
+                  }
+                </select>
+                <small class="nota">Si la vinculas, debe corresponder al paciente y al oftalmólogo que registra los servicios.</small>
+                @if (form.controls.consulta_clinica_id.touched && form.controls.consulta_clinica_id.invalid) {
+                  <small class="campo-error">Selecciona una consulta válida o deja el registro sin consulta asociada.</small>
+                }
+              </label>
+              @if (cargandoConsultas()) { <p class="nota" role="status">Cargando consultas del paciente…</p> }
+              @if (errorConsultas(); as error) {
+                <div class="aviso aviso--error" role="alert">
+                  <span>{{ error }} Puedes registrar sin consulta asociada.</span><button class="enlace" type="button" (click)="reintentarConsultas()">Reintentar consultas</button>
+                </div>
+              } @else if (form.controls.paciente_id.value && !cargandoConsultas() && consultas().length === 0) {
+                <p class="nota nota--alerta">El paciente no tiene consultas clínicas activas disponibles. Puedes registrar sin consulta asociada.</p>
+              }
+              <label class="campo"><span>Fecha y hora de realización <span aria-hidden="true">*</span></span>
+                <input type="datetime-local" step="1" formControlName="fecha_realizacion" required
+                  [attr.aria-invalid]="form.controls.fecha_realizacion.touched && form.controls.fecha_realizacion.invalid" />
+                <small class="nota">Se muestra la hora local. La fecha no puede ser futura; si vinculas una consulta, tampoco puede ser anterior a ella.</small>
+                @if (form.controls.fecha_realizacion.touched && form.controls.fecha_realizacion.invalid) {
+                  <small class="campo-error">Ingresa una fecha y hora válidas que no sean futuras.</small>
+                }
+              </label>
+              <div formArrayName="servicios" class="servicio-filas">
+                @for (fila of filas.controls; track fila; let i = $index) {
+                  <section class="panel" [formGroupName]="i" [attr.aria-label]="'Servicio ' + (i + 1)">
+                    <div class="panel__titulo">
+                      <h3>Servicio {{ i + 1 }}</h3>
+                      @if (!seleccionado() && filas.length > 1) {
+                        <button type="button" class="enlace enlace--peligro" [attr.aria-label]="'Quitar servicio ' + (i + 1)" (click)="quitarServicio(i)">Quitar</button>
+                      }
+                    </div>
+                    <div class="form-grid">
+                      <label class="campo"><span>Servicio <span aria-hidden="true">*</span></span>
+                        <select formControlName="servicio_id" required
+                          [attr.aria-invalid]="fila.controls.servicio_id.touched && fila.controls.servicio_id.invalid">
+                          <option [ngValue]="null">Seleccionar servicio</option>
+                          @if (servicioFilaNoDisponible(i); as servicio) {
+                            <option [ngValue]="servicio.id" disabled>{{ servicio.nombre }} (no disponible)</option>
+                          }
+                          @for (servicio of serviciosActivos(); track servicio.id) {
+                            <option [ngValue]="servicio.id">{{ servicio.nombre }}</option>
+                          }
+                        </select>
+                        @if (fila.controls.servicio_id.touched && fila.controls.servicio_id.invalid) {
+                          <small class="campo-error">Selecciona un servicio activo.</small>
+                        }
+                      </label>
+                      <label class="campo"><span>Precio aplicado (Bs)</span>
+                        <input type="number" min="0" max="99999999.99" step="0.01" formControlName="precio_aplicado" readonly aria-readonly="true" placeholder="No registrado"
+                          [attr.aria-invalid]="fila.controls.precio_aplicado.touched && fila.controls.precio_aplicado.invalid" />
+                        @if (fila.controls.precio_aplicado.touched && fila.controls.precio_aplicado.invalid) {
+                          <small class="campo-error">El precio del catálogo no es válido. Revísalo en CU21.</small>
+                        }
+                      </label>
+                    </div>
+                    <label class="campo"><span>Observaciones del servicio <small>Opcional</small></span>
+                      <textarea formControlName="observaciones" rows="3" placeholder="Observaciones de este servicio realizado"></textarea>
+                    </label>
+                  </section>
+                }
+              </div>
+              <div class="panel__titulo">
+                @if (!seleccionado()) {
+                  <button type="button" class="boton boton--secundario" [disabled]="filas.length >= 50" (click)="agregarServicio()">+ Agregar otro servicio</button>
+                }
+                <p class="nota">Total aplicado: <strong>{{ precioLegible(totalAplicado()) }}</strong></p>
+              </div>
+            </fieldset>
+            <div class="dialogo__acciones">
+              <button type="button" class="boton boton--secundario" [disabled]="guardando()" (click)="cerrarDialogo()">Cancelar</button>
+              <button type="submit" class="boton" [disabled]="guardando() || cargandoCatalogos() || !!errorCatalogos() || (form.controls.consulta_clinica_id.value !== null && (cargandoConsultas() || !!errorConsultas())) || !hayServiciosActivos()">
+                {{ guardando() ? 'Guardando…' : seleccionado() ? 'Guardar cambios' : filas.length > 1 ? 'Registrar servicios' : 'Registrar servicio' }}
+              </button>
+            </div>
+          </form>
+        } @else if (dialogo() === 'detalle') {
+          @if (cargandoDetalle()) { <p class="estado" role="status">Consultando registro…</p> }
+          @if (seleccionado(); as registro) {
+            <dl class="detalle">
+              <div><dt>Paciente</dt><dd>{{ nombrePaciente(registro) }}</dd></div>
+              <div><dt>Servicio</dt><dd>{{ registro.servicio.nombre }}</dd></div>
+              <div><dt>Precio aplicado</dt><dd>{{ precioLegible(registro.precio_aplicado) }}</dd></div>
+              <div><dt>Fecha de realización</dt><dd>{{ fechaLegible(registro.fecha_realizacion) }}</dd></div>
+              <div><dt>Oftalmólogo</dt><dd>{{ registro.oftalmologo.nombres }} {{ registro.oftalmologo.apellidos }}</dd></div>
+              <div><dt>Consulta asociada</dt><dd>{{ registro.consulta_clinica_id ? '#' + registro.consulta_clinica_id : 'Sin consulta asociada' }}</dd></div>
+              <div><dt>Estado</dt><dd>{{ registro.estado ? 'Activo' : 'Anulado' }}</dd></div>
+            </dl>
+            <div class="observaciones"><h3>Observaciones</h3><p>{{ registro.observaciones || 'Sin observaciones registradas.' }}</p></div>
+            <div class="dialogo__acciones">
+              <button type="button" class="boton boton--secundario" (click)="cerrarDialogo()">Cerrar</button>
+              @if (puedeEscribir() && registro.estado) {
+                <button type="button" class="boton" (click)="abrirEdicion(registro)">Editar registro</button>
+              }
+            </div>
+          }
+        } @else if (dialogo() === 'anulacion') {
+          @if (seleccionado(); as registro) {
+            <p class="confirmacion">Vas a anular <strong>{{ registro.servicio.nombre }}</strong> realizado a <strong>{{ nombrePaciente(registro) }}</strong>.</p>
+            <p class="nota">El registro se conservará en el historial y dejará de aparecer entre los servicios activos.</p>
+            <div class="dialogo__acciones">
+              <button type="button" class="boton boton--secundario" [disabled]="guardando()" (click)="cerrarDialogo()">Conservar registro</button>
+              <button type="button" class="boton boton--peligro" [disabled]="guardando()" (click)="confirmarAnulacion()">{{ guardando() ? 'Anulando…' : 'Confirmar anulación' }}</button>
+            </div>
+          }
+        }
+      </section>
+    </div>
+  }
+</main>

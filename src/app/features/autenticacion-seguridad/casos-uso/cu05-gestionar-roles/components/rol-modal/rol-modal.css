@@ -75,6 +75,13 @@
   height: 18px;
 }
 
+.rol-modal__dialog > form {
+  flex: 1 1 auto;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+}
+
 .rol-modal__body {
   flex: 1 1 auto;
   min-height: 0;

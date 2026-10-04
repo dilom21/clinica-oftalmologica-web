@@ -20,3 +20,14 @@ describe('app.routes — CU16', () => {
     expect(typeof ruta?.loadComponent).toBe('function');
   });
 });
+
+describe('app.routes — CU21/CU22', () => {
+  it('expone ambas pantallas con autenticación y antes del comodín', () => {
+    for (const path of ['gestion-servicios', 'registrar-servicios-realizados']) {
+      const indice = routes.findIndex(r => r.path === path);
+      expect(indice).toBeGreaterThan(-1);
+      expect(indice).toBeLessThan(routes.findIndex(r => r.path === '**'));
+      expect(routes[indice].canActivate).toContain(authGuard);
+    }
+  });
+});

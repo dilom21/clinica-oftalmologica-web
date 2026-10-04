@@ -9,7 +9,7 @@ import { environment } from '../../environments/environment';
 })
 export class ServicioOftalmologicoService {
   private readonly http = inject(HttpClient);
-  private readonly apiUrl = `${environment.apiUrl}/servicios-oftalmologicos`;
+  private readonly apiUrl = `${environment.apiUrl}/servicios-oftalmologicos/`;
 
   listarServicios(): Observable<ServicioOftalmologico[]> {
     return this.http.get<ServicioOftalmologico[]>(this.apiUrl);
@@ -20,11 +20,11 @@ export class ServicioOftalmologicoService {
   }
 
   actualizarServicio(id: number, servicio: ServicioOftalmologico): Observable<ServicioOftalmologico> {
-    return this.http.put<ServicioOftalmologico>(`${this.apiUrl}/${id}`, servicio);
+    return this.http.put<ServicioOftalmologico>(`${this.apiUrl}${id}`, servicio);
   }
 
   // FUNCIÓN AGREGADA PARA ELIMINAR
-  eliminarServicio(id: number): Observable<any> {
-    return this.http.delete(`${this.apiUrl}/${id}`);
+  eliminarServicio(id: number): Observable<ServicioOftalmologico> {
+    return this.http.put<ServicioOftalmologico>(`${this.apiUrl}${id}`, { estado: false });
   }
 }

@@ -1,8 +1,8 @@
 export interface ServicioOftalmologico {
   id?: number;
   nombre: string;
-  descripcion: string;
-  precio_base: number;
-  duracion_estimada: number;
-  estado: boolean;
+  descripcion: string | null;
+  precio_base: number | null;
+  duracion_estimada: number | null;
+  estado: boolean | null;
 }

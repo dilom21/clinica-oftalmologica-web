@@ -417,3 +417,32 @@ Cuando se solicite implementar un caso de uso, primero indicar:
 - posibles dependencias con otros CU
 
 Después realizar cambios respetando este contexto.
+
+
+---
+
+## 18. CU22 — Registrar servicios realizados
+
+Implementado en `features/gestion-historial-clinico/casos-uso/cu22-registrar-servicios-realizados/`.
+Ruta: `/registrar-servicios-realizados`.
+Consume las seis operaciones de /historial-clinico/servicios-realizados,
+incluido POST /lote para uno o varios servicios por consulta.
+
+Reutiliza pacientes CU07, catálogo CU21, consulta opcional CU15, JWT, guard,
+interceptor, menú y sidebar. Permisos LECTURA/ESCRITURA/AMBAS desde
+Registrar servicios realizados; el backend mantiene la autorización clínica.
+
+Cada fila carga el precio de CU21, de solo lectura, y admite observaciones.
+No se contemplan descuentos; backend rechaza importes distintos. La consulta es
+opcional por la última decisión del usuario; si se vincula, se valida su relación.
+El precio aplicado se persiste y aparece en historial y detalle.
+Historial filtrable por paciente o consulta; confirmación y refresco tras guardar.
+Backend actualizado y migración sql/cu22_agregar_precio_aplicado.sql requeridos
+(ya aplicada en Supabase el 4 de octubre de 2026).
+
+CU21: /gestion-servicios, con nombre integrado en el menú y URL compartida con
+barra final. El sidebar compartido conserva la altura del viewport en todos los módulos.
+
+Detalle: [CONTEXTO_CU22_FRONT.md](CONTEXTO_CU22_FRONT.md).
+Criterios: [CU22_CRITERIOS_ACEPTACION.md](CU22_CRITERIOS_ACEPTACION.md).
+Verificación: 51 pruebas mediante `npm.cmd run test:cu22`, TypeScript y build correctos.
