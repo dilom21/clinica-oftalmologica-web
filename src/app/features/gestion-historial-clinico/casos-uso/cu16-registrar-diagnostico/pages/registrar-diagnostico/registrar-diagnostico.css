@@ -72,7 +72,7 @@
 .diagnostico-exito__acciones { display: flex; justify-content: flex-end; margin-top: 1.25rem; }
 .diagnostico-exito__datos { margin-top: 1rem; }
 .diagnostico-exito__nombre, .diagnostico-exito__descripcion { margin-top: .75rem; color: var(--color-text); font-size: .9rem; line-height: 1.6; white-space: pre-line; }
-.diagnostico-page__backdrop { position: fixed; inset: 0; z-index: 99; border: 0; background: rgba(0, 0, 0, .4); }
+.diagnostico-page__backdrop { position: fixed; inset: 0; z-index: 35; border: 0; background: rgba(0, 0, 0, .4); }
 
 @media (max-width: 820px) {
   .diagnostico-page__hamburger { display: flex; }
@@ -86,3 +86,8 @@
   .diagnostico-page__hamburger { margin-right: auto; }
   .diagnostico-selector, .diagnostico-resumen, .diagnostico-historial, .diagnostico-consultas, .diagnostico-consulta-detalle, .diagnosticos-existentes, .diagnostico-form, .diagnostico-exito { padding: 1rem; }
 }
+.diagnostico-dictado { align-self: flex-start; margin-top: -.15rem; padding: .35rem .6rem; border: 1px solid var(--color-border); border-radius: var(--radius-sm); background: #fff; color: var(--color-primary); font-size: .78rem; font-weight: 700; cursor: pointer; }
+.diagnostico-dictado:focus-visible, .diagnostico-boton:focus-visible { outline: 2px solid var(--color-primary); outline-offset: 2px; }
+.diagnostico-dictado:disabled { opacity: .55; cursor: not-allowed; }
+.diagnostico-dictado__estado { display: flex; align-items: center; gap: .75rem; flex-wrap: wrap; padding: .65rem .8rem; border: 1px solid #cfe1ef; border-radius: var(--radius-sm); background: #f3f8fc; color: var(--color-primary-dark); }
+@media (max-width: 520px) { .diagnostico-campo input, .diagnostico-campo textarea { width: 100%; } .diagnostico-dictado__estado .diagnostico-boton { flex: 0 0 auto; } }

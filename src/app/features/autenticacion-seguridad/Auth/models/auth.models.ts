@@ -3,6 +3,9 @@ export interface LoginRequest {
   password: string;
 }
 
+export interface TenantCompany { codigo: string; nombre: string; }
+export interface TenantLoginRequest extends LoginRequest { empresa_codigo: string; }
+
 export interface LoginResponse {
   access_token: string;
   token_type: string;

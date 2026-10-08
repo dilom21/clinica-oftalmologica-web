@@ -1,8 +1,9 @@
-import { Component, signal } from '@angular/core';
+import { Component, DestroyRef, OnInit, inject, signal } from '@angular/core';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
-import { Router, RouterLink } from '@angular/router';
+import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { AuthService } from '../../services/auth.service';
-import { LoginRequest } from '../../models/auth.models';
+import { LoginRequest, TenantCompany } from '../../models/auth.models';
 
 @Component({
   selector: 'app-login',
@@ -10,7 +11,13 @@ import { LoginRequest } from '../../models/auth.models';
   templateUrl: './login.html',
   styleUrl: './login.css',
 })
-export class Login {
+export class Login implements OnInit {
+  private readonly route = inject(ActivatedRoute);
+  private readonly destroyRef = inject(DestroyRef);
+  protected readonly companies = signal<TenantCompany[]>([]);
+  protected readonly companiesLoading = signal(true);
+  protected readonly companiesError = signal(false);
+  protected readonly legacy = signal(false);
   protected readonly passwordVisible = signal(false);
   protected readonly loading = signal(false);
   protected readonly serverError = signal<string | null>(null);
@@ -23,9 +30,33 @@ export class Login {
     private readonly router: Router,
   ) {
     this.loginForm = this.fb.nonNullable.group({
+      company: ['', Validators.required],
       email: ['', [Validators.required, Validators.email]],
       password: ['', Validators.required],
     });
+  }
+
+  ngOnInit(): void { this.loadCompanies(); }
+
+  protected loadCompanies(): void {
+    this.companiesLoading.set(true);
+    this.companiesError.set(false);
+    this.authService.companies().pipe(takeUntilDestroyed(this.destroyRef)).subscribe({
+      next: (companies) => {
+        this.companies.set(companies);
+        const requested = this.route.snapshot.queryParamMap.get('empresa');
+        const selected = companies.find((company) => company.codigo === requested);
+        this.loginForm.controls.company.setValue(selected?.codigo ?? '');
+        this.companiesLoading.set(false);
+      },
+      error: () => { this.companiesLoading.set(false); this.companiesError.set(true); },
+    });
+  }
+
+  protected toggleLegacy(): void {
+    if (this.loading()) return;
+    this.legacy.update((value) => !value);
+    this.serverError.set(null);
   }
 
   togglePassword(): void {
@@ -61,7 +92,8 @@ export class Login {
       return;
     }
 
-    if (this.loginForm.invalid) {
+    if (this.loginForm.controls.email.invalid || this.loginForm.controls.password.invalid ||
+      (!this.legacy() && (this.loginForm.controls.company.invalid || this.companiesLoading() || this.companiesError()))) {
       this.loginForm.markAllAsTouched();
       return;
     }
@@ -69,18 +101,31 @@ export class Login {
     this.serverError.set(null);
     this.loading.set(true);
 
-    const { email, password } = this.loginForm.getRawValue();
+    const { email, password, company } = this.loginForm.getRawValue();
 
     const request: LoginRequest = {
       correo: email,
       password,
     };
 
-    this.authService.login(request).subscribe({
+    const isLegacy = this.legacy();
+    const call = isLegacy ? this.authService.login(request) :
+      this.authService.tenantLogin({ ...request, empresa_codigo: company });
+    // Never retain company A's clinical token while authenticating to B.
+    this.authService.logout();
+    call.pipe(takeUntilDestroyed(this.destroyRef)).subscribe({
       next: (response) => {
-        localStorage.setItem('access_token', response.access_token);
+        if (isLegacy) {
+          this.authService.logout();
+          localStorage.setItem('access_token', response.access_token);
+        } else if (!this.authService.acceptTenantToken(response.access_token, company)) {
+          this.authService.logout();
+          this.loading.set(false);
+          this.serverError.set('No se pudo validar la sesión de esta empresa. Intenta nuevamente.');
+          return;
+        }
         this.loading.set(false);
-        this.router.navigate(['/inicio']);
+        void this.router.navigate(['/inicio']);
       },
       error: (err) => {
         this.loading.set(false);
@@ -98,7 +143,7 @@ export class Login {
     }
 
     if (status === 403) {
-      this.serverError.set('Usuario inactivo. Comuníquese con administración.');
+      this.serverError.set(this.legacy() ? 'Usuario inactivo. Comuníquese con administración.' : 'No se puede acceder a esta empresa. Consulta con administración.');
       return;
     }
 

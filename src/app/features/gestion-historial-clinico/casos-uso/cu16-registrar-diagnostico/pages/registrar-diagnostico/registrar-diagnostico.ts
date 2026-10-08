@@ -1,7 +1,8 @@
 import { Component, computed, inject, OnInit, signal } from '@angular/core';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { Router } from '@angular/router';
-import { catchError, of } from 'rxjs';
+import { catchError, filter, merge, of, Subscription, take } from 'rxjs';
+import { HttpErrorResponse } from '@angular/common/http';
 
 import { Sidebar } from '../../../../../../core/layouts/sidebar/sidebar';
 import { AuthService } from '../../../../../../features/autenticacion-seguridad/Auth/services/auth.service';
@@ -22,6 +23,9 @@ import {
   NOMBRE_DIAGNOSTICO_MAX_LENGTH,
 } from '../../models/diagnostico.models';
 import { DiagnosticoService } from '../../services/diagnostico.service';
+import { IaClinicaService } from '../../../../services/ia-clinica.service';
+import { MejoraDiagnosticoIa } from '../../../../services/ia-clinica.models';
+import { VoiceRecognitionService } from '../../../../../../shared/services/voice-recognition.service';
 
 type ContextoError = 'historial' | 'consultas' | 'diagnosticos' | 'envio';
 
@@ -68,6 +72,11 @@ export class RegistrarDiagnostico implements OnInit {
   protected readonly enviando = signal(false);
   protected readonly errorEnvio = signal<string | null>(null);
   protected readonly diagnosticoRegistrado = signal<DiagnosticoRespuesta | null>(null);
+  protected readonly mejoraIa = signal<MejoraDiagnosticoIa | null>(null);
+  protected readonly mejorandoIa = signal(false);
+  protected readonly errorIa = signal<string | null>(null);
+  protected readonly estadoIa = signal<string | null>(null);
+  protected readonly dictandoDescripcion = signal(false);
 
   protected readonly nombreMax = NOMBRE_DIAGNOSTICO_MAX_LENGTH;
   protected readonly nombreLongitud = signal(0);
@@ -109,8 +118,46 @@ export class RegistrarDiagnostico implements OnInit {
   private readonly historialClinicoService = inject(HistorialClinicoService);
   private readonly consultaClinicaService = inject(ConsultaClinicaService);
   private readonly diagnosticoService = inject(DiagnosticoService);
+  private readonly iaClinicaService = inject(IaClinicaService);
   private readonly authService = inject(AuthService);
   private readonly router = inject(Router);
+  private readonly voice = inject(VoiceRecognitionService);
+  private dictationSubscription: Subscription | null = null;
+
+  protected vozEstado(): string { return this.voice.state(); }
+  protected vozError(): string | null { return this.voice.mensajeError(); }
+
+  protected dictarDescripcion(): void {
+    this.dictationSubscription?.unsubscribe();
+    this.dictationSubscription = null;
+    this.dictandoDescripcion.set(true);
+    let sessionId = 0;
+    this.dictationSubscription = merge(this.voice.results$, this.voice.terminal$).pipe(
+      filter((event) => event.sessionId === sessionId),
+      take(1),
+    ).subscribe((event) => {
+      if ('transcript' in event) {
+        const current = this.form.controls.descripcion.value.trim();
+        this.form.controls.descripcion.setValue(current ? `${current}\n${event.transcript}` : event.transcript);
+        this.form.controls.descripcion.markAsDirty();
+      }
+      this.dictationSubscription = null;
+      this.dictandoDescripcion.set(false);
+    });
+    sessionId = this.voice.start({ fallbackLang: 'es-ES' });
+    if (!this.voice.isSupported()) {
+      this.dictationSubscription.unsubscribe();
+      this.dictationSubscription = null;
+      this.dictandoDescripcion.set(false);
+    }
+  }
+
+  protected detenerDictado(): void {
+    this.voice.stop();
+    this.dictationSubscription?.unsubscribe();
+    this.dictationSubscription = null;
+    this.dictandoDescripcion.set(false);
+  }
 
   protected readonly form = this.fb.nonNullable.group({
     nombre: ['', [Validators.required, Validators.maxLength(NOMBRE_DIAGNOSTICO_MAX_LENGTH)]],
@@ -274,8 +321,53 @@ export class RegistrarDiagnostico implements OnInit {
     }
     this.consultaSeleccionadaId.set(consultaId);
     this.diagnosticoRegistrado.set(null);
+    this.mejoraIa.set(null);
+    this.errorIa.set(null);
+    this.estadoIa.set(null);
     this.reiniciarFormulario();
     this.cargarDiagnosticos(consultaId);
+  }
+
+  protected mejorarRedaccionIa(): void {
+    const consultaId = this.consultaSeleccionadaId();
+    const { nombre, descripcion } = this.form.getRawValue();
+    if (this.mejorandoIa()) return;
+    if (!consultaId || !nombre.trim() || !descripcion.trim()) {
+      this.errorIa.set('Selecciona una consulta e ingresa el nombre y la descripción para solicitar una sugerencia.');
+      return;
+    }
+    this.mejorandoIa.set(true);
+    this.errorIa.set(null);
+    this.estadoIa.set(null);
+    this.mejoraIa.set(null);
+    this.iaClinicaService.mejorarRedaccionDiagnostico(consultaId, {
+      nombre: nombre.trim(), descripcion: descripcion.trim(),
+    }).subscribe({
+      next: (sugerencia) => { this.mejoraIa.set(sugerencia); this.mejorandoIa.set(false); },
+      error: (error: unknown) => { this.errorIa.set(this.mensajeErrorIa(error)); this.mejorandoIa.set(false); },
+    });
+  }
+
+  protected usarSugerenciaIa(): void {
+    const sugerencia = this.mejoraIa();
+    if (!sugerencia) return;
+    this.form.controls.descripcion.setValue(sugerencia.descripcion_mejorada);
+    this.mejoraIa.set(null);
+    this.estadoIa.set('La sugerencia se copió al campo descripción. Aún no se ha registrado el diagnóstico.');
+  }
+
+  protected descartarSugerenciaIa(): void {
+    this.mejoraIa.set(null);
+    this.estadoIa.set('Se descartó la sugerencia. La descripción original se conserva.');
+  }
+
+  private mensajeErrorIa(error: unknown): string {
+    switch (error instanceof HttpErrorResponse ? error.status : 0) {
+      case 403: return 'No tienes autorización para utilizar IA sobre esta consulta.';
+      case 502: return 'La IA devolvió una respuesta que no pudo procesarse.';
+      case 503: return 'El servicio de IA no está disponible en este momento.';
+      default: return 'No se pudo completar la asistencia con IA.';
+    }
   }
 
   private cargarDiagnosticos(consultaId: number): void {

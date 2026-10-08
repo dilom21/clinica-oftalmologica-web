@@ -103,7 +103,7 @@
   .historial-filtros__filtros { flex-basis: 100%; }
 }
 
-@media (max-width: 700px) {
+@media (max-width: 820px) {
   .historial-page__header { justify-content: space-between; }
   .historial-page__hamburger { display: block; }
   .historial-page__content { padding: 1.4rem 1rem; }

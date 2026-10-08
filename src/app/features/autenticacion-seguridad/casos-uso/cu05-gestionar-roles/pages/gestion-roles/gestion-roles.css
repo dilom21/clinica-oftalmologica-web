@@ -389,7 +389,7 @@
 }
 
 /* ===== Responsive ===== */
-@media (hover: none), (max-width: 768px) {
+@media (max-width: 820px) {
   .roles-page__hamburger {
     display: inline-flex;
   }

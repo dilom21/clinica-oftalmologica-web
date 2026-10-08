@@ -287,6 +287,20 @@
   white-space: normal;
 }
 
+.sidebar__company { padding: .8rem 1rem; border-bottom: 1px solid rgba(255,255,255,.15); display: grid; gap: .35rem; overflow-wrap: anywhere; }
+.sidebar__company-label { color: #cbd5e1; font-size: .75rem; }
+.sidebar__company-name { font-size: .85rem; }
+.sidebar__switch, .sidebar__mobile-company button { border: 1px solid #bfdbfe; border-radius: 6px; background: #fff; color: #174a80; font: inherit; font-size: .8rem; font-weight: 700; padding: .45rem; cursor: pointer; }
+.sidebar__switch:focus-visible, .sidebar__mobile-company button:focus-visible { outline: 2px solid #38bdf8; outline-offset: 2px; }
+.sidebar__mobile-company { display: none; }
+
+@media (min-width: 821px) {
+  .sidebar { width: 230px; }
+  .sidebar__brand, .sidebar__link { padding-inline: 1rem; white-space: normal; }
+  .sidebar__brand-name, .sidebar__label, .sidebar__chevron { opacity: 1; transform: none; }
+  .sidebar__item--open .sidebar__submenu { max-height: 600px; }
+}
+
 /* ===== Expansión automática por hover (solo dispositivos con hover) ===== */
 @media (hover: hover) and (pointer: fine) {
   .sidebar:hover {
@@ -350,7 +364,10 @@
 }
 
 /* ===== Modo táctil / móvil: drawer off-canvas controlado por hamburguesa ===== */
-@media (hover: none), (max-width: 768px) {
+@media (max-width: 820px) {
+  .sidebar__mobile-company { position: fixed; bottom: .75rem; right: .75rem; z-index: 30; display: flex; align-items: center; flex-wrap: wrap; gap: .5rem; max-width: min(90vw, 360px); padding: .5rem; background: #102f4d; color: white; border-radius: 8px; font-size: .75rem; box-shadow: 0 3px 10px #0003; overflow-wrap: anywhere; }
+  .sidebar--open + .sidebar__mobile-company { display: none; }
+  .sidebar__company { margin-top: .5rem; }
   .sidebar {
     position: fixed;
     top: 0;

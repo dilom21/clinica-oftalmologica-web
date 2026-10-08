@@ -4,14 +4,33 @@ import {
   provideHttpClientTesting,
 } from '@angular/common/http/testing';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
+import { signal } from '@angular/core';
 import { provideRouter } from '@angular/router';
+import { Subject } from 'rxjs';
 import { authInterceptor } from '../../../../../../core/interceptors/auth.interceptor';
 import { environment } from '../../../../../../../environments/environment';
 import { RegistrarDiagnostico } from './registrar-diagnostico';
+import { VoiceRecognitionService } from '../../../../../../shared/services/voice-recognition.service';
+
+class VoiceStub {
+  readonly state = signal<'idle' | 'listening' | 'processing' | 'success' | 'error' | 'unsupported'>('idle');
+  readonly mensajeError = signal<string | null>(null);
+  readonly resultsSubject = new Subject<{ transcript: string; isFinal: boolean; sessionId: number }>();
+  readonly terminalSubject = new Subject<{ sessionId: number; reason: 'permission-denied' | 'stop' | 'error' | 'no-speech' }>();
+  private id = 0;
+  isSupported(): boolean { return true; }
+  get results$() { return this.resultsSubject.asObservable(); }
+  get terminal$() { return this.terminalSubject.asObservable(); }
+  start(): number { this.state.set('listening'); return ++this.id; }
+  stop(): void { this.state.set('idle'); this.terminalSubject.next({ sessionId: this.id, reason: 'stop' }); }
+  result(transcript: string): void { this.state.set('success'); this.resultsSubject.next({ transcript, isFinal: true, sessionId: this.id }); }
+  terminal(reason: 'permission-denied' | 'stop' | 'error' | 'no-speech'): void { this.state.set(reason === 'permission-denied' || reason === 'error' ? 'error' : 'idle'); this.terminalSubject.next({ sessionId: this.id, reason }); }
+}
 
 describe('RegistrarDiagnostico (CU16)', () => {
   let httpMock: HttpTestingController;
   let fixture: ComponentFixture<RegistrarDiagnostico>;
+  let voiceStub: VoiceStub;
 
   const apiUrl = environment.apiUrl;
   const pacientesUrl = `${apiUrl}/pacientes`;
@@ -97,6 +116,7 @@ describe('RegistrarDiagnostico (CU16)', () => {
         provideHttpClient(withInterceptors([authInterceptor])),
         provideHttpClientTesting(),
         provideRouter([]),
+        { provide: VoiceRecognitionService, useValue: voiceStub = new VoiceStub() },
       ],
     }).compileComponents();
 
@@ -216,6 +236,68 @@ describe('RegistrarDiagnostico (CU16)', () => {
 
     expect(httpMock.match((r) => r.url === diagnosticosUrl).length).toBe(0);
     expect(fixture.nativeElement.textContent).toContain('El nombre es obligatorio');
+  });
+
+  it('renders dictation only for description and does not submit or request writing AI', () => {
+    seleccionarPaciente(); seleccionarConsulta();
+    expect(fixture.nativeElement.querySelectorAll('.diagnostico-dictado').length).toBe(1);
+    expect(fixture.nativeElement.textContent).toContain('Dictar descripción');
+    expect(httpMock.match((r) => r.method === 'POST' && r.url.includes('/ia/')).length).toBe(0);
+    expect(httpMock.match((r) => r.method === 'POST' && r.url === diagnosticosUrl).length).toBe(0);
+  });
+
+  it('resets after a dictation error, retries only description, and never registers or calls IA', () => {
+    seleccionarPaciente(); seleccionarConsulta();
+    const component = fixture.componentInstance as any;
+    component.dictarDescripcion();
+    voiceStub.terminal('permission-denied');
+    expect(component.dictandoDescripcion()).toBe(false);
+    component.dictarDescripcion();
+    voiceStub.result('Descripción dictada');
+    expect(component.form.controls.descripcion.value).toBe('Descripción dictada');
+    expect(httpMock.match((r) => r.method === 'POST' && (r.url === diagnosticosUrl || r.url.includes('/ia/'))).length).toBe(0);
+  });
+
+  it('exige descripción para IA y solo actualiza la descripción al aceptar sugerencia', () => {
+    seleccionarPaciente(); seleccionarConsulta();
+    completarFormulario(' Miopía ', ' Texto original ');
+    const botonIa = fixture.nativeElement.querySelector('.diagnostico-ia button') as HTMLButtonElement;
+    botonIa.click(); fixture.detectChanges();
+    const req = httpMock.expectOne(`${apiUrl}/ia/consultas/${consultaId}/mejorar-redaccion-diagnostico`);
+    expect(req.request.method).toBe('POST');
+    expect(req.request.body).toEqual({ nombre: 'Miopía', descripcion: 'Texto original' });
+    expect(botonIa.disabled).toBe(true);
+    req.flush({ nombre: 'Miopía', descripcion_original: 'Texto original', descripcion_mejorada: 'Texto mejorado', advertencia: 'Validar' });
+    fixture.detectChanges();
+    expect(fixture.nativeElement.textContent).toContain('Descripción original');
+    expect(fixture.nativeElement.textContent).toContain('Texto mejorado');
+    (fixture.nativeElement.querySelector('.diagnostico-ia button:not(:first-child)') as HTMLButtonElement).click();
+    fixture.detectChanges();
+    expect((fixture.nativeElement.querySelector('.diagnostico-form textarea') as HTMLTextAreaElement).value).toBe('Texto mejorado');
+    expect(httpMock.match((r) => r.method === 'POST' && r.url === diagnosticosUrl).length).toBe(0);
+  });
+
+  it('no solicita IA con descripción vacía y descartar conserva descripción original', () => {
+    seleccionarPaciente(); seleccionarConsulta(); completarFormulario('Miopía', '   ');
+    (fixture.nativeElement.querySelector('.diagnostico-ia button') as HTMLButtonElement).click();
+    fixture.detectChanges();
+    expect(httpMock.match((r) => r.url.includes('/ia/consultas/')).length).toBe(0);
+    completarFormulario('Miopía', 'Texto original');
+    (fixture.nativeElement.querySelector('.diagnostico-ia button') as HTMLButtonElement).click();
+    httpMock.expectOne(`${apiUrl}/ia/consultas/${consultaId}/mejorar-redaccion-diagnostico`).flush({ nombre: 'Miopía', descripcion_original: 'Texto original', descripcion_mejorada: 'Sugerencia', advertencia: 'Validar' });
+    fixture.detectChanges();
+    const descartar = fixture.nativeElement.querySelectorAll('.diagnostico-ia button')[2] as HTMLButtonElement;
+    descartar.click(); fixture.detectChanges();
+    expect((fixture.nativeElement.querySelector('.diagnostico-form textarea') as HTMLTextAreaElement).value).toBe('Texto original');
+    expect(httpMock.match((r) => r.method === 'POST' && r.url === diagnosticosUrl).length).toBe(0);
+  });
+
+  it('muestra un mensaje amigable cuando IA no está disponible', () => {
+    seleccionarPaciente(); seleccionarConsulta(); completarFormulario();
+    (fixture.nativeElement.querySelector('.diagnostico-ia button') as HTMLButtonElement).click();
+    httpMock.expectOne(`${apiUrl}/ia/consultas/${consultaId}/mejorar-redaccion-diagnostico`).flush({}, { status: 503, statusText: 'Unavailable' });
+    fixture.detectChanges();
+    expect(fixture.nativeElement.querySelector('.diagnostico-ia [role="alert"]').textContent).toContain('servicio de IA no está disponible');
   });
 
   it('rechaza un nombre con más de 150 caracteres', () => {

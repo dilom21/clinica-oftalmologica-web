@@ -4,14 +4,33 @@ import {
   provideHttpClientTesting,
 } from '@angular/common/http/testing';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
+import { signal } from '@angular/core';
 import { provideRouter } from '@angular/router';
+import { Subject } from 'rxjs';
 import { authInterceptor } from '../../../../../../core/interceptors/auth.interceptor';
 import { environment } from '../../../../../../../environments/environment';
 import { RegistrarConsulta } from './registrar-consulta';
+import { VoiceRecognitionService } from '../../../../../../shared/services/voice-recognition.service';
+
+class VoiceStub {
+  readonly state = signal<'idle' | 'listening' | 'processing' | 'success' | 'error' | 'unsupported'>('idle');
+  readonly mensajeError = signal<string | null>(null);
+  readonly resultsSubject = new Subject<{ transcript: string; isFinal: boolean; sessionId: number }>();
+  readonly terminalSubject = new Subject<{ sessionId: number; reason: 'permission-denied' | 'stop' | 'error' | 'no-speech' }>();
+  private id = 0;
+  isSupported(): boolean { return true; }
+  get results$() { return this.resultsSubject.asObservable(); }
+  get terminal$() { return this.terminalSubject.asObservable(); }
+  start(): number { this.state.set('listening'); return ++this.id; }
+  stop(): void { this.state.set('idle'); this.terminalSubject.next({ sessionId: this.id, reason: 'stop' }); }
+  result(transcript: string): void { this.state.set('success'); this.resultsSubject.next({ transcript, isFinal: true, sessionId: this.id }); }
+  terminal(reason: 'permission-denied' | 'stop' | 'error' | 'no-speech'): void { this.state.set(reason === 'permission-denied' || reason === 'error' ? 'error' : 'idle'); this.terminalSubject.next({ sessionId: this.id, reason }); }
+}
 
 describe('RegistrarConsulta (CU15)', () => {
   let httpMock: HttpTestingController;
   let fixture: ComponentFixture<RegistrarConsulta>;
+  let voiceStub: VoiceStub;
 
   const apiUrl = environment.apiUrl;
   const pacientesUrl = `${apiUrl}/pacientes`;
@@ -94,6 +113,7 @@ describe('RegistrarConsulta (CU15)', () => {
         provideHttpClient(withInterceptors([authInterceptor])),
         provideHttpClientTesting(),
         provideRouter([]),
+        { provide: VoiceRecognitionService, useValue: voiceStub = new VoiceStub() },
       ],
     }).compileComponents();
 
@@ -216,6 +236,55 @@ describe('RegistrarConsulta (CU15)', () => {
 
     const exito = fixture.nativeElement.querySelector('.consulta-exito');
     expect(exito?.textContent).toContain('#900');
+    const botonIa = fixture.nativeElement.querySelector('.consulta-ia button') as HTMLButtonElement;
+    expect(botonIa.textContent).toContain('Analizar consulta con IA');
+    expect(httpMock.match((r) => r.url.includes('/ia/consultas/')).length).toBe(0);
+    botonIa.click();
+    fixture.detectChanges();
+    const iaRequest = httpMock.expectOne(`${apiUrl}/ia/consultas/900/analizar`);
+    expect(iaRequest.request.method).toBe('POST');
+    expect(iaRequest.request.body).toBeNull();
+    expect(botonIa.disabled).toBe(true);
+    iaRequest.flush({ resumen_clinico: 'Resumen IA', hallazgos_relevantes: ['Hallazgo'], aspectos_a_evaluar: ['Evaluar'], hipotesis_orientativas: ['Hipótesis'], advertencia: 'Validar' });
+    fixture.detectChanges();
+    expect(fixture.nativeElement.querySelector('.consulta-ia').textContent).toContain('Resumen IA');
+    expect(fixture.nativeElement.querySelector('.consulta-ia').textContent).toContain('Hipótesis');
+    expect(httpMock.match((r) => r.method === 'POST' && r.url.includes('/diagnosticos')).length).toBe(0);
+  });
+
+  it('renders one explicit dictation control for each clinical text field', () => {
+    seleccionarPaciente();
+    expect(fixture.nativeElement.querySelectorAll('.consulta-dictado').length).toBe(3);
+    expect(fixture.nativeElement.textContent).toContain('Dictar');
+    expect(httpMock.match((r) => r.method === 'POST' && r.url === consultasUrl).length).toBe(0);
+  });
+
+  it('resets denied dictation and isolates a retry to the newly selected field while preserving append', () => {
+    seleccionarPaciente();
+    const component = fixture.componentInstance as any;
+    component.form.controls.motivo_consulta.setValue('Previo');
+    component.dictarCampo('motivo_consulta');
+    voiceStub.terminal('permission-denied');
+    expect(component.campoDictando()).toBeNull();
+    component.dictarCampo('anamnesis');
+    voiceStub.result('Nuevo texto');
+    expect(component.form.controls.motivo_consulta.value).toBe('Previo');
+    expect(component.form.controls.anamnesis.value).toBe('Nuevo texto');
+    component.dictarCampo('anamnesis');
+    voiceStub.result('Anexo');
+    expect(component.form.controls.anamnesis.value).toBe('Nuevo texto\nAnexo');
+    expect(component.campoDictando()).toBeNull();
+  });
+
+  it('mantiene la consulta registrada si falla la asistencia IA', () => {
+    seleccionarPaciente(); completarFormulario(); enviarFormulario();
+    httpMock.expectOne((r) => r.url === consultasUrl).flush(respuestaConsulta, { status: 201, statusText: 'Created' });
+    fixture.detectChanges();
+    (fixture.nativeElement.querySelector('.consulta-ia button') as HTMLButtonElement).click();
+    httpMock.expectOne(`${apiUrl}/ia/consultas/900/analizar`).flush({}, { status: 503, statusText: 'Unavailable' });
+    fixture.detectChanges();
+    expect(fixture.nativeElement.querySelector('.consulta-exito')).toBeTruthy();
+    expect(fixture.nativeElement.querySelector('[role="alert"]').textContent).toContain('servicio de IA no está disponible');
   });
 
   it('asocia una cita válida enviando su id', () => {

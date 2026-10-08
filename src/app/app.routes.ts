@@ -1,7 +1,29 @@
 import { Routes } from '@angular/router';
 import { authGuard } from './core/guards/auth.guard';
+import { saasAuthGuard } from './core/guards/saas-auth.guard';
 
 export const routes: Routes = [
+  {
+    path: 'saas/login',
+    loadComponent: () => import('./features/saas/pages/saas-login.component').then((m) => m.SaasLoginComponent),
+  },
+  {
+    path: 'saas',
+    canActivate: [saasAuthGuard],
+    loadComponent: () => import('./features/saas/layouts/saas-shell.component').then((m) => m.SaasShellComponent),
+    children: [
+      { path: '', loadComponent: () => import('./features/saas/pages/saas-dashboard.component').then((m) => m.SaasDashboardComponent) },
+      { path: 'empresas', data: { kind: 'empresas' }, loadComponent: () => import('./features/saas/pages/saas-companies.component').then((m) => m.SaasCompaniesComponent) },
+      { path: 'planes', data: { kind: 'planes' }, loadComponent: () => import('./features/saas/pages/saas-collection.component').then((m) => m.SaasCollectionComponent) },
+      { path: 'suscripciones', data: { kind: 'suscripciones' }, loadComponent: () => import('./features/saas/pages/saas-collection.component').then((m) => m.SaasCollectionComponent) },
+      { path: 'tenants', data: { kind: 'tenants' }, loadComponent: () => import('./features/saas/pages/saas-collection.component').then((m) => m.SaasCollectionComponent) },
+      { path: 'provisionamientos', data: { kind: 'provisionamientos' }, loadComponent: () => import('./features/saas/pages/saas-collection.component').then((m) => m.SaasCollectionComponent) },
+      { path: 'bitacora', data: { kind: 'bitacora' }, loadComponent: () => import('./features/saas/pages/saas-collection.component').then((m) => m.SaasCollectionComponent) },
+      { path: 'backups', loadComponent: () => import('./features/saas/pages/saas-backups.component').then((m) => m.SaasBackupsComponent) },
+      { path: 'backup-policies', loadComponent: () => import('./features/saas/pages/saas-backup-policies.component').then((m) => m.SaasBackupPoliciesComponent) },
+      { path: 'restores', loadComponent: () => import('./features/saas/pages/saas-restores.component').then((m) => m.SaasRestoresComponent) },
+    ],
+  },
   {
     path: '',
     loadComponent: () =>
@@ -117,12 +139,18 @@ export const routes: Routes = [
     canActivate: [authGuard],
   },
   {
-  path: 'historial-citas',
+    path: 'historial-citas',
   loadComponent: () =>
     import(
       './features/gestion-agenda-citas/casos-uso/cu12-consultar-historial-citas/pages/consultar-historial-citas/consultar-historial-citas'
     ).then((m) => m.ConsultarHistorialCitas),
   canActivate: [authGuard],
+  },
+  {
+    path: 'reportes',
+    loadComponent: () =>
+      import('./features/reportes/pages/reportes/reportes').then((m) => m.Reportes),
+    canActivate: [authGuard],
   },
   {
     path: '**',

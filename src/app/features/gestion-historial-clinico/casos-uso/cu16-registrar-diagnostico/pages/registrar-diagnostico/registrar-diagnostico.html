@@ -372,12 +372,38 @@
 
                   <label class="diagnostico-campo">
                     <span>Descripción (opcional)</span>
+                    <button type="button" class="diagnostico-dictado" (click)="dictarDescripcion()" [disabled]="dictandoDescripcion()" aria-label="Dictar descripción" title="Dictar descripción">🎙 Dictar descripción</button>
                     <textarea
                       formControlName="descripcion"
                       rows="4"
                       placeholder="Descripción adicional del diagnóstico..."
                     ></textarea>
                   </label>
+
+                  @if (dictandoDescripcion()) {
+                    <div class="diagnostico-dictado__estado" role="status">
+                      {{ vozEstado() === 'listening' ? '🎙 Escuchando...' : 'Procesando dictado...' }}
+                      <button type="button" class="diagnostico-boton diagnostico-boton--borde" (click)="detenerDictado()">Detener</button>
+                    </div>
+                  }
+                  @if (vozError(); as mensaje) { <p class="diagnostico-page__estado diagnostico-page__estado--error" role="alert">{{ mensaje }}</p> }
+
+                  <section class="diagnostico-ia" aria-label="Asistencia de redacción con IA">
+                    <button type="button" class="diagnostico-boton" (click)="mejorarRedaccionIa()" [disabled]="mejorandoIa()">
+                      {{ mejorandoIa() ? 'Generando sugerencia...' : '✨ Mejorar redacción con IA' }}
+                    </button>
+                    @if (mejorandoIa()) { <p role="status">Preparando una sugerencia...</p> }
+                    @if (errorIa(); as mensaje) { <p role="alert">{{ mensaje }}</p> }
+                    @if (estadoIa(); as mensaje) { <p role="status">{{ mensaje }}</p> }
+                    @if (mejoraIa(); as sugerencia) {
+                      <h3>Revisa la sugerencia antes de usarla</h3>
+                      <p><strong>Descripción original</strong></p><p>{{ sugerencia.descripcion_original }}</p>
+                      <p><strong>Descripción sugerida</strong></p><p>{{ sugerencia.descripcion_mejorada }}</p>
+                      <p>{{ sugerencia.advertencia }}</p>
+                      <button type="button" class="diagnostico-boton" (click)="usarSugerenciaIa()">Usar sugerencia</button>
+                      <button type="button" class="diagnostico-boton diagnostico-boton--borde" (click)="descartarSugerenciaIa()">Descartar</button>
+                    }
+                  </section>
 
                   @if (errorEnvio(); as mensaje) {
                     <div class="diagnostico-page__estado diagnostico-page__estado--error" role="alert">
