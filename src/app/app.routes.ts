@@ -185,6 +185,13 @@ export const routes: Routes = [
     canActivate: [authGuard],
   },
   {
+    path: 'registrar-servicios-realizados',
+    loadComponent: () =>
+      import('./features/gestion-historial-clinico/casos-uso/cu22-registrar-servicios-realizados/pages/registrar-servicios-realizados/registrar-servicios-realizados')
+        .then((m) => m.RegistrarServiciosRealizados),
+    canActivate: [authGuard],
+  },
+  {
     path: '**',
     redirectTo: '',
   },

@@ -144,6 +144,51 @@ describe('Sidebar — render, permisos y sesión', () => {
     expect(enlace?.textContent).toContain('Gestionar servicios oftalmológicos');
   });
 
+  it('muestra CU21 y CU22 solo dentro del módulo entregado por el backend', () => {
+    responderMenu([
+      {
+        id: 8,
+        nombre: 'Atención clínica',
+        funciones: [
+          {
+            id: 81,
+            nombre: 'Gestionar servicios oftalmológicos',
+            accion_id: 1,
+            accion_nombre: 'LECTURA',
+          },
+          {
+            id: 82,
+            nombre: 'Registrar servicios realizados',
+            accion_id: 3,
+            accion_nombre: 'AMBAS',
+          },
+        ],
+      },
+    ]);
+
+    expect(fixture.nativeElement.querySelector('a.sidebar__link[href="/gestion-servicios"]')).toBeNull();
+    expect(
+      fixture.nativeElement.querySelector('a.sidebar__link[href="/registrar-servicios-realizados"]'),
+    ).toBeNull();
+
+    (fixture.nativeElement.querySelector('.sidebar__link--button') as HTMLButtonElement).click();
+    fixture.detectChanges();
+
+    expect(fixture.nativeElement.querySelector('.sidebar__submenu-link[href="/gestion-servicios"]')).toBeTruthy();
+    expect(
+      fixture.nativeElement.querySelector(
+        '.sidebar__submenu-link[href="/registrar-servicios-realizados"]',
+      ),
+    ).toBeTruthy();
+  });
+
+  it('no inventa CU21 ni CU22 cuando las funciones no llegan en el menú', () => {
+    responderMenu();
+
+    expect(fixture.nativeElement.querySelector('[href="/gestion-servicios"]')).toBeNull();
+    expect(fixture.nativeElement.querySelector('[href="/registrar-servicios-realizados"]')).toBeNull();
+  });
+
   it('abre y cierra el acordeón del módulo', () => {
     responderMenu();
     const boton = fixture.nativeElement.querySelector(

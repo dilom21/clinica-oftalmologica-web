@@ -16,6 +16,11 @@ export class NavegacionService {
     'gestionar servicios oftalmologicos',
   ]);
 
+  private readonly nombresRegistroServicios = new Set([
+    'registrar servicio realizado',
+    'registrar servicios realizados',
+  ]);
+
   /** Funciones que no deben aparecer en la navegación web. */
   private readonly funcionesOcultasWeb: ReadonlyArray<RegExp> = [
     /perfil\s+propio/i,
@@ -107,6 +112,10 @@ export class NavegacionService {
 
     if (this.nombresGestionServicios.has(this.normalizarNombre(clave))) {
       return '/gestion-servicios';
+    }
+
+    if (this.nombresRegistroServicios.has(this.normalizarNombre(clave))) {
+      return '/registrar-servicios-realizados';
     }
 
     if (this.rutasFunciones.has(clave)) {

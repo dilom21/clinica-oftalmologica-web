@@ -44,15 +44,18 @@ describe('app.routes — CU17', () => {
 });
 
 describe('app.routes — CU21', () => {
-  it('expone /gestion-servicios antes del comodín y protegida por authGuard', () => {
-    const indice = routes.findIndex((route) => route.path === 'gestion-servicios');
+  it('expone CU21 y CU22 antes del comodín y protegidas por authGuard', () => {
     const indiceComodin = routes.findIndex((route) => route.path === '**');
-    const ruta = routes[indice];
 
-    expect(indice).toBeGreaterThanOrEqual(0);
-    expect(indice).toBeLessThan(indiceComodin);
-    expect(ruta.canActivate).toContain(authGuard);
-    expect(typeof ruta.loadComponent).toBe('function');
+    for (const path of ['gestion-servicios', 'registrar-servicios-realizados']) {
+      const indice = routes.findIndex((route) => route.path === path);
+      const ruta = routes[indice];
+
+      expect(indice).toBeGreaterThanOrEqual(0);
+      expect(indice).toBeLessThan(indiceComodin);
+      expect(ruta.canActivate).toContain(authGuard);
+      expect(typeof ruta.loadComponent).toBe('function');
+    }
   });
 });
 

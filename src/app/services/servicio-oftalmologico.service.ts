@@ -4,6 +4,7 @@ import { Observable } from 'rxjs';
 import {
   ServicioOftalmologico,
   ServicioOftalmologicoGuardar,
+  ServicioUpdate,
 } from '../interfaces/servicio-oftalmologico.interface';
 import { environment } from '../../environments/environment';
 
@@ -12,7 +13,7 @@ import { environment } from '../../environments/environment';
 })
 export class ServicioOftalmologicoService {
   private readonly http = inject(HttpClient);
-  private readonly apiUrl = `${environment.apiUrl}/servicios-oftalmologicos`;
+  private readonly apiUrl = `${environment.apiUrl}/servicios-oftalmologicos/`;
 
   listarServicios(): Observable<ServicioOftalmologico[]> {
     return this.http.get<ServicioOftalmologico[]>(this.apiUrl);
@@ -24,8 +25,13 @@ export class ServicioOftalmologicoService {
 
   actualizarServicio(
     id: number,
-    servicio: ServicioOftalmologicoGuardar,
+    servicio: ServicioUpdate,
   ): Observable<ServicioOftalmologico> {
-    return this.http.put<ServicioOftalmologico>(`${this.apiUrl}/${id}`, servicio);
+    return this.http.put<ServicioOftalmologico>(`${this.apiUrl}${id}`, servicio);
+  }
+
+  /** Compatibilidad con CU22: la baja es lógica y usa el PUT confirmado por CU21. */
+  eliminarServicio(id: number): Observable<ServicioOftalmologico> {
+    return this.actualizarServicio(id, { estado: false });
   }
 }

@@ -49,6 +49,16 @@ describe('NavegacionService — funciones del menú', () => {
     expect(servicio.rutaDeFuncion('Gestionar servicios generales')).toBeNull();
   });
 
+  it('resuelve únicamente las variantes singular y plural de CU22', () => {
+    expect(servicio.rutaDeFuncion('Registrar servicios realizados')).toBe(
+      '/registrar-servicios-realizados',
+    );
+    expect(servicio.rutaDeFuncion('REGISTRAR SERVICIO REALIZADO')).toBe(
+      '/registrar-servicios-realizados',
+    );
+    expect(servicio.rutaDeFuncion('Consultar servicios realizados')).toBeNull();
+  });
+
   it('oculta "Gestionar perfil propio" de la navegación web', () => {
     expect(servicio.estaOcultaEnWeb('Gestionar perfil propio')).toBe(true);
     expect(servicio.estaOcultaEnWeb('GESTIONAR PERFIL PROPIO')).toBe(true);

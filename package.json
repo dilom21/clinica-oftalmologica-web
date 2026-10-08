@@ -6,7 +6,8 @@
     "start": "ng serve",
     "build": "ng build",
     "watch": "ng build --watch --configuration development",
-    "test": "ng test"
+    "test": "ng test",
+    "test:cu22": "ng test --watch=false --ts-config tsconfig.cu22.spec.json --include=src/app/features/gestion-historial-clinico/casos-uso/cu22-registrar-servicios-realizados/**/*.spec.ts --include=src/app/app.routes.spec.ts --include=src/app/core/layouts/sidebar/sidebar.spec.ts --include=src/app/services/servicio-oftalmologico.service.spec.ts"
   },
   "private": true,
   "packageManager": "npm@10.9.7",

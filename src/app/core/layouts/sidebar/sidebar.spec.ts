@@ -74,6 +74,18 @@ describe('Sidebar — function route mapping', () => {
     expect(sidebar.rutaDeFuncion('REGISTRAR INDICACIONES')).toBe('/tratamientos-recetas');
     expect(sidebar.rutaDeFuncion('registrar tratamiento')).toBe('/tratamientos-recetas');
   });
+
+  it('maps CU21 and CU22 exclusively through the shared navigation service', () => {
+    expect(sidebar.rutaDeFuncion('Gestionar servicios oftalmológicos')).toBe(
+      '/gestion-servicios',
+    );
+    expect(sidebar.rutaDeFuncion('GESTIONAR SERVICIOS OFTALMOLOGICOS')).toBe(
+      '/gestion-servicios',
+    );
+    expect(sidebar.rutaDeFuncion('Registrar servicios realizados')).toBe(
+      '/registrar-servicios-realizados',
+    );
+  });
 });
 
 describe('Sidebar company context', () => {
