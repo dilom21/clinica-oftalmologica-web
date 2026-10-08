@@ -15,6 +15,9 @@ describe('NavegacionService — funciones del menú', () => {
     expect(servicio.rutaDeFuncion('Tratamientos, indicaciones y recetas')).toBe(
       '/tratamientos-recetas',
     );
+    expect(servicio.rutaDeFuncion('Programar controles médicos')).toBe(
+      '/programar-controles-medicos',
+    );
   });
 
   it('resuelve rutas por palabra clave y tolera variantes sin acento', () => {
@@ -23,6 +26,9 @@ describe('NavegacionService — funciones del menú', () => {
       '/tratamientos-recetas',
     );
     expect(servicio.rutaDeFuncion('Consultar bitacora')).toBe('/bitacora');
+    expect(servicio.rutaDeFuncion('PROGRAMAR CONTROLES MEDICOS')).toBe(
+      '/programar-controles-medicos',
+    );
   });
 
   it('devuelve null cuando la función no tiene ruta web', () => {
@@ -39,6 +45,7 @@ describe('NavegacionService — funciones del menú', () => {
     expect(servicio.iconoDeModulo('Pacientes e Historial Clínico')).toBe('pacientes');
     expect(servicio.iconoDeModulo('Autenticación y Seguridad')).toBe('seguridad');
     expect(servicio.iconoDeFuncion('Registrar diagnóstico')).toBe('diagnostico');
+    expect(servicio.iconoDeFuncion('Programar controles médicos')).toBe('agenda');
     expect(servicio.iconoDeFuncion('Tratamientos, indicaciones y recetas')).toBe('tratamiento');
     expect(servicio.iconoDeFuncion('Gestionar roles y permisos')).toBe('roles');
     expect(servicio.iconoDeFuncion('Función desconocida')).toBe('documento');

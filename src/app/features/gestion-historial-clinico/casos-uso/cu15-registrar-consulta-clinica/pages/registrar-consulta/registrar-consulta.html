@@ -76,6 +76,10 @@
             </section>
 
             <div class="consulta-exito__acciones">
+              @if (puedeProgramarControl()) {
+                <a class="consulta-boton" routerLink="/programar-controles-medicos"
+                  [queryParams]="{ paciente_id: pacienteId(), consulta_id: consulta.id }">Programar control</a>
+              }
               <button type="button" class="consulta-boton" (click)="registrarOtraConsulta()">
                 Registrar otra consulta
               </button>

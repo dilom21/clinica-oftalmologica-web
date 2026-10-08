@@ -1,11 +1,12 @@
 import { Component, computed, inject, OnInit, signal } from '@angular/core';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
-import { Router } from '@angular/router';
+import { Router, RouterLink } from '@angular/router';
 import { catchError, filter, merge, of, Subscription, take } from 'rxjs';
 import { HttpErrorResponse } from '@angular/common/http';
 
 import { Sidebar } from '../../../../../../core/layouts/sidebar/sidebar';
 import { AuthService } from '../../../../../../features/autenticacion-seguridad/Auth/services/auth.service';
+import { ID_ROL_USUARIO } from '../../../../../../features/autenticacion-seguridad/Auth/models/auth.models';
 import {
   CitaMedica,
   claseEstadoCita,
@@ -43,7 +44,7 @@ function normalizarTexto(valor: string | null | undefined): string | null {
 
 @Component({
   selector: 'app-registrar-consulta',
-  imports: [Sidebar, ReactiveFormsModule],
+  imports: [Sidebar, ReactiveFormsModule, RouterLink],
   templateUrl: './registrar-consulta.html',
   styleUrl: './registrar-consulta.css',
 })
@@ -388,6 +389,10 @@ export class RegistrarConsulta implements OnInit {
       case 503: return 'El servicio de IA no está disponible en este momento.';
       default: return 'No se pudo completar la asistencia con IA.';
     }
+  }
+
+  protected puedeProgramarControl(): boolean {
+    return this.authService.obtenerRolIdActual() === ID_ROL_USUARIO.OFTALMOLOGO;
   }
 
   private reiniciarFormulario(): void {

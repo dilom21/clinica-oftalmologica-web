@@ -29,6 +29,7 @@ import {
   PacienteHistorial,
 } from '../../models/historial-clinico.models';
 import { HistorialClinicoService } from '../../services/historial-clinico.service';
+import { SeguimientoControles } from '../../../cu19-programar-controles-medicos/components/seguimiento-controles/seguimiento-controles';
 
 type TabHistorial = 'resumen' | 'consultas' | 'antecedentes';
 type ContextoError =
@@ -56,7 +57,7 @@ interface TabItem {
  */
 @Component({
   selector: 'app-consultar-historial-clinico',
-  imports: [Sidebar, HistorialMetricas, ConsultaClinicaCard],
+  imports: [Sidebar, HistorialMetricas, ConsultaClinicaCard, SeguimientoControles],
   templateUrl: './consultar-historial-clinico.html',
   styleUrl: './consultar-historial-clinico.css',
 })

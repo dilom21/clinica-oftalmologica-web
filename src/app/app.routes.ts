@@ -123,6 +123,14 @@ export const routes: Routes = [
     canActivate: [authGuard],
   },
   {
+    path: 'programar-controles-medicos',
+    loadComponent: () =>
+      import(
+        './features/gestion-historial-clinico/casos-uso/cu19-programar-controles-medicos/pages/programar-controles/programar-controles'
+      ).then((m) => m.ProgramarControles),
+    canActivate: [authGuard],
+  },
+  {
     path: 'bitacora',
     loadComponent: () =>
       import(

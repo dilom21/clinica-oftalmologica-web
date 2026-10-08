@@ -3,11 +3,22 @@ import {
   HttpTestingController,
   provideHttpClientTesting,
 } from '@angular/common/http/testing';
+import { Component, Input } from '@angular/core';
+import { By } from '@angular/platform-browser';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { provideRouter } from '@angular/router';
 import { authInterceptor } from '../../../../../../core/interceptors/auth.interceptor';
 import { environment } from '../../../../../../../environments/environment';
 import { ConsultarHistorialClinico } from './consultar-historial-clinico';
+import { SeguimientoControles } from '../../../cu19-programar-controles-medicos/components/seguimiento-controles/seguimiento-controles';
+
+@Component({
+  selector: 'app-seguimiento-controles',
+  template: '',
+})
+class SeguimientoControlesStub {
+  @Input({ required: true }) pacienteId!: number;
+}
 
 describe('ConsultarHistorialClinico (CU13)', () => {
   let httpMock: HttpTestingController;
@@ -190,7 +201,12 @@ describe('ConsultarHistorialClinico (CU13)', () => {
         provideHttpClientTesting(),
         provideRouter([]),
       ],
-    }).compileComponents();
+    })
+      .overrideComponent(ConsultarHistorialClinico, {
+        remove: { imports: [SeguimientoControles] },
+        add: { imports: [SeguimientoControlesStub] },
+      })
+      .compileComponents();
 
     httpMock = TestBed.inject(HttpTestingController);
     fixture = TestBed.createComponent(ConsultarHistorialClinico);
@@ -437,6 +453,16 @@ describe('ConsultarHistorialClinico (CU13)', () => {
     expect(botones.length).toBe(2);
     expect(textoCuerpo()).toContain('Juan Quispe');
     expect(textoCuerpo()).toContain('CI 1234567');
+  });
+
+  it('renders one controls follow-up bound to the selected patient', () => {
+    seleccionarPaciente(0);
+    responderHistorial(1, historialDe(pacienteJuan));
+    responderConsultas([], 1);
+
+    const seguimiento = fixture.debugElement.query(By.directive(SeguimientoControlesStub));
+    expect(seguimiento?.componentInstance.pacienteId).toBe(1);
+    expect(fixture.nativeElement.querySelectorAll('app-seguimiento-controles').length).toBe(1);
   });
 
   it('al seleccionar un paciente carga su historial y sus consultas', () => {

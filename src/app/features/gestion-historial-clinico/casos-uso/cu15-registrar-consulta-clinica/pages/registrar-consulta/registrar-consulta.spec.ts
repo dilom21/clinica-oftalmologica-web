@@ -236,6 +236,7 @@ describe('RegistrarConsulta (CU15)', () => {
 
     const exito = fixture.nativeElement.querySelector('.consulta-exito');
     expect(exito?.textContent).toContain('#900');
+    expect(fixture.nativeElement.querySelector('.consulta-exito__acciones a')).toBeNull();
     const botonIa = fixture.nativeElement.querySelector('.consulta-ia button') as HTMLButtonElement;
     expect(botonIa.textContent).toContain('Analizar consulta con IA');
     expect(httpMock.match((r) => r.url.includes('/ia/consultas/')).length).toBe(0);
@@ -250,6 +251,35 @@ describe('RegistrarConsulta (CU15)', () => {
     expect(fixture.nativeElement.querySelector('.consulta-ia').textContent).toContain('Resumen IA');
     expect(fixture.nativeElement.querySelector('.consulta-ia').textContent).toContain('Hipótesis');
     expect(httpMock.match((r) => r.method === 'POST' && r.url.includes('/diagnosticos')).length).toBe(0);
+  });
+
+  it('offers CU19 navigation to the ophthalmologist and carries the clinical context', () => {
+    fixture.destroy();
+    localStorage.setItem(
+      'access_token',
+      `header.${btoa(JSON.stringify({ sub: '2', rol_id: 2 }))}.sig`,
+    );
+    fixture = TestBed.createComponent(RegistrarConsulta);
+    fixture.detectChanges();
+    httpMock.expectOne((r) => r.url === pacientesUrl).flush([pacienteBase]);
+    fixture.detectChanges();
+
+    seleccionarPaciente();
+    completarFormulario();
+    enviarFormulario();
+    httpMock.expectOne((r) => r.url === consultasUrl).flush(
+      respuestaConsulta,
+      { status: 201, statusText: 'Created' },
+    );
+    fixture.detectChanges();
+
+    const link = fixture.nativeElement.querySelector(
+      '.consulta-exito__acciones a',
+    ) as HTMLAnchorElement;
+    expect(link).toBeTruthy();
+    expect(link.getAttribute('href')).toContain('/programar-controles-medicos');
+    expect(link.getAttribute('href')).toContain('paciente_id=1');
+    expect(link.getAttribute('href')).toContain('consulta_id=900');
   });
 
   it('renders one explicit dictation control for each clinical text field', () => {

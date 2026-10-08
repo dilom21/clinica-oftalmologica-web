@@ -1,0 +1,63 @@
+<main class="historial-page">
+  <div class="historial-page__body">
+    <app-sidebar [mobileOpen]="sidebarMovilAbierto()" (mobileClose)="cerrarSidebar()" />
+    <div class="historial-page__main">
+      <header class="historial-page__main-header">
+        <button type="button" class="historial-page__hamburger" (click)="alternarSidebar()"
+          [attr.aria-expanded]="sidebarMovilAbierto()" [attr.aria-label]="sidebarMovilAbierto() ? 'Cerrar menú' : 'Abrir menú'">
+          <span></span><span></span><span></span>
+        </button>
+        <button type="button" class="historial-page__logout" (click)="cerrarSesion()">Cerrar sesión</button>
+      </header>
+      <div class="historial-page__content">
+        <div class="historial-page__cabecera">
+          <div>
+            <p class="historial-page__eyebrow">Historial clínico · Seguimiento</p>
+            <h1 class="historial-page__titulo">Programar controles médicos</h1>
+            <p class="historial-page__subtitulo">Programa y administra el seguimiento asociado a una atención clínica previa.</p>
+          </div>
+        </div>
+        <section class="historial-selector" aria-labelledby="controles-paciente-titulo">
+          <div class="historial-selector__encabezado">
+            <h2 id="controles-paciente-titulo">Paciente</h2>
+            <p>Busca por nombre, apellido o cédula para revisar sus atenciones.</p>
+          </div>
+          <div class="historial-selector__controles">
+            <label><span>Buscar paciente</span>
+              <input type="search" [value]="buscarTermino()" (input)="buscar($event)" placeholder="Nombre, apellido o cédula" />
+            </label>
+            <label><span>Paciente</span>
+              <select [value]="pacienteId() ?? ''" (change)="seleccionarPaciente($event)" [disabled]="cargandoPacientes()">
+                <option value="">Seleccione un paciente</option>
+                @for (paciente of pacientesFiltrados(); track paciente.id) {
+                  <option [value]="paciente.id" [selected]="paciente.id === pacienteId()">{{ paciente.nombres }} {{ paciente.apellidos }} · CI {{ paciente.ci }}</option>
+                }
+              </select>
+            </label>
+          </div>
+        </section>
+        @if (cargandoPacientes()) {
+          <p class="historial-page__estado" role="status">Cargando pacientes...</p>
+        } @else if (errorPacientes(); as mensaje) {
+          <div class="historial-page__estado historial-page__estado--error" role="alert">
+            <p>{{ mensaje }}</p>
+            <button type="button" class="historial-page__accion" (click)="cargarPacientes()">Reintentar</button>
+          </div>
+        } @else if (errorContexto(); as mensaje) {
+          <p class="historial-page__estado historial-page__estado--error" role="alert">{{ mensaje }}</p>
+        } @else if (pacienteSeleccionado(); as paciente) {
+          <section class="historial-resumen" aria-label="Paciente seleccionado">
+            <h2>{{ paciente.nombres }} {{ paciente.apellidos }}</h2>
+            <p>CI {{ paciente.ci }} · Teléfono {{ paciente.telefono }}</p>
+          </section>
+          <app-seguimiento-controles [pacienteId]="paciente.id" [consultaInicialId]="consultaInicialId()" />
+        } @else {
+          <p class="historial-page__estado">Selecciona un paciente para consultar y programar sus controles médicos.</p>
+        }
+      </div>
+    </div>
+  </div>
+  @if (sidebarMovilAbierto()) {
+    <button type="button" class="historial-page__backdrop" (click)="cerrarSidebar()" aria-label="Cerrar menú"></button>
+  }
+</main>

@@ -23,6 +23,8 @@ export class NavegacionService {
     ['registrar consulta clínica', '/registrar-consulta-clinica'],
     ['registrar diagnóstico', '/registrar-diagnostico'],
     ['registrar diagnostico', '/registrar-diagnostico'],
+    ['programar controles médicos', '/programar-controles-medicos'],
+    ['programar controles medicos', '/programar-controles-medicos'],
     ['registrar tratamiento', '/tratamientos-recetas'],
     ['registrar tratamientos', '/tratamientos-recetas'],
     ['registrar indicación', '/tratamientos-recetas'],
@@ -69,6 +71,7 @@ export class NavegacionService {
     { icono: 'examen', claves: ['examen', 'exámen'] },
     { icono: 'antecedentes', claves: ['antecedente'] },
     { icono: 'diagnostico', claves: ['diagnostico', 'diagnóstico'] },
+    { icono: 'agenda', claves: ['control'] },
     { icono: 'tratamiento', claves: ['tratamiento'] },
     { icono: 'receta', claves: ['receta', 'medicamento'] },
     { icono: 'indicacion', claves: ['indicacion', 'indicación'] },
@@ -146,6 +149,10 @@ export class NavegacionService {
       (clave.includes('diagnóstico') || clave.includes('diagnostico'))
     ) {
       return '/registrar-diagnostico';
+    }
+
+    if (clave.includes('programar') && clave.includes('control')) {
+      return '/programar-controles-medicos';
     }
 
     if (
