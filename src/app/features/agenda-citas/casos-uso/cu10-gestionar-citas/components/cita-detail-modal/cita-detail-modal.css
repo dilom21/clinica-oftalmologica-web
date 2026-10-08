@@ -1,4 +1,4 @@
-.cita-detail-modal__backdrop {
+﻿.cita-detail-modal__backdrop {
   position: fixed;
   inset: 0;
   background: rgba(0, 0, 0, 0.5);
@@ -16,7 +16,7 @@
   max-height: 90vh;
   display: flex;
   flex-direction: column;
-  background: var(--color-white);
+  background: var(--color-surface);
   border-radius: var(--radius-lg);
   box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.15);
   z-index: 1200;
@@ -64,7 +64,7 @@
   margin-top: 0.15rem;
   font-size: 1.25rem;
   font-weight: 800;
-  color: var(--color-primary-dark);
+  color: var(--color-heading);
 }
 
 .cita-detail-modal__close {
@@ -77,7 +77,7 @@
   padding: 0;
   border: 1px solid var(--color-border);
   border-radius: var(--radius-sm);
-  background: var(--color-white);
+  background: var(--color-surface);
   color: var(--color-text);
   cursor: pointer;
   transition:
@@ -87,7 +87,7 @@
 
 .cita-detail-modal__close:hover {
   background: var(--color-background-mist);
-  color: var(--color-primary-dark);
+  color: var(--color-heading);
 }
 
 .cita-detail-modal__close svg {
@@ -136,15 +136,15 @@
 }
 
 .cita-detail-modal__badge.cita-estado--cancelada {
-  background: #fef2f2;
-  border-color: #fecaca;
+  background: var(--color-danger-bg);
+  border-color: var(--color-danger-border);
   color: #dc2626;
 }
 
 .cita-detail-modal__badge.cita-estado--no_asistio {
   background: #f1f5f9;
   border-color: #cbd5e1;
-  color: #475569;
+  color: var(--color-neutral-text);
 }
 
 .cita-detail-modal__datos {
@@ -189,7 +189,7 @@
 }
 
 .cita-detail-modal__datos dd strong {
-  color: var(--color-primary-dark);
+  color: var(--color-heading);
 }
 
 .cita-detail-modal__datos dd span {
@@ -216,7 +216,7 @@
   padding: 0.55rem 1.1rem;
   border: 1px solid var(--color-border);
   border-radius: var(--radius-pill);
-  background: var(--color-white);
+  background: var(--color-surface);
   color: var(--color-text);
   font-size: 0.85rem;
   font-weight: 700;
@@ -239,12 +239,12 @@
 
 .cita-detail-modal__btn--primario:hover {
   background: var(--color-primary-dark);
-  border-color: var(--color-primary-dark);
+  border-color: var(--color-heading);
 }
 
 .cita-detail-modal__btn--peligro {
-  background: #fef2f2;
-  border-color: #fecaca;
+  background: var(--color-danger-bg);
+  border-color: var(--color-danger-border);
   color: #dc2626;
 }
 

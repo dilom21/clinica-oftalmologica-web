@@ -1,0 +1,46 @@
+import { TestBed } from '@angular/core/testing';
+import { NavegacionService } from './navegacion.service';
+
+describe('NavegacionService — funciones del menú', () => {
+  let servicio: NavegacionService;
+
+  beforeEach(() => {
+    TestBed.configureTestingModule({});
+    servicio = TestBed.inject(NavegacionService);
+  });
+
+  it('resuelve rutas por nombre exacto', () => {
+    expect(servicio.rutaDeFuncion('Gestionar pacientes')).toBe('/pacientes');
+    expect(servicio.rutaDeFuncion('Registrar diagnóstico')).toBe('/registrar-diagnostico');
+    expect(servicio.rutaDeFuncion('Tratamientos, indicaciones y recetas')).toBe(
+      '/tratamientos-recetas',
+    );
+  });
+
+  it('resuelve rutas por palabra clave y tolera variantes sin acento', () => {
+    expect(servicio.rutaDeFuncion('REGISTRAR DIAGNOSTICO')).toBe('/registrar-diagnostico');
+    expect(servicio.rutaDeFuncion('Registrar receta de medicamentos')).toBe(
+      '/tratamientos-recetas',
+    );
+    expect(servicio.rutaDeFuncion('Consultar bitacora')).toBe('/bitacora');
+  });
+
+  it('devuelve null cuando la función no tiene ruta web', () => {
+    expect(servicio.rutaDeFuncion('Usar asistencia clínica IA')).toBeNull();
+  });
+
+  it('oculta "Gestionar perfil propio" de la navegación web', () => {
+    expect(servicio.estaOcultaEnWeb('Gestionar perfil propio')).toBe(true);
+    expect(servicio.estaOcultaEnWeb('GESTIONAR PERFIL PROPIO')).toBe(true);
+    expect(servicio.estaOcultaEnWeb('Gestionar pacientes')).toBe(false);
+  });
+
+  it('asigna iconografía coherente por módulo y función', () => {
+    expect(servicio.iconoDeModulo('Pacientes e Historial Clínico')).toBe('pacientes');
+    expect(servicio.iconoDeModulo('Autenticación y Seguridad')).toBe('seguridad');
+    expect(servicio.iconoDeFuncion('Registrar diagnóstico')).toBe('diagnostico');
+    expect(servicio.iconoDeFuncion('Tratamientos, indicaciones y recetas')).toBe('tratamiento');
+    expect(servicio.iconoDeFuncion('Gestionar roles y permisos')).toBe('roles');
+    expect(servicio.iconoDeFuncion('Función desconocida')).toBe('documento');
+  });
+});

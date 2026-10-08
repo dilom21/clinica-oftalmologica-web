@@ -20,23 +20,142 @@
             <line x1="3" y1="18" x2="21" y2="18"></line>
           </svg>
         </button>
-        <button type="button" class="inicio__logout" (click)="cerrarSesion()">
-          Cerrar sesión
-        </button>
       </header>
 
-      <div class="inicio__content">
-        <div class="inicio__card">
-          <img
-            class="inicio__icon"
-            src="/images/logo/logo-clinica.png"
-            alt=""
-            width="64"
-            height="64"
-          />
-          <h1 class="inicio__title">Sistema en construcción</h1>
-          <p class="inicio__text">Módulo principal en construcción</p>
-          <p class="inicio__success">Has iniciado sesión correctamente.</p>
+      <div class="inicio__contenido">
+        <section class="inicio-hero" aria-labelledby="inicio-saludo">
+          <div class="inicio-hero__cuerpo">
+            <p class="inicio-hero__saludo" id="inicio-saludo">
+              {{ saludo() }}, <strong>{{ nombreMostrar() }}</strong>
+            </p>
+            <span class="inicio-hero__rol">{{ rolNombre() }}</span>
+            <p class="inicio-hero__lema">
+              Gestiona consultas, historiales y planes terapéuticos desde un único lugar.
+            </p>
+
+            @if (accionesHero().length > 0) {
+              <div class="inicio-hero__acciones">
+                @for (accion of accionesHero(); track accion.ruta) {
+                  <a class="inicio-hero__boton" [routerLink]="accion.ruta">
+                    {{ accion.accion }}
+                  </a>
+                }
+              </div>
+            }
+          </div>
+
+          <div class="inicio-hero__aside">
+            <span class="inicio-hero__avatar" aria-hidden="true">{{ iniciales() }}</span>
+            <span class="inicio-hero__clinica">Centro Oftalmológico Visión Clara</span>
+          </div>
+
+          <div class="inicio-hero__decor" aria-hidden="true">
+            <span class="inicio-hero__globo inicio-hero__globo--uno"></span>
+            <span class="inicio-hero__globo inicio-hero__globo--dos"></span>
+            <span class="inicio-hero__anillo"></span>
+          </div>
+        </section>
+
+        <section class="inicio-seccion" aria-labelledby="inicio-accesos">
+          <header class="inicio-seccion__cabecera">
+            <div>
+              <h2 id="inicio-accesos">Accesos rápidos</h2>
+              <p>Módulos habilitados para tu rol.</p>
+            </div>
+          </header>
+
+          @if (cargandoMenu()) {
+            <div class="inicio-accesos" aria-hidden="true">
+              @for (marcador of [1, 2, 3, 4, 5, 6]; track marcador) {
+                <div class="inicio-tarjeta inicio-tarjeta--esqueleto">
+                  <span class="esqueleto inicio-tarjeta__esqueleto-icono"></span>
+                  <span class="esqueleto inicio-tarjeta__esqueleto-titulo"></span>
+                  <span class="esqueleto inicio-tarjeta__esqueleto-texto"></span>
+                </div>
+              }
+            </div>
+            <p class="inicio-estado" role="status">Cargando tus accesos…</p>
+          } @else if (menuError()) {
+            <div class="inicio-estado inicio-estado--error" role="alert">
+              <p>No se pudieron cargar tus módulos habilitados.</p>
+              <button type="button" class="inicio-btn" (click)="reintentarMenu()">
+                Reintentar
+              </button>
+            </div>
+          } @else if (tarjetas().length === 0) {
+            <div class="inicio-estado">
+              <p>
+                Tu rol aún no tiene módulos habilitados. Contacta al administrador del
+                sistema para revisar tus permisos.
+              </p>
+            </div>
+          } @else {
+            <div class="inicio-accesos">
+              @for (tarjeta of tarjetas(); track tarjeta.ruta) {
+                <a class="inicio-tarjeta" [routerLink]="tarjeta.ruta">
+                  <span class="inicio-tarjeta__icono" aria-hidden="true">
+                    <svg><use [attr.href]="'#icono-' + tarjeta.icono"></use></svg>
+                  </span>
+                  <span class="inicio-tarjeta__titulo">{{ tarjeta.titulo }}</span>
+                  <span class="inicio-tarjeta__texto">{{ tarjeta.descripcion }}</span>
+                  <span class="inicio-tarjeta__accion">Acceder</span>
+                </a>
+              }
+            </div>
+          }
+        </section>
+
+        <div class="inicio-grid">
+          <section class="inicio-panel" aria-labelledby="inicio-cuenta">
+            <header class="inicio-panel__cabecera">
+              <h2 id="inicio-cuenta">Tu sesión</h2>
+            </header>
+            <dl class="inicio-datos">
+              <div class="inicio-dato">
+                <dt>Usuario</dt>
+                <dd>{{ nombreMostrar() }}</dd>
+              </div>
+              <div class="inicio-dato">
+                <dt>Rol</dt>
+                <dd>{{ rolNombre() }}</dd>
+              </div>
+              @if (correo()) {
+                <div class="inicio-dato">
+                  <dt>Correo</dt>
+                  <dd>{{ correo() }}</dd>
+                </div>
+              }
+              <div class="inicio-dato">
+                <dt>Sede</dt>
+                <dd>Centro Oftalmológico Visión Clara</dd>
+              </div>
+            </dl>
+          </section>
+
+          <section class="inicio-panel" aria-labelledby="inicio-modulos">
+            <header class="inicio-panel__cabecera">
+              <h2 id="inicio-modulos">Módulos habilitados</h2>
+            </header>
+
+            @if (cargandoMenu()) {
+              <p class="inicio-estado" role="status">Cargando módulos…</p>
+            } @else if (modulosHabilitados().length === 0) {
+              <p class="inicio-estado">Sin módulos habilitados para tu rol.</p>
+            } @else {
+              <ul class="inicio-modulos" role="list">
+                @for (modulo of modulosHabilitados(); track modulo.id) {
+                  <li class="inicio-modulo">
+                    <span class="inicio-modulo__punto" aria-hidden="true"></span>
+                    <span class="inicio-modulo__nombre">{{ modulo.nombre }}</span>
+                    <span class="inicio-modulo__contador">
+                      {{ modulo.totalFunciones }}
+                      {{ modulo.totalFunciones === 1 ? 'opción' : 'opciones' }}
+                    </span>
+                  </li>
+                }
+              </ul>
+            }
+          </section>
         </div>
       </div>
     </div>
@@ -51,4 +170,3 @@
     ></button>
   }
 </main>
-

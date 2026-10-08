@@ -1,0 +1,370 @@
+﻿.consulta-card {
+  display: flex;
+  gap: 1rem;
+  padding: 1rem 1.1rem;
+  border: 1px solid var(--color-border-soft);
+  border-radius: var(--radius-md);
+  background: var(--color-surface);
+  box-shadow: var(--shadow-xs);
+  transition:
+    border-color 0.2s ease,
+    box-shadow 0.2s ease;
+}
+
+.consulta-card:hover {
+  border-color: var(--color-border);
+  box-shadow: var(--shadow-sm);
+}
+
+.consulta-card--abierta {
+  border-color: var(--color-primary);
+  box-shadow: var(--shadow-sm);
+}
+
+.consulta-card__fecha {
+  flex: 0 0 auto;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  width: 62px;
+  height: 62px;
+  border-radius: var(--radius-sm);
+  background: var(--color-background-sky);
+  color: var(--color-heading);
+}
+
+.consulta-card__dia {
+  font-size: 1.35rem;
+  font-weight: 800;
+  line-height: 1;
+}
+
+.consulta-card__mes {
+  margin-top: 0.2rem;
+  font-size: 0.65rem;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+}
+
+.consulta-card__contenido {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.55rem;
+}
+
+.consulta-card__cabecera {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 0.75rem;
+}
+
+.consulta-card__titular {
+  min-width: 0;
+}
+
+.consulta-card__titulo {
+  font-size: 1rem;
+  font-weight: 700;
+  color: var(--color-heading);
+}
+
+.consulta-card__meta {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.35rem;
+  margin-top: 0.15rem;
+  font-size: 0.8125rem;
+  color: var(--color-text-soft);
+}
+
+.consulta-card__oftalmologo {
+  font-weight: 600;
+  color: var(--color-text);
+}
+
+.consulta-card__separador {
+  color: var(--color-border);
+}
+
+.consulta-card__estado {
+  flex: 0 0 auto;
+  padding: 0.15rem 0.62rem;
+  border-radius: var(--radius-pill);
+  border: 1px solid transparent;
+  font-size: 0.6875rem;
+  font-weight: 700;
+  letter-spacing: 0.03em;
+  text-transform: uppercase;
+}
+
+.consulta-card__estado--activo {
+  background: #ecfdf5;
+  border-color: #a7f3d0;
+  color: #047857;
+}
+
+.consulta-card__estado--inactivo {
+  background: var(--color-background-faint);
+  border-color: var(--color-border-soft);
+  color: var(--color-text-soft);
+}
+
+.consulta-card__motivo {
+  font-size: 0.875rem;
+  color: var(--color-text);
+  line-height: 1.5;
+}
+
+.consulta-card__motivo-label {
+  margin-right: 0.35rem;
+  font-size: 0.7rem;
+  font-weight: 800;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  color: var(--color-text-soft);
+}
+
+.consulta-card__diagnostico {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 0.4rem;
+  padding: 0.45rem 0.7rem;
+  border-radius: var(--radius-sm);
+  background: var(--color-background-mist);
+  font-size: 0.8125rem;
+}
+
+.consulta-card__diagnostico-label {
+  font-size: 0.7rem;
+  font-weight: 800;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  color: var(--color-text-soft);
+}
+
+.consulta-card__diagnostico-nombre {
+  font-weight: 700;
+  color: var(--color-heading);
+}
+
+.consulta-card__diagnostico-extra {
+  padding: 0.05rem 0.45rem;
+  border-radius: var(--radius-pill);
+  background: var(--color-background-deep);
+  color: var(--color-primary);
+  font-size: 0.7rem;
+  font-weight: 700;
+}
+
+.consulta-card__diagnostico-cargando,
+.consulta-card__diagnostico-error,
+.consulta-card__diagnostico-vacio {
+  color: var(--color-text-soft);
+}
+
+.consulta-card__diagnostico-error {
+  color: var(--color-danger-text);
+}
+
+.consulta-card__toggle {
+  align-self: flex-start;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  padding: 0.4rem 0.9rem;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-pill);
+  background: var(--color-surface);
+  color: var(--color-primary);
+  font-size: 0.8125rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition:
+    background 0.2s ease,
+    border-color 0.2s ease;
+}
+
+.consulta-card__toggle:hover {
+  background: var(--color-background-sky);
+}
+
+.consulta-card__toggle:focus-visible {
+  outline: 2px solid var(--color-primary);
+  outline-offset: 2px;
+}
+
+.consulta-card__chevron {
+  width: 15px;
+  height: 15px;
+  transition: transform 0.2s ease;
+}
+
+.consulta-card--abierta .consulta-card__chevron {
+  transform: rotate(180deg);
+}
+
+.consulta-card__detalle {
+  display: flex;
+  flex-direction: column;
+  gap: 0.9rem;
+  margin-top: 0.35rem;
+  padding-top: 0.9rem;
+  border-top: 1px solid var(--color-border-soft);
+}
+
+.consulta-card__datos {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+  gap: 0.75rem;
+  margin: 0;
+}
+
+.consulta-card__datos dt {
+  color: var(--color-text-soft);
+  font-size: 0.7rem;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.consulta-card__datos dd {
+  margin: 0.2rem 0 0;
+  color: var(--color-text);
+  font-size: 0.875rem;
+  font-weight: 600;
+}
+
+.consulta-card__bloque h4,
+.consulta-card__seccion h4 {
+  margin-bottom: 0.35rem;
+  font-size: 0.75rem;
+  font-weight: 800;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  color: var(--color-text-soft);
+}
+
+.consulta-card__bloque p {
+  color: var(--color-text);
+  font-size: 0.875rem;
+  line-height: 1.6;
+  white-space: pre-line;
+}
+
+.consulta-card__vacio {
+  color: var(--color-text-soft);
+  font-size: 0.8125rem;
+  font-style: italic;
+}
+
+.consulta-card__panel {
+  display: block;
+  min-width: 0;
+  padding: 1rem 1.1rem;
+  border: 1px solid var(--color-border-soft);
+  border-radius: var(--radius-md);
+  background: var(--color-background-mist);
+  animation: consulta-panel-entrada 0.18s ease-out;
+}
+
+@keyframes consulta-panel-entrada {
+  from {
+    opacity: 0;
+    transform: translateY(3px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.consulta-card__seccion {
+  min-width: 0;
+}
+
+.consulta-card__registro-actual {
+  display: block;
+  min-width: 0;
+  animation: consulta-registro-entrada 0.18s ease-out;
+}
+
+.consulta-card__seccion--futura {
+  opacity: 0.7;
+}
+
+.consulta-card__error {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.consulta-card__error p {
+  color: var(--color-danger-text);
+  font-size: 0.8125rem;
+}
+
+.consulta-card__reintentar {
+  align-self: flex-start;
+  padding: 0.35rem 0.8rem;
+  border: 1px solid var(--color-danger-border);
+  border-radius: var(--radius-pill);
+  background: var(--color-surface);
+  color: var(--color-danger-text);
+  font-size: 0.75rem;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.consulta-card__reintentar:hover {
+  background: var(--color-danger-bg);
+}
+
+@media (max-width: 620px) {
+  .consulta-card {
+    flex-direction: column;
+  }
+
+  .consulta-card__fecha {
+    flex-direction: row;
+    align-items: baseline;
+    justify-content: flex-start;
+    gap: 0.4rem;
+    width: auto;
+    height: auto;
+    padding: 0.3rem 0.7rem;
+  }
+
+  .consulta-card__dia {
+    font-size: 1rem;
+  }
+
+  .consulta-card__mes {
+    margin-top: 0;
+  }
+}
+
+@keyframes consulta-registro-entrada {
+  from {
+    opacity: 0;
+    transform: translateX(4px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .consulta-card__registro-actual,
+  .consulta-card__panel {
+    animation: none;
+  }
+}

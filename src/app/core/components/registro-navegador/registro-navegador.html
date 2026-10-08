@@ -1,0 +1,47 @@
+<div class="registro-navegador">
+  <header class="registro-navegador__cabecera">
+    <h4>{{ etiqueta() }}</h4>
+    @if (total() > 1) {
+      <span class="registro-navegador__contador" aria-live="polite">
+        {{ indice() + 1 }} / {{ total() }}
+      </span>
+    }
+  </header>
+
+  <div
+    class="registro-navegador__fila"
+    [class.registro-navegador__fila--multiple]="total() > 1"
+  >
+    @if (total() > 1) {
+      <button
+        type="button"
+        class="registro-navegador__boton"
+        aria-label="Anterior"
+        [disabled]="indice() === 0"
+        (click)="irAnterior()"
+      >
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+          <polyline points="15 18 9 12 15 6"></polyline>
+        </svg>
+      </button>
+    }
+
+    <div class="registro-navegador__contenido">
+      <ng-content />
+    </div>
+
+    @if (total() > 1) {
+      <button
+        type="button"
+        class="registro-navegador__boton"
+        aria-label="Siguiente"
+        [disabled]="indice() === total() - 1"
+        (click)="irSiguiente()"
+      >
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+          <polyline points="9 18 15 12 9 6"></polyline>
+        </svg>
+      </button>
+    }
+  </div>
+</div>

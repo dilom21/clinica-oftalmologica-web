@@ -3,7 +3,7 @@
   display: flex;
   background:
     radial-gradient(800px 420px at 90% 0%, rgba(56, 189, 248, 0.12), transparent 62%),
-    linear-gradient(180deg, #f4fafe 0%, var(--color-white) 100%);
+    linear-gradient(180deg, var(--color-app-bg-1) 0%, var(--color-app-bg-2) 100%);
 }
 
 .bitacora-page__body,
@@ -28,7 +28,7 @@
   align-items: center;
   justify-content: flex-end;
   padding: 0.9rem 1.5rem;
-  background: var(--color-white);
+  background: var(--color-surface);
   border-bottom: 1px solid var(--color-border-soft);
   box-shadow: var(--shadow-xs);
 }
@@ -40,7 +40,7 @@
   padding: 0.6rem;
   border: 1px solid var(--color-border);
   border-radius: var(--radius-sm);
-  background: var(--color-white);
+  background: var(--color-surface);
   cursor: pointer;
 }
 
@@ -55,7 +55,7 @@
   padding: 0.6rem 1.3rem;
   border: 1px solid var(--color-border);
   border-radius: var(--radius-sm);
-  background: var(--color-white);
+  background: var(--color-surface);
   color: var(--color-primary);
   font-size: 0.875rem;
   font-weight: 600;
@@ -95,7 +95,7 @@
 
 .bitacora-page__titulo {
   margin-bottom: 0.35rem;
-  color: var(--color-primary-dark);
+  color: var(--color-heading);
   font-size: 1.6rem;
   font-weight: 800;
 }
@@ -126,7 +126,7 @@
 .bitacora-filtros {
   border: 1px solid var(--color-border-soft);
   border-radius: var(--radius-md);
-  background: var(--color-white);
+  background: var(--color-surface);
   box-shadow: var(--shadow-xs);
 }
 
@@ -138,7 +138,7 @@
   padding: 1rem 1.1rem;
   border: 0;
   background: transparent;
-  color: var(--color-primary-dark);
+  color: var(--color-heading);
   text-align: left;
   cursor: pointer;
 }
@@ -215,7 +215,7 @@
 
 .bitacora-filtros__limpiar {
   border: 1px solid var(--color-border);
-  background: var(--color-white);
+  background: var(--color-surface);
   color: var(--color-primary);
 }
 
@@ -240,8 +240,8 @@
 }
 
 .bitacora-page__estado--error {
-  border-color: #fecaca;
-  background: #fef2f2;
+  border-color: var(--color-danger-border);
+  background: var(--color-danger-bg);
   color: #dc2626;
 }
 
@@ -249,7 +249,7 @@
   overflow-x: auto;
   border: 1px solid var(--color-border-soft);
   border-radius: var(--radius-md);
-  background: var(--color-white);
+  background: var(--color-surface);
   box-shadow: var(--shadow-xs);
 }
 
@@ -316,7 +316,7 @@
   padding: 1rem;
   border: 1px solid var(--color-border-soft);
   border-radius: var(--radius-md);
-  background: var(--color-white);
+  background: var(--color-surface);
   box-shadow: var(--shadow-xs);
 }
 
@@ -360,7 +360,7 @@
   padding: 0.45rem 0.7rem;
   border: 1px solid var(--color-border);
   border-radius: var(--radius-sm);
-  background: var(--color-white);
+  background: var(--color-surface);
   color: var(--color-primary);
   font-size: 0.8125rem;
   font-weight: 700;
@@ -456,5 +456,11 @@
   .bitacora-lista__cabecera {
     align-items: flex-start;
     flex-direction: column;
+  }
+}
+/* El header solo aporta la hamburguesa en movil: en escritorio no se muestra. */
+@media (min-width: 821px) {
+  .bitacora-page__main-header {
+    display: none;
   }
 }

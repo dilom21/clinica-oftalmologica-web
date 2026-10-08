@@ -1,4 +1,4 @@
-.rol-modal {
+﻿.rol-modal {
   position: fixed;
   inset: 0;
   z-index: 100;
@@ -22,7 +22,7 @@
   max-height: min(90vh, 900px);
   display: flex;
   flex-direction: column;
-  background: var(--color-white);
+  background: var(--color-surface);
   border: 1px solid var(--color-border-soft);
   border-radius: var(--radius-xl);
   box-shadow: var(--shadow-lg);
@@ -44,7 +44,7 @@
 .rol-modal__titulo {
   font-size: 1.25rem;
   font-weight: 800;
-  color: var(--color-primary-dark);
+  color: var(--color-heading);
   letter-spacing: -0.02em;
 }
 
@@ -57,7 +57,7 @@
   padding: 0;
   border: none;
   border-radius: var(--radius-sm);
-  background: var(--color-white);
+  background: var(--color-surface);
   color: var(--color-text-soft);
   cursor: pointer;
   transition:
@@ -73,6 +73,13 @@
 .rol-modal__close svg {
   width: 18px;
   height: 18px;
+}
+
+.rol-modal__form {
+  flex: 1 1 auto;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
 }
 
 .rol-modal__body {
@@ -94,7 +101,7 @@
 .rol-modal__label {
   font-size: 0.875rem;
   font-weight: 600;
-  color: var(--color-primary-dark);
+  color: var(--color-heading);
 }
 
 .rol-modal__input,
@@ -123,13 +130,13 @@
 .rol-modal__textarea:focus {
   outline: none;
   border-color: var(--color-primary);
-  background: var(--color-white);
+  background: var(--color-surface);
   box-shadow: 0 0 0 4px rgba(37, 99, 235, 0.12);
 }
 
 .rol-modal__input--error {
   border-color: #ef4444;
-  background: #fef2f2;
+  background: var(--color-danger-bg);
 }
 
 .rol-modal__error {
@@ -147,7 +154,7 @@
 .rol-modal__subtitulo {
   font-size: 0.9375rem;
   font-weight: 700;
-  color: var(--color-primary-dark);
+  color: var(--color-heading);
 }
 
 .rol-modal__cargando,
@@ -164,8 +171,8 @@
 .rol-modal__server-error {
   font-size: 0.875rem;
   color: #ef4444;
-  background: #fef2f2;
-  border: 1px solid #fecaca;
+  background: var(--color-danger-bg);
+  border: 1px solid var(--color-danger-border);
   border-radius: var(--radius-sm);
   padding: 0.75rem 1rem;
   text-align: center;
@@ -206,7 +213,7 @@
 }
 
 .rol-modal__btn--cancel {
-  background: var(--color-white);
+  background: var(--color-surface);
   border-color: var(--color-border);
   color: var(--color-text-soft);
 }

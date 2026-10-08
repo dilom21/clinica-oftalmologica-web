@@ -1,0 +1,579 @@
+﻿<main class="cu17-page">
+  <div class="cu17-page__body">
+    <app-sidebar
+      [mobileOpen]="sidebarMovilAbierto()"
+      (mobileClose)="cerrarSidebar()"
+    />
+
+    <div class="cu17-page__main">
+      <header class="cu17-page__main-header">
+        <button
+          type="button"
+          class="cu17-page__hamburger"
+          [attr.aria-expanded]="sidebarMovilAbierto()"
+          [attr.aria-label]="sidebarMovilAbierto() ? 'Cerrar menú' : 'Abrir menú'"
+          (click)="alternarSidebar()"
+        >
+          <span></span><span></span><span></span>
+        </button>
+      </header>
+
+      <div class="cu17-page__content">
+        <header class="cu17-hero">
+          <div class="cu17-hero__contenido">
+            <span class="cu17-hero__eyebrow">
+              <span class="cu17-hero__punto" aria-hidden="true"></span>
+              Plan terapéutico
+            </span>
+            <h1 class="cu17-hero__titulo">Tratamientos, indicaciones y recetas</h1>
+            <p class="cu17-hero__subtitulo">
+              Gestiona el plan terapéutico asociado a una consulta clínica.
+            </p>
+          </div>
+          <div class="cu17-hero__decor" aria-hidden="true">
+            <span class="cu17-hero__globo cu17-hero__globo--uno"></span>
+            <span class="cu17-hero__globo cu17-hero__globo--dos"></span>
+            <span class="cu17-hero__globo cu17-hero__globo--tres"></span>
+            <span class="cu17-hero__anillo"></span>
+          </div>
+        </header>
+
+        <div class="cu17-grid">
+          <section class="cu17-panel cu17-panel--pacientes" aria-labelledby="cu17-pacientes-titulo">
+            <header class="cu17-panel__cabecera">
+              <div>
+                <h2 id="cu17-pacientes-titulo">Pacientes</h2>
+                <p class="cu17-panel__hint">
+                  Busca y selecciona al paciente para gestionar su plan terapéutico.
+                </p>
+              </div>
+              @if (pacienteId() !== null) {
+                <button type="button" class="cu17-panel__accion" (click)="limpiarSeleccion()">
+                  Cambiar
+                </button>
+              }
+            </header>
+
+            <label class="cu17-busqueda">
+              <span class="visually-hidden">Buscar paciente por nombre, apellido o CI</span>
+              <svg
+                class="cu17-busqueda__lupa"
+                xmlns="http://www.w3.org/2000/svg"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                aria-hidden="true"
+              >
+                <circle cx="11" cy="11" r="7"></circle>
+                <path d="m20 20-3.5-3.5"></path>
+              </svg>
+              <input
+                type="search"
+                [value]="buscarTermino()"
+                (input)="onBuscar($event)"
+                placeholder="Buscar por nombre, apellido o CI"
+              />
+            </label>
+
+            @if (cargandoPacientes()) {
+              <p class="cu17-estado" role="status">Cargando pacientes…</p>
+            } @else if (errorCargaPacientes()) {
+              <div class="cu17-estado cu17-estado--error" role="alert">
+                <p>No se pudo cargar la lista de pacientes.</p>
+                <button type="button" class="cu17-btn cu17-btn--borde" (click)="reintentarPacientes()">
+                  Reintentar
+                </button>
+              </div>
+            } @else if (pacientesFiltrados().length === 0) {
+              <p class="cu17-estado">No se encontraron pacientes.</p>
+            } @else {
+              <ul class="cu17-pacientes" role="list">
+                @for (paciente of pacientesFiltrados(); track paciente.id) {
+                  <li>
+                    <button
+                      type="button"
+                      class="cu17-paciente"
+                      [class.cu17-paciente--activo]="esPacienteActivo(paciente)"
+                      [attr.aria-pressed]="esPacienteActivo(paciente)"
+                      (click)="seleccionarPaciente(paciente)"
+                    >
+                      <span class="cu17-paciente__avatar" aria-hidden="true">
+                        {{ iniciales(paciente) }}
+                      </span>
+                      <span class="cu17-paciente__datos">
+                        <span class="cu17-paciente__nombre">
+                          {{ paciente.nombres }} {{ paciente.apellidos }}
+                        </span>
+                        <span class="cu17-paciente__meta">CI {{ paciente.ci }}</span>
+                      </span>
+                    </button>
+                  </li>
+                }
+              </ul>
+            }
+          </section>
+
+          <section class="cu17-panel cu17-panel--detalle" aria-labelledby="cu17-detalle-titulo">
+            @if (pacienteId() === null) {
+              <div class="cu17-vacio">
+                <h2 id="cu17-detalle-titulo">Ningún paciente seleccionado</h2>
+                <p>
+                  Selecciona un paciente de la lista para ver sus consultas clínicas y
+                  registrar su plan terapéutico.
+                </p>
+              </div>
+            } @else if (consultaSeleccionada(); as consulta) {
+              <header class="cu17-panel__cabecera cu17-panel__cabecera--compacta">
+                <h2 id="cu17-detalle-titulo">Consulta seleccionada</h2>
+                <button type="button" class="cu17-panel__accion" (click)="volverAConsultas()">
+                  Cambiar consulta
+                </button>
+              </header>
+
+              <app-contexto-consulta
+                [paciente]="pacienteSeleccionado()"
+                [consulta]="consulta"
+                [diagnosticos]="diagnosticos()"
+                [cargandoDiagnosticos]="cargandoDiagnosticos()"
+                [errorDiagnosticos]="errorDiagnosticos()"
+                (reintentarDiagnosticos)="reintentarDiagnosticos()"
+              />
+            } @else {
+              <header class="cu17-panel__cabecera">
+                <div>
+                  <h2 id="cu17-detalle-titulo">Consultas clínicas</h2>
+                  <p class="cu17-panel__hint">
+                    Elige la consulta sobre la que registrarás tratamientos, indicaciones
+                    y recetas.
+                  </p>
+                </div>
+              </header>
+
+              @if (cargandoHistorial() || cargandoConsultas()) {
+                <p class="cu17-estado" role="status">Cargando consultas clínicas…</p>
+              } @else if (errorHistorial(); as mensajeHistorial) {
+                <div class="cu17-estado cu17-estado--error" role="alert">
+                  <p>{{ mensajeHistorial }}</p>
+                  <button type="button" class="cu17-btn cu17-btn--borde" (click)="reintentarHistorial()">
+                    Reintentar
+                  </button>
+                </div>
+              } @else if (errorConsultas(); as mensajeConsultas) {
+                <div class="cu17-estado cu17-estado--error" role="alert">
+                  <p>{{ mensajeConsultas }}</p>
+                  <button type="button" class="cu17-btn cu17-btn--borde" (click)="reintentarConsultas()">
+                    Reintentar
+                  </button>
+                </div>
+              } @else if (consultas().length === 0) {
+                <p class="cu17-estado cu17-estado--vacio">
+                  Este paciente no tiene consultas clínicas registradas. Registra primero una
+                  consulta clínica (CU15) para poder asociar tratamientos, indicaciones y recetas.
+                </p>
+              } @else {
+                <ul class="cu17-consultas" role="list">
+                  @for (consulta of consultas(); track consulta.id) {
+                    <li>
+                      <div class="cu17-consulta">
+                        <div class="cu17-consulta__cuerpo">
+                          <span class="cu17-consulta__fecha">
+                            {{ formatearFechaHora(consulta.fecha_consulta) }}
+                          </span>
+                          <p class="cu17-consulta__motivo">
+                            {{ consulta.motivo_consulta || 'Sin motivo registrado' }}
+                          </p>
+                          <span class="cu17-consulta__oftalmologo">
+                            {{ nombreOftalmologo(consulta) }}
+                          </span>
+                        </div>
+                        <button
+                          type="button"
+                          class="cu17-btn cu17-btn--primario cu17-btn--sm"
+                          (click)="seleccionarConsulta(consulta.id)"
+                        >
+                          Seleccionar
+                        </button>
+                      </div>
+                    </li>
+                  }
+                </ul>
+              }
+            }
+          </section>
+        </div>
+
+        @if (consultaSeleccionada()) {
+          <nav class="cu17-tabs" role="tablist" aria-label="Secciones del plan terapéutico">
+            @for (tab of tabs; track tab.id; let i = $index) {
+              <button
+                type="button"
+                class="cu17-tabs__tab"
+                [class.cu17-tabs__tab--activa]="tabActiva() === tab.id"
+                role="tab"
+                [id]="'cu17-tab-' + tab.id"
+                [attr.aria-selected]="tabActiva() === tab.id"
+                [attr.aria-controls]="'cu17-panel-' + tab.id"
+                [attr.tabindex]="tabActiva() === tab.id ? 0 : -1"
+                (click)="cambiarTab(tab.id)"
+                (keydown)="onTabKeydown($event, i)"
+              >
+                <span>{{ tab.etiqueta }}</span>
+                <span class="cu17-tabs__contador">
+                  @switch (tab.id) {
+                    @case ('tratamientos') { {{ tratamientos().length }} }
+                    @case ('indicaciones') { {{ indicaciones().length }} }
+                    @case ('recetas') { {{ recetas().length }} }
+                  }
+                </span>
+              </button>
+            }
+          </nav>
+
+          <div class="cu17-paneles">
+            <section
+              class="cu17-tabpanel"
+              role="tabpanel"
+              id="cu17-panel-tratamientos"
+              aria-labelledby="cu17-tab-tratamientos"
+              [hidden]="tabActiva() !== 'tratamientos'"
+            >
+              <div class="cu17-tabgrid">
+                <section class="cu17-bloque" aria-label="Tratamientos registrados">
+                  <header class="cu17-bloque__cabecera">
+                    <h3>Tratamientos registrados</h3>
+                    <span class="cu17-contador">{{ tratamientos().length }}</span>
+                  </header>
+
+                  @if (cargandoTratamientos()) {
+                    <p class="cu17-estado" role="status">Cargando tratamientos…</p>
+                  } @else if (errorTratamientos(); as mensajeTratamientos) {
+                    <div class="cu17-estado cu17-estado--error" role="alert">
+                      <p>{{ mensajeTratamientos }}</p>
+                      <button type="button" class="cu17-btn cu17-btn--borde" (click)="reintentarTratamientos()">
+                        Reintentar
+                      </button>
+                    </div>
+                  } @else if (tratamientos().length === 0) {
+                    <p class="cu17-estado cu17-estado--vacio">Sin tratamientos registrados.</p>
+                  } @else {
+                    <app-tratamiento-list [tratamientos]="tratamientos()" />
+                  }
+                </section>
+
+                <form
+                  class="cu17-form"
+                  [formGroup]="formTratamiento"
+                  (ngSubmit)="registrarTratamiento()"
+                  novalidate
+                >
+                  <div class="cu17-form__encabezado">
+                    <h3>Nuevo tratamiento</h3>
+                    <p>Registra el tratamiento clínico o farmacológico de esta consulta.</p>
+                  </div>
+
+                  <label class="cu17-campo">
+                    <span>Descripción *</span>
+                    <input
+                      type="text"
+                      formControlName="descripcion"
+                      placeholder="Ej: Colirio lubricante cada 6 horas"
+                    />
+                    @if (campoTratamientoInvalido('descripcion')) {
+                      <small class="cu17-campo__error" role="alert">
+                        La descripción es obligatoria.
+                      </small>
+                    }
+                  </label>
+
+                  <div class="cu17-form__fila">
+                    <label class="cu17-campo">
+                      <span>Fecha de inicio</span>
+                      <input type="date" formControlName="fecha_inicio" />
+                    </label>
+                    <label class="cu17-campo">
+                      <span>Fecha de fin</span>
+                      <input type="date" formControlName="fecha_fin" />
+                    </label>
+                  </div>
+
+                  @if (rangoFechasInvalido()) {
+                    <small class="cu17-campo__error" role="alert">
+                      La fecha de fin no puede ser anterior a la fecha de inicio.
+                    </small>
+                  }
+
+                  <label class="cu17-campo">
+                    <span>Observaciones</span>
+                    <textarea
+                      rows="3"
+                      formControlName="observaciones"
+                      placeholder="Notas u observaciones del tratamiento…"
+                    ></textarea>
+                  </label>
+
+                  @if (errorTratamiento(); as mensaje) {
+                    <div class="cu17-aviso cu17-aviso--error" role="alert">
+                      <p>{{ mensaje }}</p>
+                    </div>
+                  }
+                  @if (exitoTratamiento(); as mensaje) {
+                    <div class="cu17-aviso cu17-aviso--exito" role="status">
+                      <p>{{ mensaje }}</p>
+                    </div>
+                  }
+
+                  <div class="cu17-form__acciones">
+                    <button
+                      type="submit"
+                      class="cu17-btn cu17-btn--primario"
+                      [disabled]="!puedeRegistrarTratamiento()"
+                    >
+                      {{ enviandoTratamiento() ? 'Registrando…' : 'Registrar tratamiento' }}
+                    </button>
+                  </div>
+                </form>
+              </div>
+            </section>
+
+            <section
+              class="cu17-tabpanel"
+              role="tabpanel"
+              id="cu17-panel-indicaciones"
+              aria-labelledby="cu17-tab-indicaciones"
+              [hidden]="tabActiva() !== 'indicaciones'"
+            >
+              <div class="cu17-tabgrid">
+                <section class="cu17-bloque" aria-label="Indicaciones registradas">
+                  <header class="cu17-bloque__cabecera">
+                    <h3>Indicaciones registradas</h3>
+                    <span class="cu17-contador">{{ indicaciones().length }}</span>
+                  </header>
+
+                  @if (cargandoIndicaciones()) {
+                    <p class="cu17-estado" role="status">Cargando indicaciones…</p>
+                  } @else if (errorIndicaciones(); as mensajeIndicaciones) {
+                    <div class="cu17-estado cu17-estado--error" role="alert">
+                      <p>{{ mensajeIndicaciones }}</p>
+                      <button type="button" class="cu17-btn cu17-btn--borde" (click)="reintentarIndicaciones()">
+                        Reintentar
+                      </button>
+                    </div>
+                  } @else if (indicaciones().length === 0) {
+                    <p class="cu17-estado cu17-estado--vacio">Sin indicaciones registradas.</p>
+                  } @else {
+                    <app-indicacion-list [indicaciones]="indicaciones()" />
+                  }
+                </section>
+
+                <form
+                  class="cu17-form"
+                  [formGroup]="formIndicacion"
+                  (ngSubmit)="registrarIndicacion()"
+                  novalidate
+                >
+                  <div class="cu17-form__encabezado">
+                    <h3>Nueva indicación</h3>
+                    <p>Agrega una recomendación o cuidado para el paciente.</p>
+                  </div>
+
+                  <label class="cu17-campo">
+                    <span>Descripción *</span>
+                    <textarea
+                      rows="4"
+                      formControlName="descripcion"
+                      placeholder="Ej: Aplicar compresas frías dos veces al día…"
+                    ></textarea>
+                    @if (campoIndicacionInvalido()) {
+                      <small class="cu17-campo__error" role="alert">
+                        La descripción de la indicación es obligatoria.
+                      </small>
+                    }
+                  </label>
+
+                  @if (errorIndicacion(); as mensaje) {
+                    <div class="cu17-aviso cu17-aviso--error" role="alert">
+                      <p>{{ mensaje }}</p>
+                    </div>
+                  }
+                  @if (exitoIndicacion(); as mensaje) {
+                    <div class="cu17-aviso cu17-aviso--exito" role="status">
+                      <p>{{ mensaje }}</p>
+                    </div>
+                  }
+
+                  <div class="cu17-form__acciones">
+                    <button
+                      type="submit"
+                      class="cu17-btn cu17-btn--primario"
+                      [disabled]="!puedeRegistrarIndicacion()"
+                    >
+                      {{ enviandoIndicacion() ? 'Agregando…' : 'Agregar indicación' }}
+                    </button>
+                  </div>
+                </form>
+              </div>
+            </section>
+
+            <section
+              class="cu17-tabpanel"
+              role="tabpanel"
+              id="cu17-panel-recetas"
+              aria-labelledby="cu17-tab-recetas"
+              [hidden]="tabActiva() !== 'recetas'"
+            >
+              <div class="cu17-tabgrid">
+                <section class="cu17-bloque" aria-label="Recetas registradas">
+                  <header class="cu17-bloque__cabecera">
+                    <h3>Recetas registradas</h3>
+                    <span class="cu17-contador">{{ recetas().length }}</span>
+                  </header>
+
+                  @if (cargandoRecetas()) {
+                    <p class="cu17-estado" role="status">Cargando recetas…</p>
+                  } @else if (errorRecetas(); as mensajeRecetas) {
+                    <div class="cu17-estado cu17-estado--error" role="alert">
+                      <p>{{ mensajeRecetas }}</p>
+                      <button type="button" class="cu17-btn cu17-btn--borde" (click)="reintentarRecetas()">
+                        Reintentar
+                      </button>
+                    </div>
+                  } @else if (recetas().length === 0) {
+                    <p class="cu17-estado cu17-estado--vacio">Sin recetas registradas.</p>
+                  } @else {
+                    <div class="cu17-recetas">
+                      @for (receta of recetas(); track receta.id) {
+                        <app-receta-card [receta]="receta" />
+                      }
+                    </div>
+                  }
+                </section>
+
+                <form
+                  class="cu17-form cu17-form--receta"
+                  [formGroup]="formReceta"
+                  (ngSubmit)="registrarReceta()"
+                  novalidate
+                >
+                  <div class="cu17-form__encabezado">
+                    <h3>Nueva receta</h3>
+                    <p>Prescribe uno o varios medicamentos para esta consulta.</p>
+                  </div>
+
+                  <label class="cu17-campo">
+                    <span>Observaciones de la receta</span>
+                    <textarea
+                      rows="2"
+                      formControlName="observaciones"
+                      placeholder="Ej: Aplicar en el ojo derecho…"
+                    ></textarea>
+                  </label>
+
+                  <div class="cu17-receta__medicamentos" formArrayName="detalles">
+                    @for (detalle of detalles.controls; track detalle; let i = $index) {
+                      <fieldset class="cu17-detalle" [formGroup]="detalle">
+                        <legend class="cu17-detalle__legend">Medicamento {{ i + 1 }}</legend>
+                        <button
+                          type="button"
+                          class="cu17-detalle__quitar"
+                          [attr.aria-label]="'Eliminar medicamento ' + (i + 1)"
+                          (click)="eliminarDetalle(i)"
+                        >
+                          Eliminar
+                        </button>
+
+                        <div class="cu17-form__fila">
+                          <label class="cu17-campo">
+                            <span>Medicamento *</span>
+                            <input
+                              type="text"
+                              formControlName="medicamento"
+                              placeholder="Ej: Tobramicina"
+                            />
+                            @if (detalleMedicamentoInvalido(i)) {
+                              <small class="cu17-campo__error" role="alert">
+                                El medicamento es obligatorio.
+                              </small>
+                            }
+                          </label>
+                          <label class="cu17-campo">
+                            <span>Presentación</span>
+                            <input
+                              type="text"
+                              formControlName="presentacion"
+                              placeholder="Ej: Solución oftálmica 0.3%"
+                            />
+                          </label>
+                        </div>
+
+                        <div class="cu17-form__fila cu17-form__fila--tres">
+                          <label class="cu17-campo">
+                            <span>Dosis</span>
+                            <input type="text" formControlName="dosis" placeholder="1 gota" />
+                          </label>
+                          <label class="cu17-campo">
+                            <span>Frecuencia</span>
+                            <input type="text" formControlName="frecuencia" placeholder="Cada 8 horas" />
+                          </label>
+                          <label class="cu17-campo">
+                            <span>Duración</span>
+                            <input type="text" formControlName="duracion" placeholder="7 días" />
+                          </label>
+                        </div>
+
+                        <label class="cu17-campo">
+                          <span>Indicaciones</span>
+                          <textarea
+                            rows="2"
+                            formControlName="indicaciones"
+                            placeholder="Indicaciones adicionales para el paciente…"
+                          ></textarea>
+                        </label>
+                      </fieldset>
+                    }
+                  </div>
+
+                  <button type="button" class="cu17-btn cu17-btn--borde" (click)="agregarDetalle()">
+                    + Agregar medicamento
+                  </button>
+
+                  @if (errorReceta(); as mensaje) {
+                    <div class="cu17-aviso cu17-aviso--error" role="alert">
+                      <p>{{ mensaje }}</p>
+                    </div>
+                  }
+                  @if (exitoReceta(); as mensaje) {
+                    <div class="cu17-aviso cu17-aviso--exito" role="status">
+                      <p>{{ mensaje }}</p>
+                    </div>
+                  }
+
+                  <div class="cu17-form__acciones">
+                    <button
+                      type="submit"
+                      class="cu17-btn cu17-btn--primario"
+                      [disabled]="!puedeRegistrarReceta()"
+                    >
+                      {{ enviandoReceta() ? 'Registrando…' : 'Registrar receta' }}
+                    </button>
+                  </div>
+                </form>
+              </div>
+            </section>
+          </div>
+        }
+      </div>
+    </div>
+  </div>
+
+  @if (sidebarMovilAbierto()) {
+    <button
+      type="button"
+      class="cu17-page__backdrop"
+      (click)="cerrarSidebar()"
+      aria-label="Cerrar menú"
+    ></button>
+  }
+</main>

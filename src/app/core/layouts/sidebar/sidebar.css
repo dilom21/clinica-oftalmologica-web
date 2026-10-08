@@ -1,4 +1,4 @@
-/* ===== Host: se integra como columna fija dentro del body de /inicio ===== */
+﻿/* ===== Host: columna fija dentro del layout de cada página ===== */
 :host {
   display: block;
   flex: 0 0 auto;
@@ -6,26 +6,22 @@
   min-height: 0;
 }
 
-/* ===== Contenedor del sidebar ===== */
+/* ===== Contenedor ===== */
 .sidebar {
-  --sidebar-ancho-contraido: 70px;
-  --sidebar-ancho-expandido: 300px;
-  --sidebar-duracion: 250ms;
+  --sidebar-ancho: 268px;
 
   position: relative;
   display: flex;
   flex-direction: column;
-  width: var(--sidebar-ancho-contraido);
+  width: var(--sidebar-ancho);
   height: 100%;
-  background: var(--color-primary-dark);
-  color: var(--color-white);
-  overflow: hidden;
-  box-shadow: var(--shadow-md);
-  transition: width var(--sidebar-duracion) ease;
+  background: linear-gradient(180deg, var(--color-sidebar-bg) 0%, var(--color-sidebar-bg-deep) 100%);
+  color: var(--color-sidebar-text);
+  border-right: 1px solid rgba(255, 255, 255, 0.06);
   z-index: 40;
 }
 
-/* ===== Sprite de iconos SVG (oculto visualmente) ===== */
+/* ===== Sprite SVG (oculto) ===== */
 .sidebar__sprite {
   position: absolute;
   width: 0;
@@ -33,67 +29,74 @@
   overflow: hidden;
 }
 
-/* ===== Botón cerrar (solo visible en modo táctil / móvil) ===== */
+.sidebar__svg {
+  width: 18px;
+  height: 18px;
+  flex: 0 0 auto;
+}
+
+/* ===== Botón cerrar (solo móvil) ===== */
 .sidebar__close {
   display: none;
 }
 
-/* ===== Marca superior: logo + nombre del centro ===== */
+/* ===== Marca ===== */
 .sidebar__brand {
   flex: 0 0 auto;
   display: flex;
   align-items: center;
-  gap: 0.85rem;
-  min-height: 62px;
-  padding-inline: calc((var(--sidebar-ancho-contraido) - 36px) / 2);
-  border-bottom: 1px solid rgba(255, 255, 255, 0.12);
+  gap: 0.75rem;
+  padding: 1rem 1.1rem;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
   text-decoration: none;
-  white-space: nowrap;
-  transition:
-    background 0.2s ease,
-    padding-inline var(--sidebar-duracion) ease;
+  transition: background 0.2s ease;
 }
 
 .sidebar__brand:hover {
-  background: rgba(255, 255, 255, 0.06);
+  background: rgba(255, 255, 255, 0.05);
 }
 
 .sidebar__brand-logo {
   flex: 0 0 auto;
-  width: 36px;
-  height: 36px;
+  width: 38px;
+  height: 38px;
   object-fit: contain;
-  border-radius: 10px;
-  background: var(--color-background-mist);
+  border-radius: 11px;
+  background: var(--color-surface);
   padding: 3px;
 }
 
-.sidebar__brand-name {
-  flex: 1;
+.sidebar__brand-texto {
+  display: flex;
+  flex-direction: column;
   min-width: 0;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  font-size: 0.8125rem;
-  font-weight: 700;
-  line-height: 1.3;
-  color: var(--color-white);
-  letter-spacing: -0.01em;
-  opacity: 0;
-  transform: translateX(-10px);
-  transition:
-    opacity 0.2s ease,
-    transform 0.2s ease;
 }
 
-/* ===== Navegación con scroll interno ===== */
+.sidebar__brand-nombre {
+  color: var(--color-sidebar-text);
+  font-size: 0.78rem;
+  font-weight: 700;
+  line-height: 1.25;
+  letter-spacing: 0.01em;
+}
+
+.sidebar__brand-linea {
+  color: var(--color-primary-light);
+  font-size: 0.92rem;
+  font-weight: 800;
+  line-height: 1.2;
+  letter-spacing: -0.01em;
+}
+
+/* ===== Navegación ===== */
 .sidebar__nav {
   flex: 1;
   min-height: 0;
   overflow-y: auto;
   overflow-x: hidden;
-  padding: 0.75rem 0 1rem;
+  padding: 0.85rem 0.7rem 1rem;
   scrollbar-width: thin;
-  scrollbar-color: rgba(255, 255, 255, 0.25) transparent;
+  scrollbar-color: rgba(255, 255, 255, 0.22) transparent;
 }
 
 .sidebar__nav::-webkit-scrollbar {
@@ -101,7 +104,7 @@
 }
 
 .sidebar__nav::-webkit-scrollbar-thumb {
-  background: rgba(255, 255, 255, 0.25);
+  background: rgba(255, 255, 255, 0.22);
   border-radius: var(--radius-pill);
 }
 
@@ -111,255 +114,442 @@
   padding: 0;
   display: flex;
   flex-direction: column;
-  gap: 0.25rem;
+  gap: 0.2rem;
 }
 
 .sidebar__item {
   position: relative;
 }
 
-/* ===== Enlace / botón de módulo ===== */
+/* ===== Enlace / botón de nivel 1 ===== */
 .sidebar__link {
   display: flex;
   align-items: center;
-  gap: 0.85rem;
+  gap: 0.75rem;
   width: 100%;
-  min-height: 46px;
-  padding: 0.4rem calc((var(--sidebar-ancho-contraido) - 36px) / 2);
+  padding: 0.6rem 0.7rem;
   border: none;
-  border-radius: var(--radius-sm);
+  border-radius: 12px;
   background: transparent;
-  color: rgba(255, 255, 255, 0.78);
+  color: rgba(226, 236, 250, 0.78);
   font: inherit;
   font-size: 0.875rem;
   font-weight: 600;
   text-align: left;
   text-decoration: none;
-  white-space: nowrap;
   cursor: pointer;
   transition:
-    background 0.2s ease,
-    color 0.2s ease,
-    box-shadow 0.2s ease;
+    background 0.18s ease,
+    color 0.18s ease,
+    box-shadow 0.18s ease;
 }
 
 .sidebar__link:hover {
   background: rgba(255, 255, 255, 0.08);
-  color: var(--color-white);
+  color: var(--color-sidebar-text);
 }
 
 .sidebar__link--active,
 .sidebar__link--active:hover {
-  background: var(--color-primary);
+  background: linear-gradient(135deg, var(--color-primary) 0%, #1d4ed8 100%);
   color: var(--color-white);
-  box-shadow: 0 6px 18px rgba(37, 99, 235, 0.45);
-}
-
-.sidebar__icon {
-  flex: 0 0 auto;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  width: 36px;
-  height: 36px;
-  border-radius: var(--radius-sm);
-  color: var(--color-primary-light);
-  transition:
-    color 0.2s ease,
-    background 0.2s ease;
+  box-shadow: 0 8px 20px rgba(37, 99, 235, 0.35);
 }
 
 .sidebar__link--active .sidebar__icon {
+  background: rgba(255, 255, 255, 0.18);
   color: var(--color-white);
-  background: rgba(255, 255, 255, 0.16);
 }
 
-.sidebar__svg {
-  width: 20px;
-  height: 20px;
+.sidebar__icon {
+  display: grid;
+  place-items: center;
   flex: 0 0 auto;
+  width: 32px;
+  height: 32px;
+  border-radius: 10px;
+  background: rgba(255, 255, 255, 0.07);
+  color: var(--color-primary-light);
+  transition: background 0.18s ease;
 }
 
-/* ===== Etiqueta de texto (oculta mientras el sidebar está contraído) ===== */
+.sidebar__link:hover .sidebar__icon {
+  background: rgba(255, 255, 255, 0.14);
+}
+
 .sidebar__label {
   flex: 1;
   min-width: 0;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  opacity: 0;
-  transform: translateX(-10px);
-  transition:
-    opacity 0.2s ease,
-    transform 0.2s ease;
+  line-height: 1.3;
 }
 
-/* ===== Flecha indicadora de módulos desplegables ===== */
 .sidebar__chevron {
+  display: grid;
+  place-items: center;
   flex: 0 0 auto;
-  display: inline-flex;
-  align-items: center;
-  color: rgba(255, 255, 255, 0.6);
-  opacity: 0;
-  transform: rotate(0deg);
-  transition:
-    opacity 0.2s ease,
-    transform 0.25s ease;
+  width: 20px;
+  height: 20px;
+  color: rgba(226, 236, 250, 0.6);
+  transition: transform 0.2s ease;
 }
 
-.sidebar__chevron .sidebar__svg {
-  width: 16px;
-  height: 16px;
+.sidebar__chevron--abierto {
+  transform: rotate(180deg);
 }
 
-/* ===== Submenú de funciones (acordeón) ===== */
+/* ===== Submenú ===== */
 .sidebar__submenu {
   list-style: none;
-  margin: 0.1rem 0 0.35rem;
-  padding: 0 0.5rem 0 3rem;
-  max-height: 0;
-  overflow: hidden;
-  transition: max-height 0.25s ease;
+  margin: 0.25rem 0 0.35rem 1.35rem;
+  padding: 0 0 0 0.55rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.1rem;
+  border-left: 1px solid rgba(255, 255, 255, 0.1);
 }
 
 .sidebar__submenu-item {
-  margin-bottom: 0.15rem;
+  position: relative;
 }
 
 .sidebar__submenu-link {
   display: flex;
   align-items: center;
   gap: 0.6rem;
-  padding: 0.45rem 0.6rem;
-  border-radius: 8px;
-  color: rgba(255, 255, 255, 0.68);
-  font-size: 0.8125rem;
+  padding: 0.48rem 0.6rem;
+  border-radius: 10px;
+  color: rgba(214, 227, 244, 0.72);
+  font-size: 0.82rem;
   font-weight: 500;
-  line-height: 1.4;
   text-decoration: none;
-  white-space: normal;
   cursor: pointer;
   transition:
-    background 0.2s ease,
-    color 0.2s ease;
+    background 0.16s ease,
+    color 0.16s ease;
 }
 
 .sidebar__submenu-link:hover {
   background: rgba(255, 255, 255, 0.07);
-  color: var(--color-white);
-}
-
-.sidebar__submenu-link--sin-ruta {
-  cursor: default;
-}
-
-.sidebar__submenu-link--sin-ruta:hover {
-  background: transparent;
-  color: rgba(255, 255, 255, 0.68);
-}
-
-.sidebar__submenu-dot {
-  flex: 0 0 auto;
-  width: 6px;
-  height: 6px;
-  border-radius: 50%;
-  background: rgba(255, 255, 255, 0.45);
+  color: var(--color-sidebar-text);
 }
 
 .sidebar__submenu-item--active .sidebar__submenu-link {
-  background: rgba(37, 99, 235, 0.4);
+  background: rgba(37, 99, 235, 0.28);
+  color: var(--color-white);
+  font-weight: 600;
+}
+
+.sidebar__submenu-item--active .sidebar__submenu-link::before {
+  content: '';
+  position: absolute;
+  left: -0.55rem;
+  top: 20%;
+  bottom: 20%;
+  width: 3px;
+  border-radius: var(--radius-pill);
+  background: var(--color-primary-light);
+  box-shadow: 0 0 0 2px rgba(56, 189, 248, 0.2);
+}
+
+.sidebar__submenu-icono {
+  display: grid;
+  place-items: center;
+  flex: 0 0 auto;
+  width: 24px;
+  height: 24px;
+  color: var(--color-primary-light);
+}
+
+.sidebar__submenu-icono .sidebar__svg {
+  width: 15px;
+  height: 15px;
+}
+
+.sidebar__submenu-item--active .sidebar__submenu-icono {
   color: var(--color-white);
 }
 
-.sidebar__submenu-item--active .sidebar__submenu-dot {
-  background: var(--color-primary-light);
-  box-shadow: 0 0 0 3px rgba(56, 189, 248, 0.25);
+.sidebar__submenu-label {
+  min-width: 0;
+  line-height: 1.35;
 }
 
-/* ===== Mensaje de error al cargar el menú ===== */
+.sidebar__submenu-link--sin-ruta {
+  opacity: 0.55;
+  cursor: default;
+}
+
+/* ===== Estados: carga / vacío ===== */
+.sidebar__cargando {
+  padding: 0.5rem 0.7rem;
+  color: rgba(214, 227, 244, 0.7);
+  font-size: 0.78rem;
+}
+
+.sidebar__sin-modulos {
+  padding: 0.85rem 0.75rem;
+  border: 1px dashed rgba(255, 255, 255, 0.16);
+  border-radius: 12px;
+  color: rgba(214, 227, 244, 0.75);
+  font-size: 0.78rem;
+  line-height: 1.45;
+}
+
+/* Skeleton con shimmer */
+.sidebar__skeleton {
+  display: flex;
+  flex-direction: column;
+  gap: 0.55rem;
+  padding: 0.35rem 0.7rem 0.55rem;
+}
+
+.sidebar__skeleton-fila {
+  display: flex;
+  align-items: center;
+  gap: 0.7rem;
+}
+
+.sidebar__skeleton-fila--sub {
+  padding-left: 1.4rem;
+  opacity: 0.75;
+}
+
+.sidebar__skeleton-icono,
+.sidebar__skeleton-texto {
+  position: relative;
+  overflow: hidden;
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.08);
+}
+
+.sidebar__skeleton-icono {
+  width: 30px;
+  height: 30px;
+  border-radius: 10px;
+}
+
+.sidebar__skeleton-texto {
+  flex: 1;
+  height: 11px;
+  max-width: 160px;
+}
+
+.sidebar__skeleton-texto--corto {
+  max-width: 110px;
+}
+
+.sidebar__skeleton-icono::after,
+.sidebar__skeleton-texto::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  transform: translateX(-100%);
+  background: linear-gradient(
+    90deg,
+    transparent 0%,
+    rgba(255, 255, 255, 0.16) 50%,
+    transparent 100%
+  );
+  animation: sidebarShimmer 1.35s infinite;
+}
+
+@keyframes sidebarShimmer {
+  100% {
+    transform: translateX(100%);
+  }
+}
+
+/* ===== Error del menú ===== */
 .sidebar__error {
-  margin: 0;
-  padding: 0.6rem 0.75rem;
-  font-size: 0.6875rem;
-  line-height: 1.4;
-  color: #fecaca;
-  background: rgba(239, 68, 68, 0.15);
-  border-top: 1px solid rgba(239, 68, 68, 0.25);
-  white-space: normal;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 0.5rem;
+  margin: 0 0.85rem 0.85rem;
+  padding: 0.75rem 0.85rem;
+  border: 1px solid rgba(248, 113, 113, 0.35);
+  border-radius: 12px;
+  background: rgba(239, 68, 68, 0.12);
 }
 
-/* ===== Expansión automática por hover (solo dispositivos con hover) ===== */
-@media (hover: hover) and (pointer: fine) {
-  .sidebar:hover {
-    width: var(--sidebar-ancho-expandido);
-  }
+.sidebar__error-icono {
+  display: grid;
+  place-items: center;
+  width: 26px;
+  height: 26px;
+  border-radius: 8px;
+  background: rgba(239, 68, 68, 0.22);
+  color: var(--color-danger-border);
+}
 
-  /* Expandido: los textos se muestran completos y pueden ocupar 2 líneas */
-  .sidebar:hover .sidebar__brand,
-  .sidebar:hover .sidebar__link {
-    white-space: normal;
-  }
+.sidebar__error-texto {
+  color: var(--color-danger-border);
+  font-size: 0.78rem;
+  line-height: 1.45;
+}
 
-  .sidebar:hover .sidebar__brand-name,
-  .sidebar:hover .sidebar__label {
-    white-space: normal;
-    text-overflow: clip;
-    line-height: 1.4;
-  }
+.sidebar__error-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  padding: 0.4rem 0.8rem;
+  border: 1px solid rgba(248, 113, 113, 0.45);
+  border-radius: var(--radius-pill);
+  background: rgba(255, 255, 255, 0.08);
+  color: #fee2e2;
+  font-size: 0.76rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: background 0.18s ease;
+}
 
-  .sidebar:hover .sidebar__brand-name,
-  .sidebar:hover .sidebar__label,
-  .sidebar:hover .sidebar__chevron {
-    opacity: 1;
-    transform: none;
-  }
+.sidebar__error-btn:hover {
+  background: rgba(255, 255, 255, 0.16);
+}
 
-  .sidebar:not(:hover) .sidebar__brand-name,
-  .sidebar:not(:hover) .sidebar__label,
-  .sidebar:not(:hover) .sidebar__chevron {
-    opacity: 0;
-  }
+.sidebar__error-btn .sidebar__svg {
+  width: 14px;
+  height: 14px;
+}
 
-  .sidebar:hover .sidebar__item--open .sidebar__submenu {
-    max-height: 600px;
+/* ===== Pie: usuario, tema y salida ===== */
+.sidebar__footer {
+  flex: 0 0 auto;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  padding: 0.85rem 0.85rem 1rem;
+  border-top: 1px solid rgba(255, 255, 255, 0.1);
+  background: rgba(0, 0, 0, 0.16);
+}
+
+.sidebar__usuario {
+  display: flex;
+  align-items: center;
+  gap: 0.7rem;
+  padding: 0.35rem 0.3rem;
+  min-width: 0;
+}
+
+.sidebar__avatar {
+  display: grid;
+  place-items: center;
+  flex: 0 0 auto;
+  width: 38px;
+  height: 38px;
+  border-radius: 12px;
+  background: linear-gradient(135deg, var(--color-primary) 0%, var(--color-primary-light) 130%);
+  color: var(--color-white);
+  font-size: 0.8rem;
+  font-weight: 800;
+  letter-spacing: 0.02em;
+}
+
+.sidebar__usuario-datos {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+
+.sidebar__usuario-nombre {
+  color: var(--color-sidebar-text);
+  font-size: 0.83rem;
+  font-weight: 700;
+  line-height: 1.3;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.sidebar__usuario-rol {
+  color: rgba(214, 227, 244, 0.68);
+  font-size: 0.72rem;
+  line-height: 1.3;
+}
+
+.sidebar__acciones {
+  display: flex;
+  flex-direction: column;
+  gap: 0.15rem;
+}
+
+.sidebar__accion {
+  display: flex;
+  align-items: center;
+  gap: 0.7rem;
+  width: 100%;
+  padding: 0.5rem 0.6rem;
+  border: none;
+  border-radius: 10px;
+  background: transparent;
+  color: rgba(226, 236, 250, 0.8);
+  font: inherit;
+  font-size: 0.8rem;
+  font-weight: 600;
+  text-align: left;
+  cursor: pointer;
+  transition:
+    background 0.18s ease,
+    color 0.18s ease;
+}
+
+.sidebar__accion:hover {
+  background: rgba(255, 255, 255, 0.08);
+  color: var(--color-sidebar-text);
+}
+
+.sidebar__accion--salir:hover {
+  background: rgba(239, 68, 68, 0.18);
+  color: var(--color-danger-border);
+}
+
+.sidebar__accion-icono {
+  display: grid;
+  place-items: center;
+  flex: 0 0 auto;
+  width: 22px;
+  height: 22px;
+  color: var(--color-primary-light);
+}
+
+.sidebar__accion--salir .sidebar__accion-icono {
+  color: #fca5a5;
+}
+
+.sidebar__accion-icono .sidebar__svg {
+  width: 16px;
+  height: 16px;
+}
+
+/* Foco visible accesible en todo el panel */
+.sidebar__link:focus-visible,
+.sidebar__submenu-link:focus-visible,
+.sidebar__accion:focus-visible,
+.sidebar__error-btn:focus-visible,
+.sidebar__brand:focus-visible,
+.sidebar__close:focus-visible {
+  outline: 2px solid var(--color-primary-light);
+  outline-offset: 2px;
+}
+
+/* ===== Responsive ===== */
+@media (max-width: 1180px) {
+  .sidebar {
+    --sidebar-ancho: 238px;
   }
 }
 
-/* Estado abierto del drawer (móvil / híbrido): las etiquetas siempre visibles
-   aunque el dispositivo también soporte hover. */
-.sidebar.sidebar--open .sidebar__brand,
-.sidebar.sidebar--open .sidebar__link {
-  white-space: normal;
-}
-
-.sidebar.sidebar--open .sidebar__brand-name,
-.sidebar.sidebar--open .sidebar__label {
-  white-space: normal;
-  text-overflow: clip;
-  line-height: 1.4;
-}
-
-.sidebar.sidebar--open .sidebar__brand-name,
-.sidebar.sidebar--open .sidebar__label,
-.sidebar.sidebar--open .sidebar__chevron {
-  opacity: 1;
-  transform: none;
-}
-
-.sidebar.sidebar--open .sidebar__item--open .sidebar__submenu {
-  max-height: 600px;
-}
-
-/* ===== Modo táctil / móvil: drawer off-canvas controlado por hamburguesa ===== */
-@media (hover: none), (max-width: 768px) {
+@media (hover: none), (max-width: 900px) {
   .sidebar {
     position: fixed;
     top: 0;
     left: 0;
     bottom: 0;
-    width: min(86vw, var(--sidebar-ancho-expandido));
+    width: min(84vw, 300px);
     transform: translateX(-100%);
-    transition: transform var(--sidebar-duracion) ease;
+    transition: transform 0.25s ease;
     box-shadow: var(--shadow-lg);
+    z-index: 60;
   }
 
   .sidebar--open {
@@ -371,13 +561,13 @@
     align-items: center;
     justify-content: center;
     position: absolute;
-    top: 0.6rem;
-    right: 0.6rem;
-    width: 36px;
-    height: 36px;
+    top: 0.85rem;
+    right: 0.7rem;
+    width: 34px;
+    height: 34px;
     padding: 0;
     border: none;
-    border-radius: var(--radius-sm);
+    border-radius: 10px;
     background: rgba(255, 255, 255, 0.08);
     color: var(--color-white);
     cursor: pointer;
@@ -390,22 +580,27 @@
   }
 
   .sidebar__brand {
-    padding-right: 3.25rem;
+    padding-right: 3rem;
   }
+}
 
-  .sidebar__nav {
-    padding-top: 0.75rem;
-  }
+/* ===== Ajustes de tema oscuro ===== */
+:host-context(.tema-oscuro) .sidebar {
+  border-right-color: rgba(255, 255, 255, 0.05);
+}
 
-  .sidebar--open .sidebar__brand-name,
-  .sidebar--open .sidebar__label,
-  .sidebar--open .sidebar__chevron {
-    opacity: 1;
-    transform: none;
-  }
+:host-context(.tema-oscuro) .sidebar__footer {
+  background: rgba(0, 0, 0, 0.28);
+}
 
-  .sidebar--open .sidebar__item--open .sidebar__submenu {
-    max-height: 600px;
+:host-context(.tema-oscuro) .sidebar__brand-logo {
+  background: rgba(255, 255, 255, 0.92);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .sidebar__skeleton-icono::after,
+  .sidebar__skeleton-texto::after {
+    animation: none;
   }
 }
 

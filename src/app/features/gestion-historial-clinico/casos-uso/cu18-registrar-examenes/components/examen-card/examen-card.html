@@ -1,0 +1,74 @@
+@if (examen(); as item) {
+  <article class="examen-card">
+    <header class="examen-card__cabecera">
+      <span class="examen-card__icono" aria-hidden="true">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7-10-7-10-7Z"></path>
+          <circle cx="12" cy="12" r="3"></circle>
+        </svg>
+      </span>
+
+      <div class="examen-card__titular">
+        <h5 class="examen-card__nombre">{{ item.nombre_examen }}</h5>
+        <p class="examen-card__meta">
+          <time [attr.datetime]="item.fecha_solicitud">{{ fechaSolicitud() }}</time>
+          @if (cantidadResultados() !== null) {
+            <span class="examen-card__separador" aria-hidden="true">·</span>
+            <span class="examen-card__cuenta">
+              {{ cantidadResultados() }}
+              {{ cantidadResultados() === 1 ? 'resultado' : 'resultados' }}
+            </span>
+          }
+        </p>
+      </div>
+
+      <span
+        class="examen-card__estado"
+        [class.examen-card__estado--activo]="item.estado"
+        [class.examen-card__estado--inactivo]="!item.estado"
+      >
+        {{ etiquetaEstado(item.estado) }}
+      </span>
+    </header>
+
+    @if (item.observaciones) {
+      <p class="examen-card__observaciones">{{ item.observaciones }}</p>
+    }
+
+    @if (mostrarResultados()) {
+      <section class="examen-card__resultados">
+        @if (cargandoResultados()) {
+          <p class="examen-card__vacio" role="status">Cargando resultados…</p>
+        } @else if (errorResultados()) {
+          <div class="examen-card__error" role="alert">
+            <p>{{ errorResultados() }}</p>
+            <button
+              type="button"
+              class="examen-card__reintentar"
+              (click)="reintentarResultados.emit()"
+            >
+              Reintentar
+            </button>
+          </div>
+        } @else if (listaResultados().length === 0) {
+          <p class="examen-card__vacio">Sin resultados registrados</p>
+        } @else {
+          <app-registro-navegador
+            etiqueta="Resultados"
+            [indice]="indiceResultado()"
+            [total]="listaResultados().length"
+            (anterior)="anteriorResultado()"
+            (siguiente)="siguienteResultado()"
+          >
+            @if (resultadoActual(); as resultado) {
+              <app-resultado-card
+                class="examen-card__resultado-actual"
+                [resultado]="resultado"
+              />
+            }
+          </app-registro-navegador>
+        }
+      </section>
+    }
+  </article>
+}

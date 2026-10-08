@@ -1,4 +1,4 @@
-.estado-modal__backdrop {
+﻿.estado-modal__backdrop {
   position: fixed;
   inset: 0;
   background: rgba(0, 0, 0, 0.5);
@@ -16,7 +16,7 @@
   max-height: 92vh;
   display: flex;
   flex-direction: column;
-  background: var(--color-white);
+  background: var(--color-surface);
   border-radius: var(--radius-lg);
   box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.15);
   z-index: 1400;
@@ -64,7 +64,7 @@
   margin-top: 0.15rem;
   font-size: 1.2rem;
   font-weight: 800;
-  color: var(--color-primary-dark);
+  color: var(--color-heading);
 }
 
 .estado-modal__close {
@@ -77,7 +77,7 @@
   padding: 0;
   border: 1px solid var(--color-border);
   border-radius: var(--radius-sm);
-  background: var(--color-white);
+  background: var(--color-surface);
   color: var(--color-text);
   cursor: pointer;
   transition:
@@ -87,7 +87,7 @@
 
 .estado-modal__close:hover:not(:disabled) {
   background: var(--color-background-mist);
-  color: var(--color-primary-dark);
+  color: var(--color-heading);
 }
 
 .estado-modal__close:disabled {
@@ -132,14 +132,14 @@
 }
 
 .estado-modal__icono--peligro {
-  background: #fef2f2;
+  background: var(--color-danger-bg);
   color: #dc2626;
 }
 
 .estado-modal__aviso-titulo {
   font-size: 1.1rem;
   font-weight: 800;
-  color: var(--color-primary-dark);
+  color: var(--color-heading);
 }
 
 .estado-modal__aviso-texto {
@@ -178,7 +178,7 @@
 }
 
 .estado-modal__datos strong {
-  color: var(--color-primary-dark);
+  color: var(--color-heading);
   font-size: 0.875rem;
 }
 
@@ -200,7 +200,7 @@
 }
 
 .estado-modal__actual strong {
-  color: var(--color-primary-dark);
+  color: var(--color-heading);
   font-size: 0.875rem;
 }
 
@@ -223,7 +223,7 @@
   padding: 0.7rem 0.85rem;
   border: 1px solid var(--color-border);
   border-radius: var(--radius-sm);
-  background: var(--color-white);
+  background: var(--color-surface);
   cursor: pointer;
   text-align: left;
   transition:
@@ -254,7 +254,7 @@
   height: 18px;
   border: 2px solid var(--color-border);
   border-radius: 50%;
-  background: var(--color-white);
+  background: var(--color-surface);
   transition: border-color 0.2s ease;
 }
 
@@ -271,7 +271,7 @@
 }
 
 .estado-modal__opcion-texto strong {
-  color: var(--color-primary-dark);
+  color: var(--color-heading);
   font-size: 0.9rem;
 }
 
@@ -283,10 +283,10 @@
 
 .estado-modal__error {
   padding: 0.75rem 1rem;
-  border: 1px solid #fecaca;
+  border: 1px solid var(--color-danger-border);
   border-radius: var(--radius-sm);
-  background: #fef2f2;
-  color: #b91c1c;
+  background: var(--color-danger-bg);
+  color: var(--color-danger-text);
   font-size: 0.85rem;
   line-height: 1.5;
 }
@@ -324,7 +324,7 @@
 }
 
 .estado-modal__btn--cancelar {
-  background: var(--color-white);
+  background: var(--color-surface);
   border-color: var(--color-border);
   color: var(--color-text);
 }
@@ -341,7 +341,7 @@
 
 .estado-modal__btn--primario:hover:not(:disabled) {
   background: var(--color-primary-dark);
-  border-color: var(--color-primary-dark);
+  border-color: var(--color-heading);
 }
 
 .estado-modal__btn--peligro {
@@ -351,8 +351,8 @@
 }
 
 .estado-modal__btn--peligro:hover:not(:disabled) {
-  background: #b91c1c;
-  border-color: #b91c1c;
+  background: var(--color-danger-text);
+  border-color: var(--color-danger-text);
 }
 
 .estado-modal__spinner {

@@ -1,0 +1,31 @@
+<ol class="indicaciones" role="list">
+  @for (indicacion of indicaciones(); track indicacion.id) {
+    <li class="indicacion">
+      <span class="indicacion__marcador" aria-hidden="true"></span>
+      <div class="indicacion__cuerpo">
+        <p
+          class="indicacion__texto"
+          [class.indicacion__texto--limitado]="esDescripcionLarga(indicacion.descripcion) && !expandida()"
+        >
+          {{ indicacion.descripcion }}
+        </p>
+        @if (esDescripcionLarga(indicacion.descripcion)) {
+          <button
+            type="button"
+            class="indicacion__expandir"
+            [attr.aria-expanded]="expandida()"
+            (click)="alternarExpansion()"
+          >
+            {{ expandida() ? 'Ver menos' : 'Ver más' }}
+          </button>
+        }
+        <time
+          class="indicacion__fecha"
+          [attr.datetime]="indicacion.fecha_registro"
+        >
+          {{ formatearFechaHora(indicacion.fecha_registro) }}
+        </time>
+      </div>
+    </li>
+  }
+</ol>

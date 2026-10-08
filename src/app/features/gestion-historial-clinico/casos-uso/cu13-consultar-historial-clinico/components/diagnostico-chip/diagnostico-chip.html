@@ -1,0 +1,22 @@
+@if (diagnostico(); as item) {
+  <article class="diagnostico-chip" [class.diagnostico-chip--inactivo]="!item.estado">
+    <header class="diagnostico-chip__cabecera">
+      <h4 class="diagnostico-chip__nombre">{{ item.nombre }}</h4>
+      <span
+        class="diagnostico-chip__estado"
+        [class.diagnostico-chip__estado--activo]="item.estado"
+        [class.diagnostico-chip__estado--inactivo]="!item.estado"
+      >
+        {{ etiquetaEstado(item.estado) }}
+      </span>
+    </header>
+
+    @if (item.descripcion) {
+      <p class="diagnostico-chip__descripcion">{{ item.descripcion }}</p>
+    }
+
+    <time class="diagnostico-chip__fecha" [attr.datetime]="item.fecha_diagnostico">
+      {{ formatearFecha(item.fecha_diagnostico) }}
+    </time>
+  </article>
+}

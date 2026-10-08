@@ -1,4 +1,4 @@
-.citas-table__vacio {
+﻿.citas-table__vacio {
   padding: 3rem 1.5rem;
   border: 1px dashed var(--color-border);
   border-radius: var(--radius-lg);
@@ -14,7 +14,7 @@
 .citas-table--desktop {
   border: 1px solid var(--color-border-soft);
   border-radius: var(--radius-md);
-  background: var(--color-white);
+  background: var(--color-surface);
   box-shadow: var(--shadow-xs);
 }
 
@@ -68,7 +68,7 @@
 }
 
 .citas-table__persona strong {
-  color: var(--color-primary-dark);
+  color: var(--color-heading);
   font-weight: 700;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -99,7 +99,7 @@
   align-items: baseline;
   gap: 0.3rem;
   font-weight: 700;
-  color: var(--color-primary-dark);
+  color: var(--color-heading);
   font-variant-numeric: tabular-nums;
 }
 
@@ -146,15 +146,15 @@
 }
 
 .citas-table__badge.cita-estado--cancelada {
-  background: #fef2f2;
-  border-color: #fecaca;
+  background: var(--color-danger-bg);
+  border-color: var(--color-danger-border);
   color: #dc2626;
 }
 
 .citas-table__badge.cita-estado--no_asistio {
   background: #f1f5f9;
   border-color: #cbd5e1;
-  color: #475569;
+  color: var(--color-neutral-text);
 }
 
 .citas-table__acciones {
@@ -175,7 +175,7 @@
   padding: 0;
   border: 1px solid var(--color-border);
   border-radius: var(--radius-pill);
-  background: var(--color-white);
+  background: var(--color-surface);
   color: var(--color-text-soft);
   cursor: pointer;
   transition:
@@ -205,7 +205,7 @@
   padding: 0.35rem;
   border: 1px solid var(--color-border);
   border-radius: var(--radius-md);
-  background: var(--color-white);
+  background: var(--color-surface);
   box-shadow: var(--shadow-md);
   display: flex;
   flex-direction: column;
@@ -262,8 +262,8 @@
 }
 
 .citas-table__menu-item--peligro:hover:not(:disabled) {
-  background: #fef2f2;
-  color: #b91c1c;
+  background: var(--color-danger-bg);
+  color: var(--color-danger-text);
 }
 
 /* ---- Móvil: tarjetas (ocultas en escritorio) ---- */
@@ -283,7 +283,7 @@
   padding: 1rem 1.1rem;
   border: 1px solid var(--color-border-soft);
   border-radius: var(--radius-md);
-  background: var(--color-white);
+  background: var(--color-surface);
   box-shadow: var(--shadow-xs);
 }
 
@@ -330,7 +330,7 @@
 }
 
 .citas-table__card-detalles dd strong {
-  color: var(--color-primary-dark);
+  color: var(--color-heading);
   font-weight: 700;
 }
 
@@ -369,9 +369,9 @@
 }
 
 .citas-table__btn--peligro {
-  background: #fef2f2;
+  background: var(--color-danger-bg);
   color: #dc2626;
-  border-color: #fecaca;
+  border-color: var(--color-danger-border);
 }
 
 .citas-table__btn--peligro:hover:not(:disabled) {

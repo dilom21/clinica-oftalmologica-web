@@ -1,4 +1,4 @@
-.acordeon {
+﻿.acordeon {
   display: flex;
   flex-direction: column;
   gap: 0.75rem;
@@ -25,7 +25,7 @@
   justify-content: space-between;
   gap: 0.75rem;
   padding: 0.6rem 0.85rem;
-  background: var(--color-white);
+  background: var(--color-surface);
   border-bottom: 1px solid transparent;
 }
 
@@ -41,7 +41,7 @@
   padding: 0;
   border: none;
   background: transparent;
-  color: var(--color-primary-dark);
+  color: var(--color-heading);
   font: inherit;
   font-size: 0.9375rem;
   font-weight: 700;
@@ -141,7 +141,7 @@
   padding: 0.55rem 0.7rem;
   border: 1px solid var(--color-border-soft);
   border-radius: var(--radius-sm);
-  background: var(--color-white);
+  background: var(--color-surface);
 }
 
 .acordeon__item-check {
@@ -205,7 +205,7 @@
 .acordeon__select:focus {
   outline: none;
   border-color: var(--color-primary);
-  background: var(--color-white);
+  background: var(--color-surface);
   box-shadow: 0 0 0 4px rgba(37, 99, 235, 0.12);
 }
 

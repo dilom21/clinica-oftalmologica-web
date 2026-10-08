@@ -1,8 +1,33 @@
-import { Component, input, OnInit, output, signal } from '@angular/core';
-import { RouterLink, RouterLinkActive } from '@angular/router';
+import {
+  Component,
+  DestroyRef,
+  OnInit,
+  computed,
+  effect,
+  inject,
+  input,
+  output,
+  signal,
+} from '@angular/core';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
+import { NavigationEnd, Router, RouterLink, RouterLinkActive } from '@angular/router';
+import { filter } from 'rxjs';
+
+import { PerfilUsuario } from '../../../features/autenticacion-seguridad/Auth/models/auth.models';
+import { AuthService } from '../../../features/autenticacion-seguridad/Auth/services/auth.service';
 import { MenuModulo } from '../../models/menu.models';
 import { MenuService } from '../../services/menu.service';
+import { NavegacionService } from '../../services/navegacion.service';
+import { ThemeService } from '../../services/theme.service';
 
+/**
+ * Navegación lateral de la aplicación.
+ *
+ * - Consume el menú compartido de `MenuService` (una sola petición por sesión):
+ *   mientras carga muestra un skeleton y nunca un menú "vacío".
+ * - Agrupa las funciones en acordeones con icono propio por opción.
+ * - Muestra en la zona inferior al usuario real, el cambio de tema y la salida.
+ */
 @Component({
   selector: 'app-sidebar',
   imports: [RouterLink, RouterLinkActive],
@@ -13,102 +38,76 @@ export class Sidebar implements OnInit {
   readonly mobileOpen = input(false);
   readonly mobileClose = output<void>();
 
-  protected readonly modulos = signal<MenuModulo[]>([]);
-  protected readonly menuError = signal(false);
+  private readonly menuService = inject(MenuService);
+  private readonly navegacion = inject(NavegacionService);
+  private readonly themeService = inject(ThemeService);
+  private readonly authService = inject(AuthService);
+  private readonly router = inject(Router);
+  private readonly destroyRef = inject(DestroyRef);
+
+  protected readonly cargandoMenu = this.menuService.cargando;
+  protected readonly menuError = this.menuService.error;
+  protected readonly perfil = signal<PerfilUsuario | null>(null);
+  protected readonly esOscuro = this.themeService.esOscuro;
+
   protected readonly openModuleId = signal<number | null>(null);
   protected readonly selectedModuleId = signal<number | null>(null);
   protected readonly selectedFuncionId = signal<number | null>(null);
 
-  private readonly rutasFunciones: ReadonlyMap<string, string> = new Map([
-    ['gestionar usuarios', '/usuarios'],
-    ['gestionar roles y permisos', '/roles'],
-    ['gestionar pacientes', '/pacientes'],
-    ['consultar historial clínico', '/historial-clinico'],
-    ['consultar bitácora', '/bitacora'],
-    ['consultar agenda y disponibilidad médica', '/agenda-disponibilidad'],
-    ['configurar disponibilidad del oftalmólogo', '/configurar-disponibilidad'],
-    ['gestionar citas médicas', '/gestionar-citas'],
-    ['consultar historial de citas', '/historial-citas'],
-  ]);
+  /** Módulos con al menos una función visible en la web. */
+  protected readonly modulos = computed<MenuModulo[]>(() =>
+    this.menuService
+      .modulos()
+      .map((modulo) => ({
+        ...modulo,
+        funciones: (modulo.funciones ?? []).filter(
+          (funcion) => !this.navegacion.estaOcultaEnWeb(funcion.nombre),
+        ),
+      }))
+      .filter((modulo) => modulo.funciones.length > 0),
+  );
 
-  private readonly iconosPorNombre: ReadonlyArray<{
-    clave: string;
-    nombres: ReadonlyArray<string>;
-  }> = [
-    { clave: 'seguridad', nombres: ['seguridad', 'autenticacion'] },
-    { clave: 'agenda', nombres: ['agenda', 'cita'] },
-    { clave: 'pacientes', nombres: ['paciente', 'historial'] },
-    { clave: 'inventario', nombres: ['inventario', 'proveedor'] },
-    { clave: 'pagos', nombres: ['pago'] },
-    { clave: 'reportes', nombres: ['reporte'] },
-  ];
-
-  constructor(private readonly menuService: MenuService) {}
+  /**
+   * Cuando el menú termina de cargar (puede llegar después del primer render)
+   * se vuelve a sincronizar para abrir y resaltar el grupo de la ruta activa.
+   */
+  private readonly sincronizarMenuCargado = effect(() => {
+    if (this.modulos().length > 0) {
+      this.sincronizarConRuta(this.router.url);
+    }
+  });
 
   ngOnInit(): void {
-    this.menuService.obtenerMenu().subscribe({
-      next: (modulos) => this.modulos.set(modulos),
-      error: () => this.menuError.set(true),
-    });
+    this.perfil.set(this.authService.obtenerPerfilActual());
+    this.menuService.cargar();
+    this.sincronizarConRuta(this.router.url);
+
+    this.router.events
+      .pipe(
+        filter((evento): evento is NavigationEnd => evento instanceof NavigationEnd),
+        takeUntilDestroyed(this.destroyRef),
+      )
+      .subscribe((evento) => {
+        this.sincronizarConRuta(evento.urlAfterRedirects);
+        this.cerrarSiMovil();
+      });
+  }
+
+  // --- Mapeo de rutas e iconos -------------------------------------------
+
+  rutaDeFuncion(nombre: string): string | null {
+    return this.navegacion.rutaDeFuncion(nombre);
   }
 
   iconoPara(modulo: MenuModulo): string {
-    const nombre = modulo.nombre.toLowerCase();
-    const coincidencia = this.iconosPorNombre.find((grupo) =>
-      grupo.nombres.some((clave) => nombre.includes(clave)),
-    );
-    return coincidencia?.clave ?? 'modulo';
+    return this.navegacion.iconoDeModulo(modulo.nombre);
   }
 
- rutaDeFuncion(nombre: string): string | null {
-  const clave = nombre.toLowerCase().trim();
-
-  if (this.rutasFunciones.has(clave)) {
-    return this.rutasFunciones.get(clave)!;
+  iconoDeFuncion(funcion: MenuModulo['funciones'][number]): string {
+    return this.navegacion.iconoDeFuncion(funcion.nombre);
   }
 
-  if (clave.includes('roles') && clave.includes('permisos')) {
-    return '/roles';
-  }
-
-  if (clave.includes('usuario')) {
-    return '/usuarios';
-  }
-
-  if (clave.includes('pacientes')) {
-    return '/pacientes';
-  }
-
-  if (clave.includes('historial') && clave.includes('clínico')) {
-    return '/historial-clinico';
-  }
-
-  if (clave.includes('historial') && clave.includes('clinico')) {
-    return '/historial-clinico';
-  }
-
-  if (clave.includes('historial') && clave.includes('cita')) {
-  return '/historial-citas';
-}
-
-  if (clave.includes('bitácora') || clave.includes('bitacora')) {
-    return '/bitacora';
-  }
-
-  if (clave.includes('agenda') && clave.includes('disponibilidad')) {
-    return '/agenda-disponibilidad';
-  }
-
-  if (clave.includes('disponibilidad') && clave.includes('configurar')) {
-    return '/configurar-disponibilidad';
-  }
-
-  if (clave.includes('cita') && clave.includes('gestionar')) {
-    return '/gestionar-citas';
-  }
-
-  return null;
-}
+  // --- Interacción --------------------------------------------------------
 
   alternarModulo(id: number): void {
     this.openModuleId.update((abierto) => (abierto === id ? null : id));
@@ -119,15 +118,67 @@ export class Sidebar implements OnInit {
   seleccionarFuncion(moduloId: number, funcionId: number): void {
     this.selectedModuleId.set(moduloId);
     this.selectedFuncionId.set(funcionId);
+    this.openModuleId.set(moduloId);
     this.cerrarSiMovil();
   }
 
   navegarInicio(): void {
+    this.selectedModuleId.set(null);
+    this.selectedFuncionId.set(null);
     this.cerrarSiMovil();
+  }
+
+  reintentarMenu(): void {
+    this.menuService.reintentar();
+  }
+
+  alternarTema(): void {
+    this.themeService.alternar();
+  }
+
+  cerrarSesion(): void {
+    this.authService.logout();
+    this.router.navigate(['/login']);
   }
 
   cerrarMovil(): void {
     this.mobileClose.emit();
+  }
+
+  // --- Internos -----------------------------------------------------------
+
+  /**
+   * Abre automáticamente el módulo que contiene la ruta activa y resalta la
+   * función correspondiente.
+   */
+  private sincronizarConRuta(url: string): void {
+    const rutaActiva = this.normalizarUrl(url);
+
+    if (rutaActiva === '' || rutaActiva === '/' || rutaActiva.startsWith('/inicio')) {
+      this.selectedModuleId.set(null);
+      this.selectedFuncionId.set(null);
+      return;
+    }
+
+    for (const modulo of this.modulos()) {
+      const funcion = modulo.funciones.find(
+        (item) => this.normalizarUrl(this.rutaDeFuncion(item.nombre) ?? '') === rutaActiva,
+      );
+      if (funcion) {
+        this.selectedModuleId.set(modulo.id);
+        this.selectedFuncionId.set(funcion.id);
+        this.openModuleId.set(modulo.id);
+        return;
+      }
+    }
+  }
+
+  private normalizarUrl(url: string): string {
+    const sinQuery = url.split('?')[0].split('#')[0];
+    if (sinQuery.length > 1 && sinQuery.endsWith('/')) {
+      return sinQuery.slice(0, -1);
+    }
+    return sinQuery;
   }
 
   private cerrarSiMovil(): void {

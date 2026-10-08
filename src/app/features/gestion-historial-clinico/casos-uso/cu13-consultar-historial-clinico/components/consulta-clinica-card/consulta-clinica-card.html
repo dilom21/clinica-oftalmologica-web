@@ -1,0 +1,290 @@
+@if (registro(); as item) {
+  <article class="consulta-card" [class.consulta-card--abierta]="abierto()">
+    <div class="consulta-card__fecha" aria-hidden="true">
+      <span class="consulta-card__dia">{{ diaConsulta() }}</span>
+      <span class="consulta-card__mes">{{ mesAnioConsulta() }}</span>
+    </div>
+
+    <div class="consulta-card__contenido">
+      <header class="consulta-card__cabecera">
+        <div class="consulta-card__titular">
+          <h3 class="consulta-card__titulo">Consulta oftalmológica</h3>
+          <p class="consulta-card__meta">
+            <span class="consulta-card__oftalmologo">{{ nombreOftalmologo() }}</span>
+            @if (item.consulta.cita_id) {
+              <span class="consulta-card__separador" aria-hidden="true">·</span>
+              <span>Cita #{{ item.consulta.cita_id }}</span>
+            }
+          </p>
+        </div>
+
+        <span
+          class="consulta-card__estado"
+          [class.consulta-card__estado--activo]="item.consulta.estado"
+          [class.consulta-card__estado--inactivo]="!item.consulta.estado"
+        >
+          {{ etiquetaEstado(item.consulta.estado) }}
+        </span>
+      </header>
+
+      @if (item.consulta.motivo_consulta) {
+        <p class="consulta-card__motivo">
+          <span class="consulta-card__motivo-label">Motivo</span>
+          {{ item.consulta.motivo_consulta }}
+        </p>
+      }
+
+      <div class="consulta-card__diagnostico">
+        <span class="consulta-card__diagnostico-label">Diagnóstico</span>
+        @if (item.cargandoDiagnosticos) {
+          <span class="consulta-card__diagnostico-cargando">Cargando…</span>
+        } @else if (item.errorDiagnosticos) {
+          <span class="consulta-card__diagnostico-error">No disponible</span>
+        } @else if (diagnosticoPrincipal(); as principal) {
+          <span class="consulta-card__diagnostico-nombre">{{ principal.nombre }}</span>
+          @if (diagnosticosExtra() > 0) {
+            <span class="consulta-card__diagnostico-extra">+{{ diagnosticosExtra() }}</span>
+          }
+        } @else {
+          <span class="consulta-card__diagnostico-vacio">Sin diagnósticos registrados</span>
+        }
+      </div>
+
+      <button
+        type="button"
+        class="consulta-card__toggle"
+        [attr.aria-expanded]="abierto()"
+        [attr.aria-controls]="detalleId()"
+        (click)="alternarDetalle()"
+      >
+        {{ abierto() ? 'Ocultar detalle' : 'Ver detalle' }}
+        <svg
+          class="consulta-card__chevron"
+          xmlns="http://www.w3.org/2000/svg"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          stroke-width="2"
+          stroke-linecap="round"
+          stroke-linejoin="round"
+          aria-hidden="true"
+        >
+          <polyline points="6 9 12 15 18 9"></polyline>
+        </svg>
+      </button>
+
+      @if (abierto()) {
+        <div class="consulta-card__detalle" [id]="detalleId()">
+          <dl class="consulta-card__datos">
+            <div>
+              <dt>Fecha</dt>
+              <dd>{{ formatearFechaHora(item.consulta.fecha_consulta) }}</dd>
+            </div>
+            <div>
+              <dt>Oftalmólogo</dt>
+              <dd>{{ nombreOftalmologo() }}</dd>
+            </div>
+            <div>
+              <dt>Cita asociada</dt>
+              <dd>
+                {{ item.consulta.cita_id ? '#' + item.consulta.cita_id : 'Sin cita asociada' }}
+              </dd>
+            </div>
+          </dl>
+
+          <app-navegacion-clinica
+            [secciones]="secciones()"
+            [activo]="seccionActiva()"
+            (cambio)="cambiarSeccion($event)"
+          />
+
+          <div
+            class="consulta-card__panel"
+            role="tabpanel"
+            [id]="'consulta-panel-' + seccionActiva()"
+            [attr.aria-labelledby]="'consulta-tab-' + seccionActiva()"
+          >
+            @switch (seccionActiva()) {
+              @case ('diagnosticos') {
+                @if (item.cargandoDiagnosticos) {
+                  <p class="consulta-card__vacio" role="status">Cargando diagnósticos…</p>
+                } @else if (item.errorDiagnosticos) {
+                  <div class="consulta-card__error" role="alert">
+                    <p>{{ item.errorDiagnosticos }}</p>
+                    <button type="button" class="consulta-card__reintentar" (click)="reintentar()">
+                      Reintentar
+                    </button>
+                  </div>
+                } @else if (item.diagnosticos.length === 0) {
+                  <p class="consulta-card__vacio">Sin diagnósticos registrados</p>
+                } @else {
+                  <app-registro-navegador
+                    etiqueta="Diagnósticos"
+                    [indice]="diagnosticoActual()"
+                    [total]="item.diagnosticos.length"
+                    (anterior)="anteriorDiagnostico()"
+                    (siguiente)="siguienteDiagnostico()"
+                  >
+                    @for (
+                      diagnostico of item.diagnosticos.slice(
+                        diagnosticoActual(),
+                        diagnosticoActual() + 1
+                      );
+                      track diagnostico.id
+                    ) {
+                      <app-diagnostico-chip
+                        class="consulta-card__registro-actual"
+                        [diagnostico]="diagnostico"
+                      />
+                    }
+                  </app-registro-navegador>
+                }
+              }
+
+              @case ('tratamientos') {
+                @if (item.cargandoTratamientos) {
+                  <p class="consulta-card__vacio" role="status">Cargando tratamientos…</p>
+                } @else if (item.errorTratamientos) {
+                  <div class="consulta-card__error" role="alert">
+                    <p>{{ item.errorTratamientos }}</p>
+                    <button type="button" class="consulta-card__reintentar" (click)="reintentar()">
+                      Reintentar
+                    </button>
+                  </div>
+                } @else if (item.tratamientos.length === 0) {
+                  <p class="consulta-card__vacio">Sin tratamientos registrados</p>
+                } @else {
+                  <app-registro-navegador
+                    etiqueta="Tratamientos"
+                    [indice]="tratamientoActual()"
+                    [total]="item.tratamientos.length"
+                    (anterior)="anteriorTratamiento()"
+                    (siguiente)="siguienteTratamiento()"
+                  >
+                    @for (
+                      tratamiento of item.tratamientos.slice(
+                        tratamientoActual(),
+                        tratamientoActual() + 1
+                      );
+                      track tratamiento.id
+                    ) {
+                      <app-tratamiento-list
+                        class="consulta-card__registro-actual"
+                        [tratamientos]="[tratamiento]"
+                      />
+                    }
+                  </app-registro-navegador>
+                }
+              }
+
+              @case ('indicaciones') {
+                @if (item.cargandoIndicaciones) {
+                  <p class="consulta-card__vacio" role="status">Cargando indicaciones…</p>
+                } @else if (item.errorIndicaciones) {
+                  <div class="consulta-card__error" role="alert">
+                    <p>{{ item.errorIndicaciones }}</p>
+                    <button type="button" class="consulta-card__reintentar" (click)="reintentar()">
+                      Reintentar
+                    </button>
+                  </div>
+                } @else if (item.indicaciones.length === 0) {
+                  <p class="consulta-card__vacio">Sin indicaciones registradas</p>
+                } @else {
+                  <app-registro-navegador
+                    etiqueta="Indicaciones"
+                    [indice]="indicacionActual()"
+                    [total]="item.indicaciones.length"
+                    (anterior)="anteriorIndicacion()"
+                    (siguiente)="siguienteIndicacion()"
+                  >
+                    @for (
+                      indicacion of item.indicaciones.slice(
+                        indicacionActual(),
+                        indicacionActual() + 1
+                      );
+                      track indicacion.id
+                    ) {
+                      <app-indicacion-list
+                        class="consulta-card__registro-actual"
+                        [indicaciones]="[indicacion]"
+                        [compacto]="true"
+                      />
+                    }
+                  </app-registro-navegador>
+                }
+              }
+
+              @case ('recetas') {
+                @if (item.cargandoRecetas) {
+                  <p class="consulta-card__vacio" role="status">Cargando recetas…</p>
+                } @else if (item.errorRecetas) {
+                  <div class="consulta-card__error" role="alert">
+                    <p>{{ item.errorRecetas }}</p>
+                    <button type="button" class="consulta-card__reintentar" (click)="reintentar()">
+                      Reintentar
+                    </button>
+                  </div>
+                } @else if (item.recetas.length === 0) {
+                  <p class="consulta-card__vacio">Sin recetas registradas</p>
+                } @else {
+                  <app-registro-navegador
+                    etiqueta="Recetas"
+                    [indice]="recetaActual()"
+                    [total]="item.recetas.length"
+                    (anterior)="anteriorReceta()"
+                    (siguiente)="siguienteReceta()"
+                  >
+                    @for (
+                      receta of item.recetas.slice(recetaActual(), recetaActual() + 1);
+                      track receta.id
+                    ) {
+                      <app-receta-card
+                        class="consulta-card__registro-actual"
+                        [receta]="receta"
+                        [compacta]="true"
+                      />
+                    }
+                  </app-registro-navegador>
+                }
+              }
+
+              @case ('examenes') {
+                @if (item.cargandoExamenes) {
+                  <p class="consulta-card__vacio" role="status">Cargando exámenes…</p>
+                } @else if (item.errorExamenes) {
+                  <div class="consulta-card__error" role="alert">
+                    <p>{{ item.errorExamenes }}</p>
+                    <button type="button" class="consulta-card__reintentar" (click)="reintentar()">
+                      Reintentar
+                    </button>
+                  </div>
+                } @else if (item.examenes.length === 0) {
+                  <p class="consulta-card__vacio">Sin exámenes registrados</p>
+                } @else {
+                  <app-registro-navegador
+                    etiqueta="Exámenes"
+                    [indice]="examenActual()"
+                    [total]="item.examenes.length"
+                    (anterior)="anteriorExamen()"
+                    (siguiente)="siguienteExamen()"
+                  >
+                    @if (examenSeleccionado(); as examen) {
+                      <app-examen-card
+                        class="consulta-card__registro-actual"
+                        [examen]="examen"
+                        [resultados]="resultadosDelExamen()"
+                        [cargandoResultados]="item.cargandoResultados"
+                        [errorResultados]="item.errorResultados"
+                        (reintentarResultados)="reintentarResultados()"
+                      />
+                    }
+                  </app-registro-navegador>
+                }
+              }
+            }
+          </div>
+        </div>
+      }
+    </div>
+  </article>
+}

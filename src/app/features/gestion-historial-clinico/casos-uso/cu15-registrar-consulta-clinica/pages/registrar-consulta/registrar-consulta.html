@@ -1,0 +1,337 @@
+﻿<main class="consulta-page">
+  <div class="consulta-page__body">
+    <app-sidebar [mobileOpen]="sidebarMovilAbierto()" (mobileClose)="cerrarSidebar()" />
+
+    <div class="consulta-page__main">
+      <header class="consulta-page__main-header">
+        <button
+          type="button"
+          class="consulta-page__hamburger"
+          [attr.aria-expanded]="sidebarMovilAbierto()"
+          [attr.aria-label]="sidebarMovilAbierto() ? 'Cerrar menú' : 'Abrir menú'"
+          (click)="alternarSidebar()"
+        >
+          <span></span><span></span><span></span>
+        </button>
+      </header>
+
+      <div class="consulta-page__content">
+        <div class="consulta-page__cabecera">
+          <div>
+            <p class="consulta-page__eyebrow">Historial clínico</p>
+            <h1 class="consulta-page__titulo">Registrar consulta clínica</h1>
+            <p class="consulta-page__subtitulo">
+              Selecciona un paciente, revisa su historial y completa los datos de la consulta.
+            </p>
+          </div>
+        </div>
+
+        @if (consultaRegistrada(); as consulta) {
+          <section class="consulta-exito" role="status" aria-labelledby="exito-titulo">
+            <p class="consulta-page__eyebrow">Consulta registrada</p>
+            <h2 id="exito-titulo">La consulta clínica se registró correctamente.</h2>
+            <dl class="consulta-exito__datos">
+              <div><dt>Consulta</dt><dd>#{{ consulta.id }}</dd></div>
+              @if (pacienteSeleccionado(); as paciente) {
+                <div>
+                  <dt>Paciente</dt>
+                  <dd>{{ paciente.nombres }} {{ paciente.apellidos }}</dd>
+                </div>
+              }
+              <div><dt>Fecha</dt><dd>{{ formatearFechaHora(consulta.fecha_consulta) }}</dd></div>
+              <div><dt>Oftalmólogo</dt><dd>{{ nombreOftalmologo(consulta) }}</dd></div>
+              <div>
+                <dt>Cita</dt>
+                <dd>
+                  @if (consulta.cita_id) {
+                    #{{ consulta.cita_id }} · quedó marcada como Atendida
+                  } @else {
+                    Sin cita asociada
+                  }
+                </dd>
+              </div>
+            </dl>
+
+            @if (consulta.motivo_consulta) {
+              <p class="consulta-exito__motivo">
+                <strong>Motivo de consulta:</strong> {{ consulta.motivo_consulta }}
+              </p>
+            }
+
+            <div class="consulta-exito__acciones">
+              <button type="button" class="consulta-boton" (click)="registrarOtraConsulta()">
+                Registrar otra consulta
+              </button>
+            </div>
+          </section>
+        } @else {
+          <section class="consulta-selector" aria-labelledby="selector-titulo">
+            <div class="consulta-selector__encabezado">
+              <h2 id="selector-titulo">Paciente</h2>
+              <p>Busca por nombre, apellido o cédula y elige al paciente de la consulta.</p>
+            </div>
+            <div class="consulta-selector__controles">
+              <label class="consulta-selector__busqueda">
+                <span>Buscar paciente</span>
+                <input
+                  type="search"
+                  [value]="buscarTermino()"
+                  (input)="onBuscar($event)"
+                  placeholder="Nombre, apellido o cédula"
+                />
+              </label>
+              <label class="consulta-selector__select">
+                <span>Paciente</span>
+                <select
+                  [value]="pacienteId()"
+                  (change)="seleccionarPaciente($event)"
+                  [disabled]="cargandoPacientes() || pacientes().length === 0"
+                >
+                  <option value="">Seleccione un paciente</option>
+                  @for (paciente of pacientesFiltrados(); track paciente.id) {
+                    <option [value]="paciente.id">
+                      {{ paciente.nombres }} {{ paciente.apellidos }} · CI {{ paciente.ci }}
+                    </option>
+                  }
+                </select>
+              </label>
+            </div>
+          </section>
+
+          @if (cargandoPacientes()) {
+            <p class="consulta-page__estado" role="status">Cargando pacientes...</p>
+          } @else if (errorCargaPacientes()) {
+            <div class="consulta-page__estado consulta-page__estado--error" role="alert">
+              <p>No se pudieron cargar los pacientes. Verifica tu conexión e inténtalo nuevamente.</p>
+              <button type="button" class="consulta-boton consulta-boton--borde" (click)="reintentarPacientes()">
+                Reintentar
+              </button>
+            </div>
+          } @else if (!pacienteId()) {
+            <p class="consulta-page__estado" role="status">
+              Selecciona un paciente para continuar con el registro de la consulta.
+            </p>
+          } @else if (cargandoHistorial()) {
+            <p class="consulta-page__estado" role="status">Cargando historial clínico...</p>
+          } @else if (errorHistorial(); as mensaje) {
+            <div class="consulta-page__estado consulta-page__estado--error" role="alert">
+              <p>{{ mensaje }}</p>
+              <button type="button" class="consulta-boton consulta-boton--borde" (click)="reintentarHistorial()">
+                Reintentar
+              </button>
+            </div>
+          } @else if (pacienteSeleccionado(); as paciente) {
+            <section class="consulta-resumen" aria-labelledby="paciente-titulo">
+              <div class="consulta-resumen__titulo">
+                <div>
+                  <p class="consulta-page__eyebrow">Paciente seleccionado</p>
+                  <h2 id="paciente-titulo">{{ paciente.nombres }} {{ paciente.apellidos }}</h2>
+                </div>
+              </div>
+              <dl class="consulta-resumen__datos">
+                <div><dt>Cédula</dt><dd>{{ paciente.ci }}</dd></div>
+                <div><dt>Fecha de nacimiento</dt><dd>{{ formatearFecha(paciente.fecha_nacimiento) }}</dd></div>
+                <div><dt>Sexo</dt><dd>{{ paciente.sexo }}</dd></div>
+                <div><dt>Teléfono</dt><dd>{{ paciente.telefono }}</dd></div>
+              </dl>
+            </section>
+
+            @if (historial(); as registro) {
+              <section class="consulta-historial" aria-labelledby="historial-titulo">
+                <div class="consulta-historial__cabecera">
+                  <div>
+                    <p class="consulta-page__eyebrow">Registro clínico</p>
+                    <h2 id="historial-titulo">Historial y antecedentes</h2>
+                  </div>
+                  <p class="consulta-historial__fecha">
+                    Apertura: {{ formatearFecha(registro.fecha_apertura) }}
+                  </p>
+                </div>
+
+                @if (registro.observaciones_generales) {
+                  <div class="consulta-historial__observaciones">
+                    <h3>Observaciones generales</h3>
+                    <p>{{ registro.observaciones_generales }}</p>
+                  </div>
+                }
+
+                <div class="consulta-antecedentes">
+                  <div class="consulta-antecedentes__cabecera">
+                    <h3>Antecedentes clínicos</h3>
+                    <span>{{ registro.antecedentes.length }} registros</span>
+                  </div>
+                  @if (registro.antecedentes.length === 0) {
+                    <p class="consulta-page__estado">No hay antecedentes clínicos registrados.</p>
+                  } @else {
+                    <ul class="consulta-antecedentes__lista">
+                      @for (antecedente of registro.antecedentes; track antecedente.id) {
+                        <li>
+                          <div class="consulta-antecedentes__meta">
+                            <strong>{{ antecedente.tipo }}</strong>
+                            <time>{{ formatearFecha(antecedente.fecha_registro) }}</time>
+                          </div>
+                          <p>{{ antecedente.descripcion }}</p>
+                        </li>
+                      }
+                    </ul>
+                  }
+                </div>
+              </section>
+
+              <section class="consulta-citas" aria-labelledby="citas-titulo">
+                <div class="consulta-citas__encabezado">
+                  <h2 id="citas-titulo">Cita asociada (opcional)</h2>
+                  <p>
+                    Puedes vincular la consulta a una cita vigente del paciente o registrarla sin cita.
+                  </p>
+                </div>
+
+                <div class="consulta-citas__opciones" role="radiogroup" aria-label="Cita asociada">
+                  <label class="consulta-cita-opcion">
+                    <input
+                      type="radio"
+                      name="opcion-cita"
+                      value="sin-cita"
+                      [checked]="opcionCitaSeleccionada('sin-cita')"
+                      (change)="seleccionarOpcionCita('sin-cita')"
+                    />
+                    <span class="consulta-cita-opcion__texto">
+                      <strong>Sin cita asociada</strong>
+                      <small>La consulta se registra sin modificar ninguna cita.</small>
+                    </span>
+                  </label>
+
+                  @if (cargandoCitas()) {
+                    <p class="consulta-page__estado" role="status">Cargando citas del paciente...</p>
+                  } @else if (errorCitas(); as mensaje) {
+                    <div class="consulta-page__estado consulta-page__estado--error" role="alert">
+                      <p>{{ mensaje }}</p>
+                      <button type="button" class="consulta-boton consulta-boton--borde" (click)="reintentarCitas()">
+                        Reintentar
+                      </button>
+                    </div>
+                  } @else if (citas().length === 0) {
+                    <p class="consulta-page__estado" role="status">
+                      No hay citas vigentes para este paciente.
+                    </p>
+                  } @else {
+                    @for (cita of citas(); track cita.id) {
+                      <label class="consulta-cita-opcion">
+                        <input
+                          type="radio"
+                          name="opcion-cita"
+                          [value]="cita.id"
+                          [checked]="opcionCitaSeleccionada(cita.id)"
+                          (change)="seleccionarOpcionCita(cita.id)"
+                        />
+                        <span class="consulta-cita-opcion__texto">
+                          <strong>
+                            {{ fechaCita(cita.fecha) }} · {{ horaCita(cita.hora_inicio) }}–{{ horaCita(cita.hora_fin) }}
+                          </strong>
+                          <small>
+                            <span [class]="'consulta-cita-estado ' + claseEstado(cita.estado)">
+                              {{ etiquetaEstado(cita.estado) }}
+                            </span>
+                            @if (cita.motivo) {
+                              · {{ cita.motivo }}
+                            }
+                          </small>
+                        </span>
+                      </label>
+                    }
+                  }
+                </div>
+
+                <p class="consulta-citas__nota">
+                  Solo se aceptan citas propias del oftalmólogo autenticado y en estado Programada,
+                  Confirmada o En espera. El servidor valida esta condición.
+                </p>
+              </section>
+
+              <form class="consulta-form" [formGroup]="form" (ngSubmit)="registrar()" novalidate>
+                <div class="consulta-form__encabezado">
+                  <h2>Datos de la consulta</h2>
+                  <p>Los campos marcados con * son obligatorios.</p>
+                </div>
+
+                <label class="consulta-campo">
+                  <span>Motivo de consulta (opcional)</span>
+                  <input
+                    type="text"
+                    formControlName="motivo_consulta"
+                    [attr.maxlength]="motivoMax"
+                    placeholder="Motivo principal de la consulta"
+                  />
+                  <small class="consulta-campo__contador">
+                    {{ motivoLongitud() }}/{{ motivoMax }}
+                  </small>
+                  @if (campoInvalido('motivo_consulta')) {
+                    <small class="consulta-campo__error" role="alert">
+                      El motivo no puede superar los {{ motivoMax }} caracteres.
+                    </small>
+                  }
+                </label>
+
+                <label class="consulta-campo">
+                  <span>Anamnesis *</span>
+                  <textarea
+                    formControlName="anamnesis"
+                    rows="5"
+                    placeholder="Descripción clínica de la consulta"
+                  ></textarea>
+                  @if (campoInvalido('anamnesis')) {
+                    <small class="consulta-campo__error" role="alert">
+                      La anamnesis es obligatoria.
+                    </small>
+                  }
+                </label>
+
+                <label class="consulta-campo">
+                  <span>Observaciones (opcional)</span>
+                  <textarea
+                    formControlName="observaciones"
+                    rows="3"
+                    placeholder="Observaciones adicionales"
+                  ></textarea>
+                </label>
+
+                @if (errorEnvio(); as mensaje) {
+                  <div class="consulta-page__estado consulta-page__estado--error" role="alert">
+                    <p>{{ mensaje }}</p>
+                  </div>
+                }
+
+                <div class="consulta-form__acciones">
+                  <button type="submit" class="consulta-boton" [disabled]="!puedeRegistrar()">
+                    {{ enviando() ? 'Registrando consulta...' : 'Registrar consulta' }}
+                  </button>
+                </div>
+
+                <p class="consulta-form__aviso">
+                  La consulta se registra a nombre del oftalmólogo autenticado; no es necesario
+                  indicar identificadores internos.
+                </p>
+              </form>
+            } @else {
+              <div class="consulta-page__estado consulta-page__estado--bloqueo" role="alert">
+                <p>
+                  Este paciente no tiene un historial clínico disponible. No es posible registrar
+                  la consulta hasta que exista un historial clínico activo.
+                </p>
+              </div>
+            }
+          }
+        }
+      </div>
+    </div>
+  </div>
+
+  @if (sidebarMovilAbierto()) {
+    <button
+      type="button"
+      class="consulta-page__backdrop"
+      (click)="cerrarSidebar()"
+      aria-label="Cerrar menú"
+    ></button>
+  }
+</main>

@@ -3,7 +3,7 @@
   display: flex;
   background:
     radial-gradient(800px 420px at 90% 0%, rgba(56, 189, 248, 0.12), transparent 62%),
-    linear-gradient(180deg, #f4fafe 0%, var(--color-white) 100%);
+    linear-gradient(180deg, var(--color-app-bg-1) 0%, var(--color-app-bg-2) 100%);
 }
 
 .usuarios-page__body,
@@ -29,7 +29,7 @@
   justify-content: flex-end;
   gap: 0.75rem;
   padding: 0.9rem 1.5rem;
-  background: var(--color-white);
+  background: var(--color-surface);
   border-bottom: 1px solid var(--color-border-soft);
   box-shadow: var(--shadow-xs);
 }
@@ -43,8 +43,8 @@
   padding: 0;
   border: 1px solid var(--color-border);
   border-radius: var(--radius-sm);
-  background: var(--color-white);
-  color: var(--color-primary-dark);
+  background: var(--color-surface);
+  color: var(--color-heading);
   cursor: pointer;
   transition:
     background 0.2s ease,
@@ -66,7 +66,7 @@
   padding: 0.6rem 1.3rem;
   border: 1px solid var(--color-border);
   border-radius: var(--radius-sm);
-  background: var(--color-white);
+  background: var(--color-surface);
   color: var(--color-primary);
   font-size: 0.875rem;
   font-weight: 600;
@@ -111,7 +111,7 @@
 
 .usuarios-page__titulo {
   margin-bottom: 0.35rem;
-  color: var(--color-primary-dark);
+  color: var(--color-heading);
   font-size: 1.6rem;
   font-weight: 800;
 }
@@ -203,7 +203,7 @@
   padding: 0.45rem 1rem;
   border: 1px solid #fcd34d;
   border-radius: var(--radius-pill);
-  background: var(--color-white);
+  background: var(--color-surface);
   color: #92400e;
   font-size: 0.8125rem;
   font-weight: 700;
@@ -217,7 +217,7 @@
 }
 
 .usuarios-page__reintentar--estado {
-  border-color: #fecaca;
+  border-color: var(--color-danger-border);
   color: #dc2626;
 }
 
@@ -235,7 +235,7 @@
   padding: 0.9rem 1.1rem;
   border: 1px solid var(--color-border-soft);
   border-radius: var(--radius-md);
-  background: var(--color-white);
+  background: var(--color-surface);
   box-shadow: var(--shadow-xs);
 }
 
@@ -278,7 +278,7 @@
 .usuarios-page__busqueda-input:focus {
   outline: none;
   border-color: var(--color-primary);
-  background: var(--color-white);
+  background: var(--color-surface);
   box-shadow: 0 0 0 4px rgba(37, 99, 235, 0.12);
 }
 
@@ -341,7 +341,7 @@
 }
 
 .usuarios-page__filtro--activo {
-  background: var(--color-white);
+  background: var(--color-surface);
   color: var(--color-primary);
   box-shadow: var(--shadow-xs);
 }
@@ -361,8 +361,8 @@
 
 .usuarios-page__estado--error {
   color: #dc2626;
-  background: #fef2f2;
-  border-color: #fecaca;
+  background: var(--color-danger-bg);
+  border-color: var(--color-danger-border);
 }
 
 .usuarios-page__spinner {
@@ -415,9 +415,9 @@
 }
 
 .usuarios-page__toast--error {
-  background: #fef2f2;
+  background: var(--color-danger-bg);
   color: #dc2626;
-  border: 1px solid #fecaca;
+  border: 1px solid var(--color-danger-border);
 }
 
 @keyframes usuarios-page-girar {
@@ -482,5 +482,12 @@
 @media (prefers-reduced-motion: reduce) {
   .usuarios-page__toast {
     animation-duration: 0.01ms !important;
+  }
+}
+
+/* El header solo aporta la hamburguesa en movil: en escritorio no se muestra. */
+@media (min-width: 821px) {
+  .usuarios-page__main-header {
+    display: none;
   }
 }

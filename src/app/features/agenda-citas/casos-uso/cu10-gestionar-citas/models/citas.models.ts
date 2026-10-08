@@ -206,38 +206,37 @@ export function formatearFechaSelector(fecha: string): string {
 }
 
 /**
- * Genera las opciones reservables a partir de los intervalos libres que
- * devuelve CU09 (que no trae slots individuales, sino rangos libres).
+ * Duración oficial de una cita médica, en minutos.
  *
- * CU10 tiene una regla de negocio real de duración fija de 1 hora por cita
- * (backend: hora_fin = hora_inicio + 1 h). Por eso cada intervalo libre se
- * transforma en TODOS los slots consecutivos de 1 hora que caben dentro de él,
- * sin generar nunca un slot cuyo fin sobrepase el `hora_fin` del intervalo.
+ * Debe coincidir con `DURACION_CITA_MINUTOS` del backend FastAPI: el backend
+ * genera los turnos de disponibilidad con este paso y calcula
+ * `hora_fin = hora_inicio + DURACION_CITA_MINUTOS` al registrar la cita.
+ */
+export const DURACION_CITA_MINUTOS = 30;
+
+/** Etiqueta corta de la duración oficial ('30 min'), lista para mostrar en la UI. */
+export const ETIQUETA_DURACION_CITA = `${DURACION_CITA_MINUTOS} min`;
+
+/**
+ * Opciones reservables que se ofrecen al registrar o reprogramar una cita.
+ *
+ * El backend ya entrega `intervalos_disponibles` como turnos individuales de
+ * `DURACION_CITA_MINUTOS` (30 min), por ejemplo:
+ *   { "hora_inicio": "08:00:00", "hora_fin": "08:30:00" }
+ *   { "hora_inicio": "08:30:00", "hora_fin": "09:00:00" }
+ *
+ * Por eso estos turnos se usan directamente: NO se vuelven a dividir ni se
+ * exige una duración distinta a la del backend. Cada turno se conserva tal
+ * cual (mismas claves `hora_inicio` / `hora_fin` que espera la API) y solo se
+ * ordena cronológicamente para presentarlo en el selector de horarios.
  */
 export function horariosReservables(intervalos: IntervaloCita[]): IntervaloCita[] {
-  const opciones: IntervaloCita[] = [];
-  for (const intervalo of intervalos) {
-    const inicio = minutosDesdeMedianoche(intervalo.hora_inicio);
-    const fin = minutosDesdeMedianoche(intervalo.hora_fin);
-    let slotInicio = inicio;
-    while (slotInicio + 60 <= fin) {
-      opciones.push({
-        hora_inicio: minutosAHora(slotInicio),
-        hora_fin: minutosAHora(slotInicio + 60),
-      });
-      slotInicio += 60;
-    }
-  }
-  return opciones;
+  return [...intervalos].sort(
+    (a, b) => minutosDesdeMedianoche(a.hora_inicio) - minutosDesdeMedianoche(b.hora_inicio),
+  );
 }
 
 function minutosDesdeMedianoche(hora: string): number {
   const [horas = '0', minutos = '0'] = hora.split(':');
   return Number(horas) * 60 + Number(minutos);
-}
-
-function minutosAHora(minutos: number): string {
-  const horas = Math.floor(minutos / 60);
-  const mins = minutos % 60;
-  return `${String(horas).padStart(2, '0')}:${String(mins).padStart(2, '0')}`;
 }
