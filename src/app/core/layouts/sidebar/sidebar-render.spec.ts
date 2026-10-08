@@ -117,6 +117,33 @@ describe('Sidebar — render, permisos y sesión', () => {
     expect(texto()).not.toContain('Gestionar perfil propio');
   });
 
+  it('muestra CU21 solo como función anidada cuando llega en el menú', () => {
+    responderMenu([
+      {
+        id: 8,
+        nombre: 'Configuración clínica',
+        funciones: [
+          {
+            id: 81,
+            nombre: 'Gestionar servicios oftalmológicos',
+            accion_id: 1,
+            accion_nombre: 'LECTURA',
+          },
+        ],
+      },
+    ]);
+
+    expect(fixture.nativeElement.querySelector('a[routerLink="/gestion-servicios"]')).toBeNull();
+    (fixture.nativeElement.querySelector('.sidebar__link--button') as HTMLButtonElement).click();
+    fixture.detectChanges();
+
+    const enlace = fixture.nativeElement.querySelector(
+      '.sidebar__submenu-link[href="/gestion-servicios"]',
+    ) as HTMLAnchorElement | null;
+    expect(enlace).toBeTruthy();
+    expect(enlace?.textContent).toContain('Gestionar servicios oftalmológicos');
+  });
+
   it('abre y cierra el acordeón del módulo', () => {
     responderMenu();
     const boton = fixture.nativeElement.querySelector(

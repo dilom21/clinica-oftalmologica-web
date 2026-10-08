@@ -171,6 +171,14 @@ export const routes: Routes = [
   canActivate: [authGuard],
   },
   {
+    path: 'gestion-servicios',
+    loadComponent: () =>
+      import(
+        './features/gestion-servicios/casos-uso/cu21-gestionar-servicios/pages/gestion-servicios/gestion-servicios'
+      ).then((m) => m.GestionServicios),
+    canActivate: [authGuard],
+  },
+  {
     path: 'reportes',
     loadComponent: () =>
       import('./features/reportes/pages/reportes/reportes').then((m) => m.Reportes),

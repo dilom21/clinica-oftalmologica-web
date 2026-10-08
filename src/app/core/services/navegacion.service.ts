@@ -9,6 +9,13 @@ import { Injectable } from '@angular/core';
  */
 @Injectable({ providedIn: 'root' })
 export class NavegacionService {
+  private readonly nombresGestionServicios = new Set([
+    'gestionar servicio oftalmologico',
+    'gestionar servicio oftalmologicos',
+    'gestionar servicios oftalmologico',
+    'gestionar servicios oftalmologicos',
+  ]);
+
   /** Funciones que no deben aparecer en la navegación web. */
   private readonly funcionesOcultasWeb: ReadonlyArray<RegExp> = [
     /perfil\s+propio/i,
@@ -60,6 +67,7 @@ export class NavegacionService {
     { icono: 'inventario', claves: ['inventario', 'proveedor'] },
     { icono: 'pagos', claves: ['pago'] },
     { icono: 'reportes', claves: ['reporte'] },
+    { icono: 'servicios', claves: ['servicio oftalmol', 'servicios oftalmol'] },
   ];
 
   /** Icono por función; el orden importa (primero las coincidencias específicas). */
@@ -67,6 +75,7 @@ export class NavegacionService {
     icono: string;
     claves: ReadonlyArray<string>;
   }> = [
+    { icono: 'servicios', claves: ['servicio oftalmol', 'servicios oftalmol'] },
     { icono: 'citas', claves: ['historial de citas'] },
     { icono: 'examen', claves: ['examen', 'exámen'] },
     { icono: 'antecedentes', claves: ['antecedente'] },
@@ -95,6 +104,10 @@ export class NavegacionService {
   /** Ruta web asociada a una función del backend, o `null` si no aplica. */
   rutaDeFuncion(nombre: string): string | null {
     const clave = (nombre ?? '').toLowerCase().trim();
+
+    if (this.nombresGestionServicios.has(this.normalizarNombre(clave))) {
+      return '/gestion-servicios';
+    }
 
     if (this.rutasFunciones.has(clave)) {
       return this.rutasFunciones.get(clave)!;
@@ -175,18 +188,27 @@ export class NavegacionService {
     return null;
   }
 
+  private normalizarNombre(valor: string): string {
+    return valor
+      .normalize('NFD')
+      .replace(/[\u0300-\u036f]/g, '')
+      .replace(/\s+/g, ' ')
+      .trim()
+      .toLowerCase();
+  }
+
   iconoDeModulo(nombre: string): string {
-    const clave = (nombre ?? '').toLowerCase();
+    const clave = this.normalizarNombre(nombre ?? '');
     const coincidencia = this.iconosModulo.find((grupo) =>
-      grupo.claves.some((texto) => clave.includes(texto)),
+      grupo.claves.some((texto) => clave.includes(this.normalizarNombre(texto))),
     );
     return coincidencia?.icono ?? 'modulo';
   }
 
   iconoDeFuncion(nombre: string): string {
-    const clave = (nombre ?? '').toLowerCase();
+    const clave = this.normalizarNombre(nombre ?? '');
     const coincidencia = this.iconosFuncion.find((grupo) =>
-      grupo.claves.some((texto) => clave.includes(texto)),
+      grupo.claves.some((texto) => clave.includes(this.normalizarNombre(texto))),
     );
     return coincidencia?.icono ?? 'documento';
   }

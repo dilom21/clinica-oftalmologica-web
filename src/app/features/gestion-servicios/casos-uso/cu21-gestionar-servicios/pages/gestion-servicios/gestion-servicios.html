@@ -1,0 +1,144 @@
+<main class="servicios-page">
+  <app-sidebar [mobileOpen]="sidebarMovilAbierto()" (mobileClose)="cerrarSidebar()" />
+
+  <section class="servicios-page__main">
+    <header class="servicios-page__topbar">
+      <button
+        type="button"
+        class="servicios-page__hamburger"
+        [attr.aria-expanded]="sidebarMovilAbierto()"
+        (click)="alternarSidebar()"
+        aria-label="Abrir o cerrar menú"
+      >
+        ☰
+      </button>
+    </header>
+
+    <div class="servicios-page__content">
+      <header class="servicios-page__hero">
+        <div>
+          <p class="servicios-page__eyebrow">CU21 · Configuración clínica</p>
+          <h1>Servicios oftalmológicos</h1>
+          <p>Consulta y administra el catálogo de prestaciones ofrecidas por la clínica.</p>
+        </div>
+        @if (puedeEscribir()) {
+          <button type="button" class="btn btn--primary" (click)="abrirModalNuevo()">
+            Nuevo servicio
+          </button>
+        }
+      </header>
+
+      @if (estadoPermiso() === 'verificando') {
+        <div class="estado" role="status">Verificando los permisos del menú…</div>
+      } @else if (estadoPermiso() === 'error') {
+        <div class="estado estado--error" role="alert">
+          <p>No se pudieron verificar tus permisos para CU21.</p>
+          <button type="button" class="btn btn--secondary" (click)="reintentarPermisos()">
+            Reintentar
+          </button>
+        </div>
+      } @else if (estadoPermiso() === 'denegado') {
+        <div class="estado estado--error" role="alert">
+          Tu rol no tiene habilitada la función “Gestionar servicios oftalmológicos”. No se
+          realizó ninguna consulta del catálogo.
+        </div>
+      } @else {
+        @if (!puedeEscribir()) {
+          <p class="estado estado--info" role="status">
+            Acceso de solo lectura. Las acciones de creación, edición y desactivación no están
+            habilitadas por tu permiso del menú.
+          </p>
+        }
+
+        @if (error(); as mensaje) {
+          <div class="estado estado--error" role="alert">
+            <span>{{ mensaje }}</span>
+            <button type="button" class="btn btn--secondary" (click)="cargarServicios()">
+              Reintentar carga
+            </button>
+          </div>
+        }
+        @if (exito(); as mensaje) {
+          <p class="estado estado--success" role="status">{{ mensaje }}</p>
+        }
+
+        @if (cargando()) {
+          <div class="estado" role="status">Cargando servicios…</div>
+        } @else {
+          <div class="tabla-contenedor">
+            <table>
+              <thead>
+                <tr>
+                  <th scope="col">Nombre</th>
+                  <th scope="col">Descripción</th>
+                  <th scope="col">Precio base</th>
+                  <th scope="col">Duración</th>
+                  <th scope="col">Estado</th>
+                  @if (puedeEscribir()) { <th scope="col">Acciones</th> }
+                </tr>
+              </thead>
+              <tbody>
+                @for (servicio of servicios(); track servicio.id ?? servicio.nombre) {
+                  <tr>
+                    <td class="nombre">{{ servicio.nombre }}</td>
+                    <td>{{ servicio.descripcion }}</td>
+                    <td>Bs {{ servicio.precio_base | number: '1.2-2' }}</td>
+                    <td>{{ servicio.duracion_estimada }} min</td>
+                    <td>
+                      <span class="badge" [class.badge--inactive]="!servicio.estado">
+                        {{ servicio.estado ? 'Activo' : 'Inactivo' }}
+                      </span>
+                    </td>
+                    @if (puedeEscribir()) {
+                      <td class="acciones">
+                        <button type="button" class="btn btn--secondary" (click)="abrirModalEditar(servicio)">
+                          Editar
+                        </button>
+                        @if (servicio.estado) {
+                          <button type="button" class="btn btn--danger" (click)="desactivarServicio(servicio)">
+                            Desactivar
+                          </button>
+                        }
+                      </td>
+                    }
+                  </tr>
+                } @empty {
+                  <tr><td [attr.colspan]="puedeEscribir() ? 6 : 5" class="vacio">No hay servicios registrados.</td></tr>
+                }
+              </tbody>
+            </table>
+          </div>
+        }
+      }
+    </div>
+  </section>
+
+  @if (sidebarMovilAbierto()) {
+    <button type="button" class="servicios-page__backdrop" (click)="cerrarSidebar()" aria-label="Cerrar menú"></button>
+  }
+
+  @if (mostrarModal()) {
+    <div class="modal" role="presentation">
+      <section class="modal__card" role="dialog" aria-modal="true" aria-labelledby="servicio-modal-titulo">
+        <h2 id="servicio-modal-titulo">
+          {{ servicioEnEdicion() ? 'Editar servicio' : 'Nuevo servicio' }}
+        </h2>
+        <form [formGroup]="form" (ngSubmit)="guardarServicio()">
+          <label>Nombre <input type="text" formControlName="nombre" maxlength="120" /></label>
+          <label>Descripción <textarea formControlName="descripcion" rows="3"></textarea></label>
+          <div class="modal__grid">
+            <label>Precio base (Bs) <input type="number" formControlName="precio_base" min="0" step="0.01" /></label>
+            <label>Duración (min) <input type="number" formControlName="duracion_estimada" min="1" step="1" /></label>
+          </div>
+          <label class="check"><input type="checkbox" formControlName="estado" /> Servicio activo</label>
+          <div class="modal__actions">
+            <button type="button" class="btn btn--secondary" [disabled]="guardando()" (click)="cerrarModal()">Cancelar</button>
+            <button type="submit" class="btn btn--primary" [disabled]="guardando()">
+              {{ guardando() ? 'Guardando…' : 'Guardar' }}
+            </button>
+          </div>
+        </form>
+      </section>
+    </div>
+  }
+</main>

@@ -1,6 +1,5 @@
 import { Component, computed, inject, OnInit, signal } from '@angular/core';
 import { Router } from '@angular/router';
-import { catchError, of } from 'rxjs';
 import { AuthService } from '../../../../../../features/autenticacion-seguridad/Auth/services/auth.service';
 import { Sidebar } from '../../../../../../core/layouts/sidebar/sidebar';
 import { PacientesTable } from '../../components/pacientes-table/pacientes-table';
@@ -64,13 +63,13 @@ export class GestionPacientes implements OnInit {
 
     this.pacientesService
       .listarPacientes()
-      .pipe(catchError(() => of([])))
       .subscribe({
         next: (pacientes) => {
           this.pacientes.set(pacientes);
           this.cargando.set(false);
         },
         error: () => {
+          this.pacientes.set([]);
           this.cargando.set(false);
           this.errorCarga.set(true);
         },

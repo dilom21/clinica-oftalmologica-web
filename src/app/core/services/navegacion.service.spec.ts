@@ -35,6 +35,20 @@ describe('NavegacionService — funciones del menú', () => {
     expect(servicio.rutaDeFuncion('Usar asistencia clínica IA')).toBeNull();
   });
 
+  it('resuelve únicamente variantes seguras de la función CU21', () => {
+    expect(servicio.rutaDeFuncion('Gestionar servicios oftalmológicos')).toBe(
+      '/gestion-servicios',
+    );
+    expect(servicio.rutaDeFuncion('Gestionar servicio oftalmologico')).toBe(
+      '/gestion-servicios',
+    );
+    expect(servicio.rutaDeFuncion('Gestionar servicios oftalmologico')).toBe(
+      '/gestion-servicios',
+    );
+    expect(servicio.rutaDeFuncion('Consultar servicios oftalmológicos')).toBeNull();
+    expect(servicio.rutaDeFuncion('Gestionar servicios generales')).toBeNull();
+  });
+
   it('oculta "Gestionar perfil propio" de la navegación web', () => {
     expect(servicio.estaOcultaEnWeb('Gestionar perfil propio')).toBe(true);
     expect(servicio.estaOcultaEnWeb('GESTIONAR PERFIL PROPIO')).toBe(true);
@@ -48,6 +62,7 @@ describe('NavegacionService — funciones del menú', () => {
     expect(servicio.iconoDeFuncion('Programar controles médicos')).toBe('agenda');
     expect(servicio.iconoDeFuncion('Tratamientos, indicaciones y recetas')).toBe('tratamiento');
     expect(servicio.iconoDeFuncion('Gestionar roles y permisos')).toBe('roles');
+    expect(servicio.iconoDeFuncion('Gestionar servicios oftalmológicos')).toBe('servicios');
     expect(servicio.iconoDeFuncion('Función desconocida')).toBe('documento');
   });
 });
