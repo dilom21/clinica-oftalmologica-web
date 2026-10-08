@@ -3,6 +3,9 @@ export interface LoginRequest {
   password: string;
 }
 
+export interface TenantCompany { codigo: string; nombre: string; }
+export interface TenantLoginRequest extends LoginRequest { empresa_codigo: string; }
+
 export interface LoginResponse {
   access_token: string;
   token_type: string;
@@ -30,7 +33,6 @@ export const ID_ROL_USUARIO = {
 
 export type IdRolUsuario =
   (typeof ID_ROL_USUARIO)[keyof typeof ID_ROL_USUARIO];
-
 /** Nombre legible de cada rol, alineado con `ID_ROL_USUARIO`. */
 export const NOMBRE_ROL_USUARIO: Readonly<Record<number, string>> = {
   [ID_ROL_USUARIO.ADMINISTRADOR]: 'Administrador',

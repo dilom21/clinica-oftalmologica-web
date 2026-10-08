@@ -1,7 +1,8 @@
 import { Component, computed, inject, OnInit, signal } from '@angular/core';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { Router } from '@angular/router';
-import { catchError, of } from 'rxjs';
+import { catchError, filter, merge, of, Subscription, take } from 'rxjs';
+import { HttpErrorResponse } from '@angular/common/http';
 
 import { Sidebar } from '../../../../../../core/layouts/sidebar/sidebar';
 import { AuthService } from '../../../../../../features/autenticacion-seguridad/Auth/services/auth.service';
@@ -27,6 +28,9 @@ import {
   MOTIVO_CONSULTA_MAX_LENGTH,
 } from '../../models/consulta-clinica.models';
 import { ConsultaClinicaService } from '../../services/consulta-clinica.service';
+import { IaClinicaService } from '../../../../services/ia-clinica.service';
+import { AnalisisConsultaIa } from '../../../../services/ia-clinica.models';
+import { VoiceRecognitionService } from '../../../../../../shared/services/voice-recognition.service';
 
 type OpcionCita = 'sin-cita' | number;
 type ContextoError = 'historial' | 'citas' | 'envio';
@@ -69,6 +73,10 @@ export class RegistrarConsulta implements OnInit {
   protected readonly enviando = signal(false);
   protected readonly errorEnvio = signal<string | null>(null);
   protected readonly consultaRegistrada = signal<ConsultaClinicaRespuesta | null>(null);
+  protected readonly analisisIa = signal<AnalisisConsultaIa | null>(null);
+  protected readonly analizandoIa = signal(false);
+  protected readonly errorIa = signal<string | null>(null);
+  protected readonly campoDictando = signal<string | null>(null);
 
   protected readonly motivoMax = MOTIVO_CONSULTA_MAX_LENGTH;
   protected readonly motivoLongitud = signal(0);
@@ -108,8 +116,48 @@ export class RegistrarConsulta implements OnInit {
   private readonly historialClinicoService = inject(HistorialClinicoService);
   private readonly citasService = inject(CitasService);
   private readonly consultaClinicaService = inject(ConsultaClinicaService);
+  private readonly iaClinicaService = inject(IaClinicaService);
   private readonly authService = inject(AuthService);
   private readonly router = inject(Router);
+  private readonly voice = inject(VoiceRecognitionService);
+  private dictationSubscription: Subscription | null = null;
+
+  protected vozSoportada(): boolean { return this.voice.isSupported(); }
+  protected vozEstado(): string { return this.voice.state(); }
+  protected vozError(): string | null { return this.voice.mensajeError(); }
+
+  protected dictarCampo(campo: 'motivo_consulta' | 'anamnesis' | 'observaciones'): void {
+    this.dictationSubscription?.unsubscribe();
+    this.dictationSubscription = null;
+    this.campoDictando.set(campo);
+    let sessionId = 0;
+    this.dictationSubscription = merge(this.voice.results$, this.voice.terminal$).pipe(
+      filter((event) => event.sessionId === sessionId),
+      take(1),
+    ).subscribe((event) => {
+      if ('transcript' in event) {
+        const control = this.form.controls[campo];
+        const current = control.value.trim();
+        control.setValue(current ? `${current}\n${event.transcript}` : event.transcript);
+        control.markAsDirty();
+      }
+      this.dictationSubscription = null;
+      this.campoDictando.set(null);
+    });
+    sessionId = this.voice.start({ fallbackLang: 'es-ES' });
+    if (!this.voice.isSupported()) {
+      this.dictationSubscription.unsubscribe();
+      this.dictationSubscription = null;
+      this.campoDictando.set(null);
+    }
+  }
+
+  protected detenerDictado(): void {
+    this.voice.stop();
+    this.dictationSubscription?.unsubscribe();
+    this.dictationSubscription = null;
+    this.campoDictando.set(null);
+  }
 
   ngOnInit(): void {
     this.formularioValido.set(this.form.valid);
@@ -310,12 +358,35 @@ export class RegistrarConsulta implements OnInit {
   protected registrarOtraConsulta(): void {
     const pacienteId = Number(this.pacienteId());
     this.consultaRegistrada.set(null);
+    this.analisisIa.set(null);
+    this.errorIa.set(null);
     this.errorEnvio.set(null);
     this.reiniciarFormulario();
     this.opcionCita.set('sin-cita');
 
     if (pacienteId) {
       this.cargarCitas(pacienteId);
+    }
+  }
+
+  protected analizarConsultaIa(): void {
+    const id = this.consultaRegistrada()?.id;
+    if (!id || this.analizandoIa()) return;
+    this.analizandoIa.set(true);
+    this.errorIa.set(null);
+    this.analisisIa.set(null);
+    this.iaClinicaService.analizarConsulta(id).subscribe({
+      next: (resultado) => { this.analisisIa.set(resultado); this.analizandoIa.set(false); },
+      error: (error: unknown) => { this.errorIa.set(this.mensajeErrorIa(error)); this.analizandoIa.set(false); },
+    });
+  }
+
+  private mensajeErrorIa(error: unknown): string {
+    switch (error instanceof HttpErrorResponse ? error.status : 0) {
+      case 403: return 'No tienes autorización para utilizar IA sobre esta consulta.';
+      case 502: return 'La IA devolvió una respuesta que no pudo procesarse.';
+      case 503: return 'El servicio de IA no está disponible en este momento.';
+      default: return 'No se pudo completar la asistencia con IA.';
     }
   }
 

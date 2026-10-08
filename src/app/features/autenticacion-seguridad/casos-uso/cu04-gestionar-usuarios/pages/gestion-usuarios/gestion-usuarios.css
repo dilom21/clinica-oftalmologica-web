@@ -438,7 +438,7 @@
 }
 
 /* ===== Responsive ===== */
-@media (hover: none), (max-width: 768px) {
+@media (max-width: 820px) {
   .usuarios-page__hamburger {
     display: inline-flex;
   }

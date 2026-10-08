@@ -1,0 +1,146 @@
+<main class="reportes-page">
+  <div class="reportes-page__body">
+    <app-sidebar [mobileOpen]="sidebarMovilAbierto()" (mobileClose)="cerrarSidebar()" />
+    <div class="reportes-page__main">
+      <header class="reportes-page__header">
+        <button class="reportes-page__hamburger" type="button" (click)="alternarSidebar()" aria-label="Abrir menú">☰</button>
+        <button class="reportes-page__logout" type="button" (click)="cerrarSesion()">Cerrar sesión</button>
+      </header>
+       <section class="reportes-page__content">
+         <section class="reportes-hero" aria-labelledby="reportes-title">
+           <p class="reportes-hero__eyebrow">ADMINISTRACIÓN · INFORMACIÓN AUTORIZADA</p>
+           <h1 id="reportes-title">Reportes y Analítica</h1>
+            <p>Consulta, filtra y exporta información autorizada de la clínica.</p>
+            <button class="reportes-button reportes-button--voice" type="button" aria-label="Crear reporte por voz" title="Crear reporte por voz" (click)="abrirVoz()">🎙 Consultar por voz</button>
+         </section>
+
+        @if (cargandoCatalogo()) {
+          <p class="reportes-state" role="status">Cargando catálogo de reportes...</p>
+        } @else {
+           <div class="reportes-tabs" role="tablist" aria-label="Tipo de reporte">
+            <button type="button" role="tab" [attr.aria-selected]="modo() === 'estatico'" [class.active]="modo() === 'estatico'" (click)="seleccionarModo('estatico')">Reportes estáticos</button>
+            <button type="button" role="tab" [attr.aria-selected]="modo() === 'dinamico'" [class.active]="modo() === 'dinamico'" (click)="seleccionarModo('dinamico')">Reporte personalizado</button>
+          </div>
+
+           @if (modo() === 'estatico') {
+             <section class="reportes-card reportes-static" aria-labelledby="static-title">
+               <div class="reportes-card__heading"><div><p class="reportes-card__eyebrow">CATÁLOGO AUTORIZADO</p><h2 id="static-title">Elige un reporte</h2></div><span class="reportes-muted">{{ catalogo().staticReports.length }} disponibles</span></div>
+               <div class="reportes-static-grid" role="list" aria-label="Reportes estáticos">
+                 @for (reporte of catalogo().staticReports; track reporte.key) {
+                   <button class="reportes-static-card" [class.is-selected]="reporte.key === reporteKey()" type="button" role="listitem" (click)="seleccionarReporte(reporte.key)" [attr.aria-pressed]="reporte.key === reporteKey()">
+                     <span class="reportes-static-card__icon" aria-hidden="true">{{ reporteIcon(reporte) }}</span>
+                     <span class="reportes-static-card__body"><strong>{{ reporteLabel(reporte) }}</strong><span>{{ reporte.description || 'Información definida por el catálogo del sistema.' }}</span></span>
+                     <span class="reportes-static-card__check" aria-hidden="true">{{ reporte.key === reporteKey() ? '✓' : '○' }}</span>
+                   </button>
+                 } @empty { <p class="reportes-empty">No hay reportes estáticos disponibles.</p> }
+               </div>
+               @if (reporteActual(); as reporte) {
+                 <div class="reportes-selected-config"><div><p class="reportes-card__eyebrow">CONFIGURACIÓN SELECCIONADA</p><h3>{{ reporteLabel(reporte) }}</h3></div><span class="reportes-badge">Columnas fijas</span></div>
+                 <p class="reportes-description">{{ reporte.description || 'Este reporte utiliza una selección de columnas definida por el sistema.' }}</p>
+                 <div class="reportes-chips" aria-label="Columnas fijas">@for (column of reporte.columns; track column.key) { <span class="reportes-chip">{{ column.label }}</span> }</div>
+               }
+             </section>
+           } @else {
+             <section class="reportes-card reportes-configurator">
+               <div class="reportes-card__heading"><div><p class="reportes-card__eyebrow">CONFIGURADOR</p><h2>Reporte personalizado</h2><p class="reportes-muted">Construye una vista con los campos autorizados.</p></div></div>
+               <div class="reportes-config-block"><div class="reportes-block-heading"><div><h3>Fuente de datos</h3><p class="reportes-muted">Selecciona el conjunto de información.</p></div></div>
+               <label for="dataset-select">Dataset
+                <select id="dataset-select" [ngModel]="datasetKey()" (ngModelChange)="seleccionarDataset($event)">
+                  <option value="">Selecciona un dataset</option>
+                  @for (dataset of catalogo().datasets; track dataset.key) { <option [value]="dataset.key">{{ dataset.label }}</option> }
+                </select>
+              </label>
+                @if (datasetActual(); as dataset) {
+                 <fieldset><legend>Columnas <span class="reportes-count">{{ columnas().length }} seleccionadas</span></legend>
+                  <div class="reportes-checks">@for (field of dataset.fields; track field.key) { <label><input type="checkbox" [checked]="columnas().includes(field.key)" (change)="alternarColumna(field.key, $any($event.target).checked)" /> <span>{{ field.label }}</span> @if (field.default) { <small>predeterminada</small> }</label> }</div>
+                </fieldset>
+                @if (!columnas().length) { <p class="reportes-inline-error">Selecciona al menos una columna para continuar.</p> }
+                }</div>
+                <label class="reportes-limit" for="report-limit">Límite de resultados
+                  <input id="report-limit" type="number" min="1" max="200" [ngModel]="limite() ?? 50" (ngModelChange)="limite.set(+$event)" />
+                </label>
+              </section>
+          }
+
+          <section class="reportes-card">
+             <div class="reportes-section-title"><div><p class="reportes-card__eyebrow">CONFIGURACIÓN</p><h2>Filtros</h2><p class="reportes-muted">Opcionales; los valores incompletos no se envían.</p></div><button class="reportes-button reportes-button--secondary" type="button" (click)="agregarFiltro()">+ Agregar filtro</button></div>
+             @if (!filtros().length) { <p class="reportes-empty">No agregaste filtros. Puedes generar el reporte completo o limitar los resultados.</p> }
+            @for (filtro of filtros(); track $index; let index = $index) {
+              <div class="reportes-filter">
+                <label>Campo<select [ngModel]="filtro.field" (ngModelChange)="cambiarCampoFiltro(index, $event)">@for (field of (modo() === 'dinamico' ? camposDinamicos() : camposEstaticos()); track field.key) { <option [value]="field.key">{{ field.label }}</option> }</select></label>
+                <label>Operador<select [ngModel]="filtro.operator" (ngModelChange)="cambiarOperadorFiltro(index, $event)">@for (operator of (campoFiltro(filtro)?.operators ?? []); track operator) { <option [value]="operator">{{ operator }}</option> }</select></label>
+                <label class="reportes-filter__value">Valor
+                  @if (esBooleano(filtro)) { <select [ngModel]="filtro.valueText" (ngModelChange)="filtro.valueText = $event"><option value="">Selecciona</option><option value="true">Sí</option><option value="false">No</option></select> } @else { <input [type]="esFecha(filtro) ? 'date' : 'text'" [placeholder]="esIn(filtro) ? 'valores separados por coma' : 'Valor'" [(ngModel)]="filtro.valueText" /> }
+                </label>
+                 @if (esBetween(filtro)) { <label>Hasta<input [type]="esFecha(filtro) ? 'date' : 'text'" placeholder="Valor final" [(ngModel)]="filtro.valueText2" /></label> }
+                <button class="reportes-remove" type="button" aria-label="Eliminar filtro" (click)="eliminarFiltro(index)">Eliminar</button>
+              </div>
+            }
+          </section>
+
+          @if (modo() === 'dinamico') {
+            <section class="reportes-card">
+               <div class="reportes-section-title"><div><p class="reportes-card__eyebrow">CONFIGURACIÓN</p><h2>Ordenamiento</h2><p class="reportes-muted">{{ ordenes().length }} de 3 criterios</p></div><button class="reportes-button reportes-button--secondary" type="button" [disabled]="ordenes().length >= 3" (click)="agregarOrden()">+ Agregar orden</button></div>
+              @if (!ordenes().length) { <p class="reportes-empty">El resultado usará el orden predeterminado.</p> }
+              @for (orden of ordenes(); track $index; let index = $index) { <div class="reportes-filter"><label>Campo<select [(ngModel)]="orden.field">@for (field of camposOrdenables(); track field.key) { <option [value]="field.key">{{ field.label }}</option> }</select></label><label>Dirección<select [(ngModel)]="orden.direction"><option value="asc">Ascendente</option><option value="desc">Descendente</option></select></label><button class="reportes-remove" type="button" (click)="eliminarOrden(index)">Eliminar</button></div> }
+            </section>
+          }
+
+          @if (error(); as message) { <p class="reportes-error" role="alert">{{ message }}</p> }
+            <div class="reportes-actions"><button class="reportes-button reportes-button--primary" type="button" [disabled]="procesando() !== null || !puedeEjecutar()" (click)="previsualizar()">{{ procesando() === 'preview' ? 'Generando...' : 'Vista previa' }}</button><details class="reportes-export"><summary class="reportes-button" [class.is-disabled]="procesando() !== null || !puedeEjecutar()">Exportar <span aria-hidden="true">▾</span></summary><div class="reportes-export__menu"><button type="button" [disabled]="procesando() !== null || !puedeEjecutar()" (click)="exportar('xlsx')">Excel (.xlsx)</button><button type="button" [disabled]="procesando() !== null || !puedeEjecutar()" (click)="exportar('pdf')">PDF</button><button type="button" [disabled]="procesando() !== null || !puedeEjecutar()" (click)="exportar('csv')">CSV</button><button type="button" [disabled]="procesando() !== null || !puedeEjecutar()" (click)="exportar('html')">HTML (.html)</button></div></details><button class="reportes-button reportes-button--secondary" type="button" [disabled]="procesando() !== null || !puedeEjecutar()" (click)="abrirEmail()">Enviar por correo</button></div>
+           @if (procesando() === 'preview') { <p class="reportes-state reportes-state--loading" role="status">Generando vista previa...</p> } @else if (!preview()) { <p class="reportes-state">Configura el reporte y pulsa Vista previa.</p> }
+
+           @if (preview(); as resultado) {
+            <section class="reportes-card reportes-preview">
+              <div class="reportes-section-title"><div><p class="reportes-card__eyebrow">Resultados</p><h2>Vista previa</h2></div><div class="reportes-preview__meta"><strong>{{ resultado.total }}</strong> encontrados · <strong>{{ resultado.rows.length }}</strong> mostrados <span>(límite {{ resultado.limit }})</span></div></div>
+               @if (!resultado.rows.length) { <p class="reportes-empty">No se encontraron registros con los filtros seleccionados.</p> } @else { <div class="reportes-table-wrap"><table><thead><tr>@for (column of resultado.columns; track column.key) { <th scope="col">{{ column.label }}</th> }</tr></thead><tbody>@for (row of resultado.rows; track $index) { <tr>@for (column of resultado.columns; track column.key) { <td>@if (esBooleanoValor(row, column.key)) { <span class="reportes-value-badge" [class.reportes-value-badge--yes]="row[column.key]">{{ row[column.key] ? 'Sí' : 'No' }}</span> } @else { {{ textoValor(row, column.key) }} }</td> }</tr> }</tbody></table></div> }
+              @if (resultado.total > resultado.rows.length) { <p class="reportes-hint">La vista previa es parcial; la exportación puede contener más registros.</p> }
+            </section>
+         }
+          @if (emailAbierto()) {
+            <div class="reportes-modal-backdrop" (keydown)="protegerEscape($event)">
+              <section class="reportes-email" role="dialog" aria-modal="true" aria-labelledby="email-title" tabindex="-1">
+                <div class="reportes-email__heading"><div><p class="reportes-card__eyebrow">ENVÍO SEGURO</p><h2 id="email-title">Enviar reporte por correo</h2></div><button class="reportes-email__close" type="button" (click)="cerrarEmail()">Cerrar</button></div>
+                <p class="reportes-muted">Reporte: {{ modo() === 'dinamico' ? 'Personalizado' : (reporteActual()?.label || reporteKey()) }}</p>
+                <form (ngSubmit)="enviarEmail()" novalidate>
+                  <label for="email-destinatario">Destinatario *<input id="email-destinatario" type="email" required maxlength="254" [ngModel]="emailDestinatario()" (ngModelChange)="emailDestinatario.set($event)" name="destinatario" /></label>
+                  <label for="email-formato">Formato *<select id="email-formato" required [ngModel]="emailFormato()" (ngModelChange)="emailFormato.set($event)" name="formato"><option value="pdf">PDF</option><option value="xlsx">Excel</option><option value="csv">CSV</option><option value="html">HTML</option></select></label>
+                  <label for="email-asunto">Asunto *<input id="email-asunto" type="text" required maxlength="150" [ngModel]="emailAsunto()" (ngModelChange)="emailAsunto.set($event)" name="asunto" /></label>
+                  <label for="email-mensaje">Mensaje<textarea id="email-mensaje" maxlength="1000" [ngModel]="emailMensaje()" (ngModelChange)="emailMensaje.set($event)" name="mensaje"></textarea><small>{{ emailMensaje().length }}/1000</small></label>
+                  @if (emailError(); as message) { <p class="reportes-inline-error" role="alert">{{ message }}</p> }
+                  @if (emailExito(); as message) { <p class="reportes-success" role="status">{{ message }}</p> }
+                  <div class="reportes-email__actions"><button class="reportes-button" type="button" [disabled]="procesando() === 'email'" (click)="cerrarEmail()">Cancelar</button><button class="reportes-button reportes-button--primary" type="submit" [disabled]="procesando() === 'email'">{{ procesando() === 'email' ? 'Enviando reporte...' : 'Enviar reporte' }}</button></div>
+                </form>
+              </section>
+            </div>
+          }
+          @if (vozAbierta()) {
+            <div class="reportes-modal-backdrop" (keydown)="protegerEscape($event)">
+              <section class="reportes-voice" role="dialog" aria-modal="true" aria-labelledby="voice-title" tabindex="-1">
+                <div class="reportes-email__heading"><div><p class="reportes-card__eyebrow">CONSULTA ASISTIDA</p><h2 id="voice-title">Consulta por voz</h2></div><button class="reportes-email__close" type="button" (click)="cancelarVoz()">Cancelar</button></div>
+                <p class="reportes-muted">Di qué reporte necesitas.</p>
+                <ul class="reportes-voice__examples"><li>Muéstrame los pacientes activos.</li><li>Muéstrame las consultas de octubre ordenadas por fecha.</li><li>Prepara las citas de este mes en PDF.</li></ul>
+                @if (vozEstado() === 'listening') { <p class="reportes-voice__status" role="status">🎙 Escuchando...</p> }
+                @if (vozEstado() === 'processing') { <p class="reportes-voice__status" role="status">Procesando dictado...</p> }
+                @if (vozMensaje(); as message) { <p class="reportes-error" role="alert">{{ message }}</p> }
+                @if (vozError(); as message) { <p class="reportes-error" role="alert">{{ message }}</p> }
+                <div class="reportes-voice__transcript" aria-live="polite"><strong>Texto reconocido:</strong><p>{{ transcriptVoz() || 'Aún no hay texto reconocido.' }}</p></div>
+                @if (interpretacionIa(); as interpretacion) {
+                  @if (interpretacion.requiere_aclaracion) {
+                    <p class="reportes-error" role="alert">La IA necesita una aclaración: {{ interpretacion.pregunta_aclaracion || 'Vuelve a dictar una solicitud más específica.' }}</p>
+                  } @else {
+                    <section class="reportes-voice__summary" aria-labelledby="voice-summary-title">
+                      <h3 id="voice-summary-title">Configuración interpretada por IA</h3>
+                      <dl><div><dt>Fuente</dt><dd>{{ fuenteInterpretada() }}</dd></div><div><dt>Columnas</dt><dd>{{ columnasInterpretadas() }}</dd></div><div><dt>Filtros</dt><dd>{{ filtrosInterpretados() }}</dd></div><div><dt>Orden</dt><dd>{{ ordenInterpretado() }}</dd></div><div><dt>Acción sugerida</dt><dd>{{ interpretacion.accion_sugerida || 'Revisar configuración' }}</dd></div><div><dt>Formato sugerido</dt><dd>{{ interpretacion.formato_sugerido || 'No especificado' }}</dd></div></dl>
+                    </section>
+                  }
+                }
+                <div class="reportes-email__actions"><button class="reportes-button" type="button" (click)="volverADictar()">Volver a dictar</button><button class="reportes-button reportes-button--secondary" type="button" [disabled]="vozEstado() === 'listening' || !transcriptVoz().trim() || interpretandoVoz()" (click)="interpretarVoz()">{{ interpretandoVoz() ? 'Interpretando...' : 'Interpretar con IA' }}</button>@if (vozEstado() === 'listening') { <button class="reportes-button" type="button" (click)="detenerVoz()">Detener</button> }<button class="reportes-button reportes-button--secondary" type="button" (click)="cancelarVoz()">Cancelar</button></div>
+              </section>
+            </div>
+          }
+        }
+      </section>
+    </div>
+  </div>
+</main>

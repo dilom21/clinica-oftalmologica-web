@@ -185,6 +185,16 @@ section {
   scroll-margin-top: 88px;
 }
 
+/* All administrative shells share the same drawer threshold. Touch devices
+   keep the drawer behavior without changing the desktop breakpoint. */
+@media (min-width: 821px) {
+  [class*="__hamburger"] { display: none !important; }
+}
+
+@media (max-width: 820px) {
+  [class*="__hamburger"] { display: inline-flex !important; }
+}
+
 .container {
   width: 100%;
   max-width: 1200px;

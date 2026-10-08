@@ -45,6 +45,7 @@ export class NavegacionService {
     ['configurar disponibilidad del oftalmólogo', '/configurar-disponibilidad'],
     ['gestionar citas médicas', '/gestionar-citas'],
     ['consultar historial de citas', '/historial-citas'],
+    ['generar reportes', '/reportes'],
   ]);
 
   private readonly iconosModulo: ReadonlyArray<{
@@ -134,6 +135,10 @@ export class NavegacionService {
 
     if (clave.includes('cita') && clave.includes('gestionar')) {
       return '/gestionar-citas';
+    }
+
+    if (clave.includes('reporte')) {
+      return '/reportes';
     }
 
     if (

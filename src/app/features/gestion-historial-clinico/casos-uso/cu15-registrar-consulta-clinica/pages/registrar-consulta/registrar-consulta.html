@@ -58,6 +58,23 @@
               </p>
             }
 
+            <section class="consulta-ia" aria-labelledby="consulta-ia-titulo">
+              <h2 id="consulta-ia-titulo">Asistencia con Inteligencia Artificial</h2>
+              <p>Es contenido de apoyo y debe ser validado por el oftalmólogo.</p>
+              <button type="button" class="consulta-boton" (click)="analizarConsultaIa()" [disabled]="analizandoIa()">
+                {{ analizandoIa() ? 'Analizando consulta...' : '✨ Analizar consulta con IA' }}
+              </button>
+              @if (analizandoIa()) { <p role="status">Preparando el análisis...</p> }
+              @if (errorIa(); as mensaje) { <p role="alert" class="consulta-page__estado--error">{{ mensaje }}</p> }
+              @if (analisisIa(); as analisis) {
+                <h3>Resumen clínico</h3><p>{{ analisis.resumen_clinico }}</p>
+                <h3>Hallazgos relevantes</h3><ul>@for (item of analisis.hallazgos_relevantes; track $index) { <li>{{ item }}</li> }</ul>
+                <h3>Aspectos a evaluar</h3><ul>@for (item of analisis.aspectos_a_evaluar; track $index) { <li>{{ item }}</li> }</ul>
+                <h3>Hipótesis orientativas</h3><ul>@for (item of analisis.hipotesis_orientativas; track $index) { <li>{{ item }}</li> }</ul>
+                <h3>Advertencia</h3><p>{{ analisis.advertencia }}</p>
+              }
+            </section>
+
             <div class="consulta-exito__acciones">
               <button type="button" class="consulta-boton" (click)="registrarOtraConsulta()">
                 Registrar otra consulta
@@ -256,6 +273,7 @@
 
                 <label class="consulta-campo">
                   <span>Motivo de consulta (opcional)</span>
+                  <button type="button" class="consulta-dictado" (click)="dictarCampo('motivo_consulta')" [disabled]="campoDictando() !== null" aria-label="Dictar motivo de consulta" title="Dictar motivo de consulta">🎙 Dictar</button>
                   <input
                     type="text"
                     formControlName="motivo_consulta"
@@ -274,6 +292,7 @@
 
                 <label class="consulta-campo">
                   <span>Anamnesis *</span>
+                  <button type="button" class="consulta-dictado" (click)="dictarCampo('anamnesis')" [disabled]="campoDictando() !== null" aria-label="Dictar anamnesis" title="Dictar anamnesis">🎙 Dictar</button>
                   <textarea
                     formControlName="anamnesis"
                     rows="5"
@@ -288,12 +307,21 @@
 
                 <label class="consulta-campo">
                   <span>Observaciones (opcional)</span>
+                  <button type="button" class="consulta-dictado" (click)="dictarCampo('observaciones')" [disabled]="campoDictando() !== null" aria-label="Dictar observaciones" title="Dictar observaciones">🎙 Dictar</button>
                   <textarea
                     formControlName="observaciones"
                     rows="3"
                     placeholder="Observaciones adicionales"
                   ></textarea>
                 </label>
+
+                @if (campoDictando(); as campo) {
+                  <div class="consulta-dictado__estado" role="status">
+                    {{ vozEstado() === 'listening' ? '🎙 Escuchando...' : 'Procesando dictado...' }}
+                    <button type="button" class="consulta-boton consulta-boton--borde" (click)="detenerDictado()">Detener</button>
+                  </div>
+                }
+                @if (vozError(); as mensaje) { <p class="consulta-page__estado consulta-page__estado--error" role="alert">{{ mensaje }}</p> }
 
                 @if (errorEnvio(); as mensaje) {
                   <div class="consulta-page__estado consulta-page__estado--error" role="alert">

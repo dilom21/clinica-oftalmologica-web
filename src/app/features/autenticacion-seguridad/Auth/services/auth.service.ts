@@ -1,4 +1,4 @@
-import { Injectable, inject } from '@angular/core';
+import { Injectable, inject, signal } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
 import { environment } from '../../../../../environments/environment';
@@ -6,6 +6,8 @@ import { MenuService } from '../../../../core/services/menu.service';
 import {
   LoginRequest,
   LoginResponse,
+  TenantCompany,
+  TenantLoginRequest,
   MensajeRespuesta,
   PerfilUsuario,
   RecuperarPasswordRequest,
@@ -18,7 +20,9 @@ const CLAVE_CORREO = 'sesion_correo';
 
 @Injectable({ providedIn: 'root' })
 export class AuthService {
+  private readonly freshlyIssuedTenantToken = signal<string | null>(null);
   private readonly loginUrl = `${environment.apiUrl}/seguridad/login`;
+  private readonly tenantUrl = `${environment.apiUrl}/seguridad/tenant`;
   private readonly recuperarPasswordUrl = `${environment.apiUrl}/seguridad/password/recuperar`;
   private readonly restablecerPasswordUrl = `${environment.apiUrl}/seguridad/password/restablecer`;
 
@@ -28,6 +32,35 @@ export class AuthService {
 
   login(datos: LoginRequest): Observable<LoginResponse> {
     return this.http.post<LoginResponse>(this.loginUrl, datos);
+  }
+
+  companies(): Observable<TenantCompany[]> {
+    return this.http.get<TenantCompany[]>(`${this.tenantUrl}/empresas`);
+  }
+
+  tenantLogin(datos: TenantLoginRequest): Observable<LoginResponse> {
+    return this.http.post<LoginResponse>(`${this.tenantUrl}/login`, datos);
+  }
+
+  // Decoding a JWT is not signature verification. The API remains the authority.
+  tenantCode(token = localStorage.getItem('access_token')): string | null {
+    const claims = this.decodeToken(token);
+    return claims?.['token_type'] === 'tenant' &&
+      typeof claims['empresa_codigo'] === 'string' && claims['empresa_codigo'].length > 0 &&
+      typeof claims['exp'] === 'number' && claims['exp'] > Date.now() / 1000 &&
+      Number.isInteger(claims['tenant_id']) && (claims['tenant_id'] as number) > 0
+      ? claims['empresa_codigo'] as string : null;
+  }
+
+  acceptTenantToken(token: string, selectedCode: string): boolean {
+    if (this.tenantCode(token) !== selectedCode) return false;
+    localStorage.setItem('access_token', token);
+    this.freshlyIssuedTenantToken.set(token);
+    return true;
+  }
+
+  hasFreshTenantToken(token: string | null): boolean {
+    return !!token && this.freshlyIssuedTenantToken() === token;
   }
 
   recuperarPassword(datos: RecuperarPasswordRequest): Observable<MensajeRespuesta> {
@@ -63,6 +96,7 @@ export class AuthService {
     // El menú pertenece a la sesión: se limpia para que el siguiente usuario
     // vuelva a cargar sus permisos.
     this.menuService.limpiar();
+    this.freshlyIssuedTenantToken.set(null);
   }
 
   obtenerUsuarioIdActual(): number | null {
@@ -168,6 +202,10 @@ export class AuthService {
     } catch {
       return null;
     }
+    return this.decodeToken(token);
+  }
+
+  private decodeToken(token: string | null): Record<string, unknown> | null {
     if (!token) {
       return null;
     }

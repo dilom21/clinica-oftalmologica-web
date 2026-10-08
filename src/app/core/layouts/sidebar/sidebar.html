@@ -180,13 +180,13 @@
   <a
     routerLink="/inicio"
     class="sidebar__brand"
-    title="Centro Oftalmológico Visión Clara"
+    title="Sistema clínico"
     (click)="navegarInicio()"
   >
     <img
       class="sidebar__brand-logo"
       src="/images/logo/logo-clinica.png"
-      alt="Logo Centro Oftalmológico Visión Clara"
+      alt="Logo del sistema clínico"
       width="36"
       height="36"
     />
@@ -195,6 +195,12 @@
       <span class="sidebar__brand-linea">Visión Clara</span>
     </span>
   </a>
+
+  <div class="sidebar__company">
+    <span class="sidebar__company-label">Empresa actual:</span>
+    <strong class="sidebar__company-name">{{ companyName() }}</strong>
+    <button type="button" class="sidebar__switch" (click)="cambiarEmpresa()">Cambiar empresa</button>
+  </div>
 
   <nav class="sidebar__nav">
     <ul class="sidebar__list">
@@ -369,4 +375,8 @@
     </div>
   </footer>
 </aside>
+<div class="sidebar__mobile-company">
+  <span>Empresa actual: {{ companyName() }}</span>
+  <button type="button" (click)="cambiarEmpresa()">Cambiar empresa</button>
+</div>
 

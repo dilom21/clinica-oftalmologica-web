@@ -5,11 +5,11 @@
         <img
           class="login__logo"
           src="/images/logo/logo-clinica.png"
-          alt="Logo Centro Oftalmológico Visión Clara"
+          alt="Logo del sistema clínico"
           width="48"
           height="48"
         />
-        <span class="login__brand-name">Visión Clara</span>
+        <span class="login__brand-name">Sistema clínico</span>
       </a>
 
       <div class="login__form-content">
@@ -17,7 +17,30 @@
         <h1 class="login__title">Iniciar sesión</h1>
         <p class="login__subtitle">Accede al sistema de gestión de la clínica.</p>
 
+        <button type="button" class="login__mode" [disabled]="loading()" (click)="toggleLegacy()">
+          {{ legacy() ? 'Usar acceso por empresa' : 'Usar acceso anterior' }}
+        </button>
+
         <form class="login__form" [formGroup]="loginForm" (ngSubmit)="onSubmit()" novalidate>
+          @if (!legacy()) {
+            <div class="login__field">
+              <label class="login__label" for="company">Empresa</label>
+              <select id="company" class="login__input login__company" formControlName="company" [disabled]="companiesLoading() || companiesError() || loading()">
+                <option value="">Selecciona una empresa</option>
+                @for (company of companies(); track company.codigo) {
+                  <option [value]="company.codigo">{{ company.nombre }} ({{ company.codigo }})</option>
+                }
+              </select>
+              @if (companiesLoading()) { <p role="status">Cargando empresas…</p> }
+              @if (companiesError()) {
+                <p class="login__server-error" role="alert">No se pudo cargar la lista de empresas.</p>
+                <button type="button" class="login__mode" (click)="loadCompanies()">Reintentar</button>
+              }
+              @if (loginForm.controls.company.touched && loginForm.controls.company.invalid && !companiesError()) {
+                <p class="login__error" role="alert">Selecciona una empresa.</p>
+              }
+            </div>
+          }
           <div class="login__field">
             <label class="login__label" for="email">Correo electrónico</label>
             <div class="login__input-wrap">
@@ -90,7 +113,7 @@
             <p class="login__server-error" role="alert">{{ serverError() }}</p>
           }
 
-          <button type="submit" class="login__submit" [disabled]="loading()">
+          <button type="submit" class="login__submit" [disabled]="loading() || (!legacy() && (companiesLoading() || companiesError()))">
             {{ loading() ? 'Iniciando sesión...' : 'Iniciar sesión' }}
           </button>
         </form>
@@ -110,10 +133,10 @@
       <img
         class="login__visual-image"
         src="/images/clinica/consultorio.png"
-        alt="Consultorio oftalmológico del centro"
+        alt="Consultorio oftalmológico"
       />
       <div class="login__visual-content">
-        <h2 class="login__visual-brand">Centro Oftalmológico<br />Visión Clara</h2>
+        <h2 class="login__visual-brand">Sistema clínico<br />multiempresa</h2>
         <p class="login__visual-text">
           Atención especializada y tecnología para el cuidado integral de tu salud visual.
         </p>

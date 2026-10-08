@@ -382,6 +382,48 @@
   color: var(--color-danger-border);
 }
 
+/* ===== Contexto de empresa tenant ===== */
+.sidebar__company {
+  display: grid;
+  gap: 0.35rem;
+  padding: 0.8rem 1rem;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+  overflow-wrap: anywhere;
+}
+
+.sidebar__company-label {
+  color: rgba(214, 227, 244, 0.68);
+  font-size: 0.72rem;
+}
+
+.sidebar__company-name {
+  color: var(--color-sidebar-text);
+  font-size: 0.85rem;
+}
+
+.sidebar__switch,
+.sidebar__mobile-company button {
+  padding: 0.45rem 0.65rem;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-sm);
+  background: var(--color-surface);
+  color: var(--color-primary);
+  font: inherit;
+  font-size: 0.78rem;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.sidebar__switch:focus-visible,
+.sidebar__mobile-company button:focus-visible {
+  outline: 2px solid var(--color-primary-light);
+  outline-offset: 2px;
+}
+
+.sidebar__mobile-company {
+  display: none;
+}
+
 .sidebar__error-texto {
   color: var(--color-danger-border);
   font-size: 0.78rem;
@@ -539,7 +581,31 @@
   }
 }
 
-@media (hover: none), (max-width: 900px) {
+@media (max-width: 820px) {
+  .sidebar__mobile-company {
+    position: fixed;
+    right: 0.75rem;
+    bottom: 0.75rem;
+    z-index: 30;
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+    max-width: min(90vw, 360px);
+    padding: 0.55rem 0.65rem;
+    border: 1px solid rgba(255, 255, 255, 0.12);
+    border-radius: var(--radius-sm);
+    background: var(--color-sidebar-bg);
+    color: var(--color-sidebar-text);
+    box-shadow: var(--shadow-md);
+    font-size: 0.75rem;
+    overflow-wrap: anywhere;
+  }
+
+  .sidebar--open + .sidebar__mobile-company {
+    display: none;
+  }
+
   .sidebar {
     position: fixed;
     top: 0;

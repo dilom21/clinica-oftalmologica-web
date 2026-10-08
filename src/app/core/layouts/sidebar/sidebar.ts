@@ -14,6 +14,7 @@ import { NavigationEnd, Router, RouterLink, RouterLinkActive } from '@angular/ro
 import { filter } from 'rxjs';
 
 import { PerfilUsuario } from '../../../features/autenticacion-seguridad/Auth/models/auth.models';
+import { TenantCompany } from '../../../features/autenticacion-seguridad/Auth/models/auth.models';
 import { AuthService } from '../../../features/autenticacion-seguridad/Auth/services/auth.service';
 import { MenuModulo } from '../../models/menu.models';
 import { MenuService } from '../../services/menu.service';
@@ -49,7 +50,8 @@ export class Sidebar implements OnInit {
   protected readonly menuError = this.menuService.error;
   protected readonly perfil = signal<PerfilUsuario | null>(null);
   protected readonly esOscuro = this.themeService.esOscuro;
-
+  private readonly companies = signal<TenantCompany[]>([]);
+  private readonly tokenAtLoad = localStorage.getItem('access_token');
   protected readonly openModuleId = signal<number | null>(null);
   protected readonly selectedModuleId = signal<number | null>(null);
   protected readonly selectedFuncionId = signal<number | null>(null);
@@ -68,6 +70,31 @@ export class Sidebar implements OnInit {
   );
 
   /**
+   * La empresa se muestra solo si coincide con el JWT tenant actual y la
+   * sesión ya fue validada por el menú, salvo el token recién emitido durante
+   * este mismo inicio de sesión.
+   */
+  protected readonly companyName = computed(() => {
+    const tenantCode = this.authService.tenantCode(this.tokenAtLoad);
+    if (!tenantCode) {
+      return 'Acceso anterior (sin empresa tenant)';
+    }
+    if (localStorage.getItem('access_token') !== this.tokenAtLoad) {
+      return 'Empresa no verificada';
+    }
+    const sesionValidada =
+      this.menuService.estado() === 'listo' ||
+      this.authService.hasFreshTenantToken(this.tokenAtLoad);
+    if (!sesionValidada) {
+      return 'Empresa no verificada';
+    }
+    return (
+      this.companies().find((company) => company.codigo === tenantCode)?.nombre ??
+      'Empresa no verificada'
+    );
+  });
+
+  /**
    * Cuando el menú termina de cargar (puede llegar después del primer render)
    * se vuelve a sincronizar para abrir y resaltar el grupo de la ruta activa.
    */
@@ -81,6 +108,16 @@ export class Sidebar implements OnInit {
     this.perfil.set(this.authService.obtenerPerfilActual());
     this.menuService.cargar();
     this.sincronizarConRuta(this.router.url);
+
+    if (this.authService.tenantCode(this.tokenAtLoad)) {
+      this.authService
+        .companies()
+        .pipe(takeUntilDestroyed(this.destroyRef))
+        .subscribe({
+          next: (companies) => this.companies.set(companies),
+          error: () => this.companies.set([]),
+        });
+    }
 
     this.router.events
       .pipe(
@@ -139,6 +176,12 @@ export class Sidebar implements OnInit {
   cerrarSesion(): void {
     this.authService.logout();
     this.router.navigate(['/login']);
+  }
+
+  cambiarEmpresa(): void {
+    this.authService.logout();
+    this.cerrarSiMovil();
+    void this.router.navigate(['/login']);
   }
 
   cerrarMovil(): void {
