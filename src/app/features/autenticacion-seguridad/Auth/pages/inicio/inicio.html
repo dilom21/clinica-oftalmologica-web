@@ -46,7 +46,7 @@
 
           <div class="inicio-hero__aside">
             <span class="inicio-hero__avatar" aria-hidden="true">{{ iniciales() }}</span>
-            <span class="inicio-hero__clinica">Centro Oftalmológico Visión Clara</span>
+            <span class="inicio-hero__clinica">{{ empresaMostrada() }}</span>
           </div>
 
           <div class="inicio-hero__decor" aria-hidden="true">
@@ -126,8 +126,14 @@
                 </div>
               }
               <div class="inicio-dato">
+                <dt>Empresa</dt>
+                <dd>{{ empresaMostrada() }}</dd>
+              </div>
+              <!-- La sesión no registra una sede física concreta: se muestra un
+                   texto neutro en lugar de inventar una ubicación. -->
+              <div class="inicio-dato">
                 <dt>Sede</dt>
-                <dd>Centro Oftalmológico Visión Clara</dd>
+                <dd>No registrada</dd>
               </div>
             </dl>
           </section>

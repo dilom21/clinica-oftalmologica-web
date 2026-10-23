@@ -192,6 +192,36 @@ export const routes: Routes = [
     canActivate: [authGuard],
   },
   {
+    path: 'pagos',
+    canActivate: [authGuard],
+    children: [
+      {
+        path: '',
+        data: { vista: 'registro' },
+        loadComponent: () =>
+          import(
+            './features/gestion-pagos/casos-uso/cu31-registrar-pago-comprobante/pages/gestion-pagos/gestion-pagos'
+          ).then((m) => m.GestionPagos),
+      },
+      {
+        path: 'historial',
+        data: { vista: 'historial' },
+        loadComponent: () =>
+          import(
+            './features/gestion-pagos/casos-uso/cu31-registrar-pago-comprobante/pages/gestion-pagos/gestion-pagos'
+          ).then((m) => m.GestionPagos),
+      },
+      {
+        path: 'confirmaciones',
+        data: { vista: 'confirmaciones' },
+        loadComponent: () =>
+          import(
+            './features/gestion-pagos/casos-uso/cu31-registrar-pago-comprobante/pages/gestion-pagos/gestion-pagos'
+          ).then((m) => m.GestionPagos),
+      },
+    ],
+  },
+  {
     path: '**',
     redirectTo: '',
   },

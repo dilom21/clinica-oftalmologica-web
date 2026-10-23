@@ -1,14 +1,21 @@
 import { provideHttpClient } from '@angular/common/http';
-import { provideHttpClientTesting } from '@angular/common/http/testing';
-import { computed, signal } from '@angular/core';
+import { HttpTestingController, provideHttpClientTesting } from '@angular/common/http/testing';
+import { Component, computed, signal } from '@angular/core';
 import { TestBed } from '@angular/core/testing';
 import { provideRouter, Router } from '@angular/router';
-import { Subject, of } from 'rxjs';
 import { vi } from 'vitest';
 
-import { AuthService } from '../../../features/autenticacion-seguridad/Auth/services/auth.service';
+import { environment } from '../../../../environments/environment';
+import {
+  AuthService,
+  EmpresaSesion,
+  EstadoEmpresaSesion,
+} from '../../../features/autenticacion-seguridad/Auth/services/auth.service';
 import { EstadoMenu, MenuService } from '../../services/menu.service';
 import { Sidebar } from './sidebar';
+
+@Component({ template: '' })
+class PaginaVacia {}
 
 function menuStub(initialState: EstadoMenu = 'inicial') {
   const modules = signal<never[]>([]);
@@ -92,11 +99,13 @@ describe('Sidebar company context', () => {
   beforeEach(() => localStorage.clear());
   afterEach(() => localStorage.clear());
 
-  it('shows a matching company only after menu validation and logs out before switching', async () => {
+  it('shows the company from the shared session context and logs out before switching', async () => {
     localStorage.setItem('access_token', 'tenant-A');
     localStorage.setItem('saas_access_token', 'saas');
     const menu = menuStub();
-    const companies = new Subject<{ codigo: string; nombre: string }[]>();
+    const empresa = signal<EmpresaSesion | null>(null);
+    const estadoEmpresa = signal<EstadoEmpresaSesion>('verificando');
+    const inicializar = vi.fn();
     const logout = vi.fn(() => localStorage.removeItem('access_token'));
 
     TestBed.configureTestingModule({
@@ -107,9 +116,10 @@ describe('Sidebar company context', () => {
           provide: AuthService,
           useValue: {
             obtenerPerfilActual: () => null,
-            tenantCode: () => 'A',
-            hasFreshTenantToken: () => false,
-            companies: () => companies,
+            empresa: empresa.asReadonly(),
+            estadoEmpresa: estadoEmpresa.asReadonly(),
+            inicializarContextoEmpresa: inicializar,
+            reintentarContextoEmpresa: vi.fn(),
             logout,
           },
         },
@@ -119,20 +129,27 @@ describe('Sidebar company context', () => {
     const fixture = TestBed.createComponent(Sidebar);
     fixture.detectChanges();
 
-    companies.next([
-      { codigo: 'B', nombre: 'Empresa B' },
-      { codigo: 'A', nombre: 'Empresa A' },
-    ]);
-    fixture.detectChanges();
-    expect(fixture.nativeElement.textContent).not.toContain('Empresa A');
+    // Mientras el contexto se resuelve no se declara "no verificada".
+    expect(fixture.nativeElement.querySelector('.sidebar__company').textContent).toContain(
+      'Verificando empresa',
+    );
+    expect(inicializar).toHaveBeenCalledOnce();
 
-    menu.state.set('listo');
+    empresa.set({ codigo: 'A', nombre: 'Empresa A', tenantId: 3 });
+    estadoEmpresa.set('listo');
     fixture.detectChanges();
     expect(fixture.nativeElement.querySelector('.sidebar__company').textContent).toContain(
       'Empresa A',
     );
     expect(fixture.nativeElement.querySelector('.sidebar__mobile-company').textContent).toContain(
       'Empresa A',
+    );
+    // La marca del sidebar también usa la empresa real: nunca otra clínica.
+    expect(fixture.nativeElement.querySelector('.sidebar__brand').textContent).toContain(
+      'Empresa A',
+    );
+    expect(fixture.nativeElement.querySelector('.sidebar__brand').textContent).not.toContain(
+      'Visión Clara',
     );
 
     (fixture.nativeElement.querySelector('.sidebar__switch') as HTMLButtonElement).click();
@@ -152,7 +169,10 @@ describe('Sidebar company context', () => {
           provide: AuthService,
           useValue: {
             obtenerPerfilActual: () => null,
-            tenantCode: () => null,
+            empresa: signal<EmpresaSesion | null>(null).asReadonly(),
+            estadoEmpresa: signal<EstadoEmpresaSesion>('sin-tenant').asReadonly(),
+            inicializarContextoEmpresa: vi.fn(),
+            reintentarContextoEmpresa: vi.fn(),
             logout: vi.fn(),
           },
         },
@@ -166,9 +186,14 @@ describe('Sidebar company context', () => {
     );
   });
 
-  it('shows a freshly issued tenant identity before the legacy menu resolves', async () => {
-    localStorage.setItem('access_token', 'tenant-A');
+  it('muestra la empresa resuelta aunque el menú siga cargando', async () => {
     const menu = menuStub();
+    const empresa = signal<EmpresaSesion | null>({
+      codigo: 'MEDICO-OCULAR',
+      nombre: 'Centro Médico Ocular',
+      tenantId: 9,
+    });
+    const estadoEmpresa = signal<EstadoEmpresaSesion>('listo');
     TestBed.configureTestingModule({
       providers: [
         provideRouter([]),
@@ -177,9 +202,10 @@ describe('Sidebar company context', () => {
           provide: AuthService,
           useValue: {
             obtenerPerfilActual: () => null,
-            tenantCode: () => 'A',
-            hasFreshTenantToken: (token: string) => token === 'tenant-A',
-            companies: () => of([{ codigo: 'A', nombre: 'Empresa A' }]),
+            empresa: empresa.asReadonly(),
+            estadoEmpresa: estadoEmpresa.asReadonly(),
+            inicializarContextoEmpresa: vi.fn(),
+            reintentarContextoEmpresa: vi.fn(),
             logout: vi.fn(),
           },
         },
@@ -190,7 +216,198 @@ describe('Sidebar company context', () => {
     await fixture.whenStable();
     fixture.detectChanges();
     expect(fixture.nativeElement.querySelector('.sidebar__company').textContent).toContain(
-      'Empresa A',
+      'Centro Médico Ocular',
     );
+    expect(menu.state()).toBe('inicial');
+  });
+
+  it('resalta la función de pagos al navegar a una subruta del módulo', async () => {
+    const modulos = signal([
+      {
+        id: 8,
+        nombre: 'Pagos',
+        funciones: [
+          { id: 31, nombre: 'Gestionar pagos', accion_id: 3, accion_nombre: 'AMBAS' },
+          {
+            id: 32,
+            nombre: 'Confirmar pagos bancarios',
+            accion_id: 2,
+            accion_nombre: 'ESCRITURA',
+          },
+        ],
+      },
+    ]);
+
+    TestBed.configureTestingModule({
+      providers: [
+        provideRouter([
+          {
+            path: 'pagos',
+            children: [
+              { path: '', component: PaginaVacia },
+              { path: 'historial', component: PaginaVacia },
+              { path: 'confirmaciones', component: PaginaVacia },
+            ],
+          },
+        ]),
+        {
+          provide: MenuService,
+          useValue: {
+            modulos: modulos.asReadonly(),
+            estado: signal('listo').asReadonly(),
+            cargando: computed(() => false),
+            error: computed(() => false),
+            cargar: vi.fn(),
+            reintentar: vi.fn(),
+            limpiar: vi.fn(),
+          },
+        },
+        {
+          provide: AuthService,
+          useValue: {
+            obtenerPerfilActual: () => null,
+            empresa: signal(null).asReadonly(),
+            estadoEmpresa: signal('sin-tenant').asReadonly(),
+            inicializarContextoEmpresa: vi.fn(),
+            reintentarContextoEmpresa: vi.fn(),
+            logout: vi.fn(),
+          },
+        },
+      ],
+    });
+
+    const router = TestBed.inject(Router);
+    const fixture = TestBed.createComponent(Sidebar);
+    fixture.detectChanges();
+    const vista = fixture.componentInstance as unknown as {
+      selectedModuleId(): number | null;
+      selectedFuncionId(): number | null;
+    };
+
+    await router.navigateByUrl('/pagos/historial');
+    expect(vista.selectedModuleId()).toBe(8);
+    expect(vista.selectedFuncionId()).toBe(31);
+
+    await router.navigateByUrl('/pagos/confirmaciones');
+    expect(vista.selectedFuncionId()).toBe(32);
+  });
+});
+
+/**
+ * Regresión CU: cada página monta su propio `app-sidebar`, pero la identidad de
+ * la empresa se resuelve una sola vez por sesión en `AuthService`; una
+ * navegación no debe repetir `GET /seguridad/tenant/empresas` ni perder el
+ * nombre de la empresa.
+ */
+describe('Sidebar — catálogo de empresas una sola vez por sesión', () => {
+  const empresasUrl = `${environment.apiUrl}/seguridad/tenant/empresas`;
+  const menuUrl = `${environment.apiUrl}/seguridad/menu`;
+
+  /** JWT de prueba: solo importa el payload (la firma la valida el backend). */
+  function tokenTenant(codigo: string, tenantId: number): string {
+    const segmento = (valor: unknown): string =>
+      btoa(JSON.stringify(valor)).replace(/=+$/, '').replace(/\+/g, '-').replace(/\//g, '_');
+    const payload = {
+      token_type: 'tenant',
+      empresa_codigo: codigo,
+      tenant_id: tenantId,
+      exp: Math.floor(Date.now() / 1000) + 300,
+      sub: 7,
+      rol_id: 1,
+    };
+    return `${segmento({ alg: 'HS256', typ: 'JWT' })}.${segmento(payload)}.firma`;
+  }
+
+  function nombreEmpresa(fixture: { nativeElement: HTMLElement }): string {
+    return fixture.nativeElement.querySelector('.sidebar__company')?.textContent ?? '';
+  }
+
+  beforeEach(() => {
+    localStorage.clear();
+    sessionStorage.clear();
+    TestBed.configureTestingModule({
+      providers: [provideHttpClient(), provideHttpClientTesting(), provideRouter([])],
+    });
+  });
+
+  afterEach(() => {
+    localStorage.clear();
+    sessionStorage.clear();
+  });
+
+  it('mantiene la empresa al navegar entre módulos sin repetir el catálogo', () => {
+    localStorage.setItem('access_token', tokenTenant('MEDICO-OCULAR', 9));
+    const http = TestBed.inject(HttpTestingController);
+
+    const primerModulo = TestBed.createComponent(Sidebar);
+    primerModulo.detectChanges();
+    http.expectOne(empresasUrl).flush([
+      { codigo: 'VISION-CLARA', nombre: 'Centro Oftalmológico Visión Clara' },
+      { codigo: 'MEDICO-OCULAR', nombre: 'Centro Médico Ocular' },
+    ]);
+    http.expectOne(menuUrl).flush([]);
+    primerModulo.detectChanges();
+    expect(nombreEmpresa(primerModulo)).toContain('Centro Médico Ocular');
+    expect(nombreEmpresa(primerModulo)).not.toContain('Visión Clara');
+    primerModulo.destroy();
+
+    // Cambio de módulo: otra página, otra instancia del sidebar.
+    const segundoModulo = TestBed.createComponent(Sidebar);
+    segundoModulo.detectChanges();
+    http.expectNone(empresasUrl);
+    http.expectNone(menuUrl);
+    expect(nombreEmpresa(segundoModulo)).toContain('Centro Médico Ocular');
+    segundoModulo.destroy();
+  });
+
+  it('restaura la empresa tras F5 sin volver a consultar el catálogo', () => {
+    localStorage.setItem('access_token', tokenTenant('MEDICO-OCULAR', 9));
+    sessionStorage.setItem(
+      'sesion_empresa',
+      JSON.stringify({ codigo: 'MEDICO-OCULAR', nombre: 'Centro Médico Ocular', tenantId: 9 }),
+    );
+    const http = TestBed.inject(HttpTestingController);
+
+    const fixture = TestBed.createComponent(Sidebar);
+    fixture.detectChanges();
+    http.expectNone(empresasUrl);
+    fixture.detectChanges();
+    expect(nombreEmpresa(fixture)).toContain('Centro Médico Ocular');
+  });
+
+  it('descarta la empresa guardada que no corresponde al JWT vigente', () => {
+    localStorage.setItem('access_token', tokenTenant('MEDICO-OCULAR', 9));
+    sessionStorage.setItem(
+      'sesion_empresa',
+      JSON.stringify({ codigo: 'VISION-CLARA', nombre: 'Visión Clara', tenantId: 5 }),
+    );
+    const http = TestBed.inject(HttpTestingController);
+
+    const fixture = TestBed.createComponent(Sidebar);
+    fixture.detectChanges();
+    http
+      .expectOne(empresasUrl)
+      .flush([{ codigo: 'MEDICO-OCULAR', nombre: 'Centro Médico Ocular' }]);
+    fixture.detectChanges();
+    expect(nombreEmpresa(fixture)).toContain('Centro Médico Ocular');
+    expect(nombreEmpresa(fixture)).not.toContain('Visión Clara');
+  });
+
+  it('no deja identidad de la empresa anterior al cerrar sesión', () => {
+    localStorage.setItem('access_token', tokenTenant('MEDICO-OCULAR', 9));
+    const http = TestBed.inject(HttpTestingController);
+    vi.spyOn(TestBed.inject(Router), 'navigate').mockResolvedValue(true);
+
+    const fixture = TestBed.createComponent(Sidebar);
+    fixture.detectChanges();
+    http.expectOne(empresasUrl).flush([{ codigo: 'MEDICO-OCULAR', nombre: 'Centro Médico Ocular' }]);
+    fixture.detectChanges();
+    expect(sessionStorage.getItem('sesion_empresa')).toContain('MEDICO-OCULAR');
+
+    (fixture.nativeElement.querySelector('.sidebar__switch') as HTMLButtonElement).click();
+    expect(localStorage.getItem('access_token')).toBeNull();
+    expect(sessionStorage.getItem('sesion_empresa')).toBeNull();
+    fixture.detectChanges();
+    expect(nombreEmpresa(fixture)).not.toContain('Centro Médico Ocular');
   });
 });

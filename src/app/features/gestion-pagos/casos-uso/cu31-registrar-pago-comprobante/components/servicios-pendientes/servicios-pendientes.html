@@ -1,0 +1,73 @@
+<div class="pendientes">
+  @if (cargando()) {
+    <p class="pendientes__estado" role="status">Cargando servicios pendientes…</p>
+  } @else if (servicios().length === 0) {
+    <p class="pendientes__estado">
+      El paciente no tiene servicios pendientes de cobro.
+    </p>
+  } @else {
+    <div class="pendientes__tabla-contenedor">
+      <table>
+        <caption class="pendientes__oculto">
+          Servicios realizados pendientes de cobro
+        </caption>
+        <thead>
+          <tr>
+            <th scope="col" class="pendientes__col-check">
+              <span class="pendientes__oculto">Seleccionar</span>
+            </th>
+            <th scope="col">Servicio realizado</th>
+            <th scope="col">Fecha</th>
+            <th scope="col">Estado</th>
+            <th scope="col" class="pendientes__col-monto">Importe</th>
+          </tr>
+        </thead>
+        <tbody>
+          @for (servicio of servicios(); track servicio.servicio_realizado_id) {
+            <tr
+              [class.pendientes__fila--no-cobrable]="!servicio.cobrable"
+              [class.pendientes__fila--activa]="estaSeleccionado(servicio)"
+            >
+              <td class="pendientes__col-check">
+                <input
+                  type="checkbox"
+                  [id]="'servicio-' + servicio.servicio_realizado_id"
+                  [checked]="estaSeleccionado(servicio)"
+                  [disabled]="!puedeSeleccionar() || !servicio.cobrable"
+                  (change)="seleccionar(servicio)"
+                />
+              </td>
+              <td>
+                <label
+                  class="pendientes__servicio"
+                  [attr.for]="'servicio-' + servicio.servicio_realizado_id"
+                >
+                  <span class="pendientes__nombre">{{ servicio.nombre_servicio }}</span>
+                  <span class="pendientes__detalle">
+                    Consulta #{{ servicio.consulta_clinica_id }} · Servicio realizado
+                  </span>
+                </label>
+              </td>
+              <td class="pendientes__fecha">{{ fecha(servicio.fecha_realizacion) }}</td>
+              <td>
+                @if (servicio.cobrable) {
+                  <span class="pendientes__badge pendientes__badge--pendiente">
+                    Pendiente
+                  </span>
+                } @else {
+                  <span class="pendientes__badge pendientes__badge--bloqueado">
+                    No cobrable
+                  </span>
+                  @if (servicio.conflicto_pago) {
+                    <span class="pendientes__conflicto">{{ servicio.conflicto_pago }}</span>
+                  }
+                }
+              </td>
+              <td class="pendientes__col-monto">{{ monto(servicio.precio_aplicado) }}</td>
+            </tr>
+          }
+        </tbody>
+      </table>
+    </div>
+  }
+</div>

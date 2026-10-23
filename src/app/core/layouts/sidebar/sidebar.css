@@ -61,14 +61,20 @@
   background: rgba(255, 255, 255, 0.05);
 }
 
-.sidebar__brand-logo {
+.sidebar__brand-icono {
   flex: 0 0 auto;
+  display: grid;
+  place-items: center;
   width: 38px;
   height: 38px;
-  object-fit: contain;
   border-radius: 11px;
-  background: var(--color-surface);
-  padding: 3px;
+  color: var(--color-primary-light);
+  background: rgba(255, 255, 255, 0.1);
+}
+
+.sidebar__brand-icono .sidebar__svg {
+  width: 21px;
+  height: 21px;
 }
 
 .sidebar__brand-texto {
@@ -83,6 +89,9 @@
   font-weight: 700;
   line-height: 1.25;
   letter-spacing: 0.01em;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .sidebar__brand-linea {
@@ -664,8 +673,8 @@
   background: rgba(0, 0, 0, 0.28);
 }
 
-:host-context(.tema-oscuro) .sidebar__brand-logo {
-  background: rgba(255, 255, 255, 0.92);
+:host-context(.tema-oscuro) .sidebar__brand-icono {
+  background: rgba(255, 255, 255, 0.14);
 }
 
 @media (prefers-reduced-motion: reduce) {

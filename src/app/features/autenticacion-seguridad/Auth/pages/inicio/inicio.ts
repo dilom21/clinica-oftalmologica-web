@@ -177,9 +177,36 @@ export class Inicio implements OnInit {
   protected readonly iniciales = computed(() => this.perfil()?.iniciales ?? 'US');
   protected readonly correo = computed(() => this.perfil()?.correo ?? null);
 
+  /**
+   * Nombre real de la empresa autenticada (encabezado y ficha de sesión).
+   *
+   * Se toma del contexto compartido de `AuthService`, que ya se resuelve una
+   * sola vez por sesión a partir del JWT tenant y del catálogo público de
+   * empresas. Así el inicio no repite `GET /seguridad/tenant/empresas`, se
+   * mantiene durante la navegación y se actualiza solo al cambiar de empresa
+   * o al cerrar sesión.
+   */
+  protected readonly empresaMostrada = computed(() => {
+    const nombre = this.authService.empresaNombre();
+    if (nombre) {
+      return nombre;
+    }
+    switch (this.authService.estadoEmpresa()) {
+      case 'verificando':
+        return 'Verificando empresa…';
+      case 'error':
+        return 'Empresa no verificada';
+      default:
+        return 'Sistema clínico';
+    }
+  });
+
   ngOnInit(): void {
     this.perfil.set(this.authService.obtenerPerfilActual());
     this.menuService.cargar();
+    // Idempotente: si el contexto ya está resuelto (o el sidebar lo resolvió)
+    // no genera ninguna petición adicional.
+    this.authService.inicializarContextoEmpresa();
   }
 
   protected alternarSidebar(): void {

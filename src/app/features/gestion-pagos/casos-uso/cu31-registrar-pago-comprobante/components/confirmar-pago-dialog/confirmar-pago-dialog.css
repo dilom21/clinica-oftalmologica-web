@@ -1,0 +1,136 @@
+:host {
+  display: block;
+}
+
+.confirmar {
+  position: fixed;
+  inset: 0;
+  z-index: 90;
+  display: grid;
+  place-items: center;
+  padding: 1rem;
+  background: var(--color-overlay);
+}
+
+.confirmar__dialogo {
+  width: min(32rem, 100%);
+  max-height: 90vh;
+  overflow-y: auto;
+  padding: 1.4rem;
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow-lg);
+}
+
+.confirmar__dialogo h2 {
+  font-size: 1.1rem;
+  margin-bottom: 0.45rem;
+}
+
+.confirmar__dialogo > p {
+  font-size: 0.85rem;
+  line-height: 1.5;
+}
+
+.confirmar__datos {
+  display: grid;
+  gap: 0.4rem;
+  margin: 0.9rem 0;
+  padding: 0.75rem;
+  background: var(--color-surface-muted);
+  border: 1px solid var(--color-border-soft);
+  border-radius: var(--radius-sm);
+}
+
+.confirmar__datos > div {
+  display: flex;
+  justify-content: space-between;
+  gap: 0.75rem;
+  font-size: 0.82rem;
+}
+
+.confirmar__datos dt {
+  color: var(--color-text-soft);
+}
+
+.confirmar__datos dd {
+  margin: 0;
+  color: var(--color-heading);
+  font-weight: 700;
+  text-align: right;
+  word-break: break-word;
+}
+
+.confirmar__monto {
+  font-size: 1rem;
+}
+
+.confirmar__aviso {
+  padding: 0.6rem 0.7rem;
+  color: var(--color-warning-text);
+  background: var(--color-warning-bg);
+  border: 1px solid var(--color-warning-border);
+  border-radius: var(--radius-sm);
+  font-size: 0.8rem;
+  line-height: 1.45;
+}
+
+.confirmar__error {
+  margin-top: 0.6rem;
+  padding: 0.55rem 0.7rem;
+  color: var(--color-danger-text);
+  background: var(--color-danger-bg);
+  border: 1px solid var(--color-danger-border);
+  border-radius: var(--radius-sm);
+  font-size: 0.8rem;
+}
+
+.confirmar__acciones {
+  display: flex;
+  justify-content: flex-end;
+  gap: 0.6rem;
+  margin-top: 1rem;
+}
+
+.confirmar__btn {
+  min-height: 2.5rem;
+  padding: 0.55rem 1rem;
+  border: 1px solid transparent;
+  border-radius: var(--radius-sm);
+  font: inherit;
+  font-size: 0.85rem;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.confirmar__btn:disabled {
+  cursor: not-allowed;
+  opacity: 0.6;
+}
+
+.confirmar__btn--primario {
+  color: var(--color-white);
+  background: linear-gradient(135deg, var(--color-primary), #1d4ed8);
+}
+
+.confirmar__btn--secundario {
+  color: var(--color-heading);
+  background: var(--color-surface);
+  border-color: var(--color-border);
+}
+
+.confirmar__btn:focus-visible {
+  outline: 3px solid color-mix(in srgb, var(--color-primary) 45%, transparent);
+  outline-offset: 2px;
+}
+
+@media (max-width: 480px) {
+  .confirmar__acciones {
+    flex-direction: column-reverse;
+  }
+
+  .confirmar__btn {
+    width: 100%;
+  }
+}

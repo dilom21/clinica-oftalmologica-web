@@ -1,0 +1,240 @@
+<div class="historial">
+  @if (!permisos().ver) {
+    <div class="historial__estado historial__estado--error" role="alert">
+      No tienes permiso de lectura para consultar el historial de pagos.
+    </div>
+  } @else {
+    <section class="historial__panel" aria-labelledby="historial-titulo">
+      <header class="historial__head">
+        <div class="historial__head-texto">
+          <h2 id="historial-titulo">Historial de pagos</h2>
+          <p>Filtra y consulta las operaciones de esta clínica</p>
+        </div>
+        <button type="button" class="historial__btn historial__btn--secundario" (click)="limpiarFiltros()">
+          Limpiar filtros
+        </button>
+      </header>
+
+      <form class="historial__filtros" [formGroup]="form" (ngSubmit)="aplicarFiltros()">
+        <div class="historial__campo historial__campo--paciente">
+          <label for="filtro-paciente">Buscar paciente</label>
+          <div class="historial__buscador">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+              <circle cx="11" cy="11" r="7"></circle>
+              <path d="m20 20-3.5-3.5"></path>
+            </svg>
+            <input
+              #filtroPaciente
+              id="filtro-paciente"
+              type="search"
+              autocomplete="off"
+              placeholder="Nombre, apellido o CI…"
+              [value]="busquedaPaciente()"
+              [disabled]="cargandoPacientes()"
+              (input)="actualizarBusquedaPaciente(filtroPaciente.value)"
+              (focus)="mostrarPacientes.set(true)"
+            />
+          </div>
+
+          @if (pacienteFiltro(); as paciente) {
+            <p class="historial__chip">
+              {{ paciente.nombres }} {{ paciente.apellidos }}
+              <button
+                type="button"
+                class="historial__chip-quitar"
+                aria-label="Quitar filtro de paciente"
+                (click)="quitarPacienteFiltro()"
+              >
+                ×
+              </button>
+            </p>
+          }
+
+          @if (mostrarPacientes() && !pacienteFiltro()) {
+            <ul class="historial__resultados">
+              @for (paciente of resultadosPacientes(); track paciente.id) {
+                <li>
+                  <button type="button" (click)="elegirPaciente(paciente)">
+                    <strong>{{ paciente.nombres }} {{ paciente.apellidos }}</strong>
+                    <small>CI {{ paciente.ci }}</small>
+                  </button>
+                </li>
+              } @empty {
+                <li class="historial__resultado-vacio">Sin pacientes activos coincidentes.</li>
+              }
+            </ul>
+          }
+          <p class="historial__ayuda">
+            El backend filtra por paciente, estado, método y rango de fechas.
+          </p>
+        </div>
+
+        <div class="historial__campo">
+          <label for="filtro-estado">Estado</label>
+          <select id="filtro-estado" formControlName="estado">
+            <option value="">Todos los estados</option>
+            @for (estado of estados; track estado) {
+              <option [value]="estado">{{ etiquetaEstado(estado) }}</option>
+            }
+          </select>
+        </div>
+
+        <div class="historial__campo">
+          <label for="filtro-metodo">Método</label>
+          <select id="filtro-metodo" formControlName="metodo_pago">
+            <option value="">Todos los métodos</option>
+            @for (metodo of metodos; track metodo) {
+              <option [value]="metodo">{{ etiquetaMetodo(metodo) }}</option>
+            }
+          </select>
+        </div>
+
+        <div class="historial__campo">
+          <label for="filtro-desde">Desde</label>
+          <input id="filtro-desde" type="date" formControlName="desde" />
+        </div>
+
+        <div class="historial__campo">
+          <label for="filtro-hasta">Hasta</label>
+          <input id="filtro-hasta" type="date" formControlName="hasta" />
+        </div>
+
+        <div class="historial__campo">
+          <label for="filtro-tamano">Registros por página</label>
+          <select id="filtro-tamano" formControlName="page_size">
+            <option [ngValue]="10">10</option>
+            <option [ngValue]="20">20</option>
+            <option [ngValue]="50">50</option>
+          </select>
+        </div>
+
+        <div class="historial__campo historial__campo--accion">
+          <button type="submit" class="historial__btn historial__btn--primario" [disabled]="cargando()">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+              <path d="M3 5h18l-7 8v6l-4 2v-8z"></path>
+            </svg>
+            Aplicar filtros
+          </button>
+        </div>
+      </form>
+
+      @if (error(); as mensaje) {
+        <div class="historial__estado historial__estado--error" role="alert">
+          <span>{{ mensaje }}</span>
+          <button type="button" class="historial__enlace" (click)="cargar()">Reintentar</button>
+        </div>
+      }
+
+      <div class="historial__tabla-contenedor">
+        <table>
+          <caption class="historial__oculto">Pagos registrados en la clínica</caption>
+          <thead>
+            <tr>
+              <th scope="col">Pago</th>
+              <th scope="col">Paciente</th>
+              <th scope="col">Fecha y hora</th>
+              <th scope="col">Método</th>
+              <th scope="col">Estado</th>
+              <th scope="col" class="historial__col-monto">Monto</th>
+              <th scope="col"><span class="historial__oculto">Acciones</span></th>
+            </tr>
+          </thead>
+          <tbody>
+            @if (cargando()) {
+              <tr>
+                <td colspan="7" class="historial__cargando" role="status">Cargando pagos…</td>
+              </tr>
+            } @else {
+              @for (pago of items(); track pago.id) {
+                <tr
+                  [class.historial__fila--activa]="seleccionado()?.id === pago.id"
+                  [attr.aria-current]="seleccionado()?.id === pago.id ? 'true' : null"
+                  tabindex="0"
+                  (click)="seleccionar(pago)"
+                  (keydown.enter)="seleccionar(pago)"
+                >
+                  <td>
+                    <strong class="historial__referencia">{{ referencia(pago.id) }}</strong>
+                    <small class="historial__fecha">{{ fechaHora(pago.fecha_creacion) }}</small>
+                  </td>
+                  <td>{{ nombrePaciente(pago.paciente_id) }}</td>
+                  <td class="historial__fecha">{{ fechaHora(pago.fecha_creacion) }}</td>
+                  <td>{{ etiquetaMetodo(pago.metodo_pago) }}</td>
+                  <td>
+                    <span [class]="'historial__badge ' + claseEstado(pago.estado)">
+                      {{ etiquetaEstado(pago.estado) }}
+                    </span>
+                  </td>
+                  <td class="historial__col-monto">{{ monto(pago.monto) }}</td>
+                  <td>
+                    <button
+                      type="button"
+                      class="historial__btn-ver"
+                      [attr.aria-label]="'Ver detalle del pago ' + referencia(pago.id)"
+                      (click)="seleccionar(pago); $event.stopPropagation()"
+                    >
+                      ›
+                    </button>
+                  </td>
+                </tr>
+              } @empty {
+                <tr>
+                  <td colspan="7" class="historial__vacio">
+                    No hay pagos que coincidan con los filtros seleccionados.
+                  </td>
+                </tr>
+              }
+            }
+          </tbody>
+        </table>
+      </div>
+
+      <footer class="historial__pie">
+        <span>Mostrando {{ items().length }} de {{ total() }} pagos</span>
+        <div class="historial__paginacion">
+          <button
+            type="button"
+            class="historial__pagina"
+            aria-label="Página anterior"
+            [disabled]="pagina() <= 1 || cargando()"
+            (click)="irAPagina(-1)"
+          >
+            ‹
+          </button>
+          <span>Página {{ pagina() }} de {{ totalPaginas() || 1 }}</span>
+          <button
+            type="button"
+            class="historial__pagina"
+            aria-label="Página siguiente"
+            [disabled]="pagina() >= totalPaginas() || cargando()"
+            (click)="irAPagina(1)"
+          >
+            ›
+          </button>
+        </div>
+      </footer>
+
+      <p class="historial__nota">
+        Los filtros, el total y la paginación se resuelven en el servidor. No se descargan
+        todos los pagos para simular la paginación.
+      </p>
+    </section>
+
+    <aside class="historial__aside">
+      @if (seleccionado(); as pago) {
+        <app-detalle-pago
+          [pago]="pago"
+          [nombrePaciente]="nombrePaciente(pago.paciente_id)"
+          [permisos]="permisos()"
+          (pagoActualizado)="actualizarPago($event)"
+          (recargar)="cargar()"
+        />
+      } @else {
+        <div class="historial__sin-detalle">
+          <h2>Detalle del pago</h2>
+          <p>Selecciona un pago del listado para ver su detalle, comprobante y estado del correo.</p>
+        </div>
+      }
+    </aside>
+  }
+</div>

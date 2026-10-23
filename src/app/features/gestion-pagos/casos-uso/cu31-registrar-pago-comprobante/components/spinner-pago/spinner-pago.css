@@ -1,0 +1,101 @@
+:host {
+  display: block;
+  position: absolute;
+  inset: 0;
+  z-index: 8;
+}
+
+.spinner-pago {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  padding: 0.75rem;
+  border-radius: inherit;
+  background: color-mix(in srgb, var(--color-surface) 78%, transparent);
+  backdrop-filter: blur(2px);
+}
+
+.spinner-pago__tarjeta {
+  display: grid;
+  justify-items: center;
+  gap: 0.45rem;
+  max-width: min(20rem, 92%);
+  padding: 1.1rem 1.25rem;
+  text-align: center;
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow-md);
+}
+
+.spinner-pago__aro {
+  position: relative;
+  display: block;
+  width: 2.6rem;
+  height: 2.6rem;
+}
+
+.spinner-pago__segmento {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 0.28rem;
+  height: 0.75rem;
+  border-radius: var(--radius-pill);
+  background: var(--color-primary);
+  animation: spinner-pago-latido 1s linear infinite;
+}
+
+.spinner-pago__segmento--claro {
+  background: var(--color-primary-light);
+}
+
+.spinner-pago__titulo {
+  color: var(--color-heading);
+  font-size: 0.95rem;
+  font-weight: 800;
+}
+
+.spinner-pago__detalle {
+  color: var(--color-text-soft);
+  font-size: 0.78rem;
+  line-height: 1.45;
+}
+
+@keyframes spinner-pago-latido {
+  0%,
+  100% {
+    opacity: 0.16;
+  }
+
+  45% {
+    opacity: 1;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .spinner-pago__segmento {
+    animation: none;
+    opacity: 0.55;
+  }
+}
+
+@media (max-width: 560px) {
+  .spinner-pago {
+    padding: 0.5rem;
+  }
+
+  .spinner-pago__tarjeta {
+    padding: 0.9rem 1rem;
+  }
+
+  .spinner-pago__aro {
+    width: 2.2rem;
+    height: 2.2rem;
+  }
+
+  .spinner-pago__titulo {
+    font-size: 0.88rem;
+  }
+}

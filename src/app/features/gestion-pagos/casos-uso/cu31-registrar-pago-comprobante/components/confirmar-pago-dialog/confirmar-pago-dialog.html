@@ -1,0 +1,68 @@
+<div class="confirmar" (click)="cerrarAlFondo($event)">
+  <section
+    class="confirmar__dialogo"
+    role="dialog"
+    aria-modal="true"
+    aria-labelledby="confirmar-pago-titulo"
+    aria-describedby="confirmar-pago-descripcion"
+    [attr.aria-busy]="procesando()"
+  >
+    <h2 id="confirmar-pago-titulo">Confirmar pago {{ referencia(pago().id) }}</h2>
+    <p id="confirmar-pago-descripcion">
+      Vas a confirmar la <strong>recepción del dinero</strong>. El pago pasará a estado
+      aprobado y se programará el comprobante por correo.
+    </p>
+
+    <dl class="confirmar__datos">
+      <div>
+        <dt>Paciente</dt>
+        <dd>{{ nombrePaciente() }}</dd>
+      </div>
+      <div>
+        <dt>Método</dt>
+        <dd>{{ metodo(pago().metodo_pago) }}</dd>
+      </div>
+      <div>
+        <dt>Monto</dt>
+        <dd class="confirmar__monto">{{ monto(pago().monto, pago().moneda) }}</dd>
+      </div>
+      <div>
+        <dt>Referencia</dt>
+        <dd>{{ pago().referencia_bancaria ?? 'Sin referencia registrada' }}</dd>
+      </div>
+      <div>
+        <dt>Registrado</dt>
+        <dd>{{ fechaHora(pago().fecha_creacion) }}</dd>
+      </div>
+    </dl>
+
+    <p class="confirmar__aviso">
+      Verifica el abono en la cuenta de la clínica antes de continuar. Esta acción no se
+      puede deshacer desde esta pantalla.
+    </p>
+
+    @if (error(); as mensaje) {
+      <p class="confirmar__error" role="alert">{{ mensaje }}</p>
+    }
+
+    <div class="confirmar__acciones">
+      <button
+        type="button"
+        class="confirmar__btn confirmar__btn--secundario"
+        [disabled]="procesando()"
+        (click)="cancelar.emit()"
+        autofocus
+      >
+        Cancelar
+      </button>
+      <button
+        type="button"
+        class="confirmar__btn confirmar__btn--primario"
+        [disabled]="procesando()"
+        (click)="confirmar.emit()"
+      >
+        {{ procesando() ? 'Confirmando…' : 'Confirmar pago' }}
+      </button>
+    </div>
+  </section>
+</div>

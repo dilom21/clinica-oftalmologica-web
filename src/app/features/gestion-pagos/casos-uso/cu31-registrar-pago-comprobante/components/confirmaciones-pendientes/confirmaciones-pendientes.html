@@ -1,0 +1,224 @@
+<div class="confirmaciones">
+  @if (!permisos().ver) {
+    <div class="confirmaciones__estado confirmaciones__estado--error" role="alert">
+      <strong>No es posible listar los pagos pendientes</strong>
+      <p>
+        El contrato del backend exige la función «Gestionar pagos» con acción de lectura
+        para consultar el listado administrativo. Tu rol tiene «Confirmar pagos bancarios»,
+        pero no permiso de lectura, por lo que esta vista no realiza consultas.
+      </p>
+    </div>
+  } @else {
+    <section class="confirmaciones__panel" aria-labelledby="confirmaciones-titulo">
+      <header class="confirmaciones__head">
+        <div class="confirmaciones__head-texto">
+          <h2 id="confirmaciones-titulo">Confirmaciones pendientes</h2>
+          <p>Revisa transferencias y QR antes de aprobarlos</p>
+        </div>
+        <button type="button" class="confirmaciones__btn confirmaciones__btn--secundario" (click)="actualizarListado()">
+          Actualizar listado
+        </button>
+      </header>
+
+      @if (!permisos().confirmar) {
+        <p class="confirmaciones__nota confirmaciones__nota--info" role="status">
+          Tu rol puede consultar los pagos pendientes, pero no confirmarlos. El botón de
+          confirmación no se muestra.
+        </p>
+      }
+
+      <div class="confirmaciones__filtros">
+        <div class="confirmaciones__campo">
+          <label for="confirmaciones-paciente">Filtrar por paciente</label>
+          <div class="confirmaciones__buscador">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+              <circle cx="11" cy="11" r="7"></circle>
+              <path d="m20 20-3.5-3.5"></path>
+            </svg>
+            <input
+              #filtroPaciente
+              id="confirmaciones-paciente"
+              type="search"
+              autocomplete="off"
+              placeholder="Nombre, apellido o CI…"
+              [value]="busquedaPaciente()"
+              [disabled]="cargandoPacientes()"
+              (input)="actualizarBusquedaPaciente(filtroPaciente.value)"
+              (focus)="mostrarPacientes.set(true)"
+            />
+          </div>
+
+          @if (pacienteFiltro(); as paciente) {
+            <p class="confirmaciones__chip">
+              {{ paciente.nombres }} {{ paciente.apellidos }}
+              <button
+                type="button"
+                class="confirmaciones__chip-quitar"
+                aria-label="Quitar filtro de paciente"
+                (click)="quitarPacienteFiltro()"
+              >
+                ×
+              </button>
+            </p>
+          }
+
+          @if (mostrarPacientes() && !pacienteFiltro()) {
+            <ul class="confirmaciones__resultados">
+              @for (paciente of resultadosPacientes(); track paciente.id) {
+                <li>
+                  <button type="button" (click)="elegirPaciente(paciente)">
+                    <strong>{{ paciente.nombres }} {{ paciente.apellidos }}</strong>
+                    <small>CI {{ paciente.ci }}</small>
+                  </button>
+                </li>
+              } @empty {
+                <li class="confirmaciones__resultado-vacio">Sin pacientes activos coincidentes.</li>
+              }
+            </ul>
+          }
+        </div>
+        <div class="confirmaciones__campo confirmaciones__campo--tamano">
+          <label for="confirmaciones-tamano">Registros por página</label>
+          <select
+            #tamano
+            id="confirmaciones-tamano"
+            [value]="tamanoPagina()"
+            (change)="tamanoPagina.set(+tamano.value); actualizarListado()"
+          >
+            <option value="10">10</option>
+            <option value="20">20</option>
+            <option value="50">50</option>
+          </select>
+        </div>
+      </div>
+
+      @if (error(); as mensaje) {
+        <div class="confirmaciones__estado confirmaciones__estado--error" role="alert">
+          <span>{{ mensaje }}</span>
+          <button type="button" class="confirmaciones__enlace" (click)="cargar()">Reintentar</button>
+        </div>
+      }
+
+      @if (omitidos() > 0) {
+        <p class="confirmaciones__nota" role="status">
+          Se omiten {{ omitidos() }} pago(s) pendiente(s) con tarjeta en esta página, que
+          no requieren confirmación manual.
+        </p>
+      }
+
+      <div class="confirmaciones__tabla-contenedor">
+        <table>
+          <caption class="confirmaciones__oculto">
+            Pagos pendientes de confirmación manual
+          </caption>
+          <thead>
+            <tr>
+              <th scope="col">Pago</th>
+              <th scope="col">Paciente</th>
+              <th scope="col">Método</th>
+              <th scope="col">Fecha</th>
+              <th scope="col">Referencia</th>
+              <th scope="col" class="confirmaciones__col-monto">Importe</th>
+              <th scope="col"><span class="confirmaciones__oculto">Acciones</span></th>
+            </tr>
+          </thead>
+          <tbody>
+            @if (cargando()) {
+              <tr>
+                <td colspan="7" class="confirmaciones__cargando" role="status">
+                  Cargando pagos pendientes…
+                </td>
+              </tr>
+            } @else {
+              @for (pago of visibles(); track pago.id) {
+                <tr
+                  [class.confirmaciones__fila--activa]="seleccionado()?.id === pago.id"
+                  [attr.aria-current]="seleccionado()?.id === pago.id ? 'true' : null"
+                  tabindex="0"
+                  (click)="seleccionar(pago)"
+                  (keydown.enter)="seleccionar(pago)"
+                >
+                  <td><strong class="confirmaciones__referencia">{{ referencia(pago.id) }}</strong></td>
+                  <td>{{ nombrePaciente(pago.paciente_id) }}</td>
+                  <td>{{ metodo(pago.metodo_pago) }}</td>
+                  <td class="confirmaciones__fecha">{{ fechaHora(pago.fecha_creacion) }}</td>
+                  <td class="confirmaciones__referencia-bancaria">
+                    {{ pago.referencia_bancaria ?? 'Sin referencia' }}
+                  </td>
+                  <td class="confirmaciones__col-monto">{{ monto(pago.monto) }}</td>
+                  <td>
+                    <button
+                      type="button"
+                      class="confirmaciones__ver"
+                      [attr.aria-label]="'Revisar el pago ' + referencia(pago.id)"
+                      (click)="seleccionar(pago); $event.stopPropagation()"
+                    >
+                      Revisar
+                    </button>
+                  </td>
+                </tr>
+              } @empty {
+                <tr>
+                  <td colspan="7" class="confirmaciones__vacio">
+                    No hay transferencias ni pagos QR pendientes de confirmación.
+                  </td>
+                </tr>
+              }
+            }
+          </tbody>
+        </table>
+      </div>
+
+      <footer class="confirmaciones__pie">
+        <span>
+          Mostrando {{ visibles().length }} de {{ total() }} pagos pendientes registrados
+          en el servidor
+        </span>
+        <div class="confirmaciones__paginacion">
+          <button
+            type="button"
+            class="confirmaciones__pagina"
+            aria-label="Página anterior"
+            [disabled]="pagina() <= 1 || cargando()"
+            (click)="irAPagina(-1)"
+          >
+            ‹
+          </button>
+          <span>Página {{ pagina() }} de {{ totalPaginas() || 1 }}</span>
+          <button
+            type="button"
+            class="confirmaciones__pagina"
+            aria-label="Página siguiente"
+            [disabled]="pagina() >= totalPaginas() || cargando()"
+            (click)="irAPagina(1)"
+          >
+            ›
+          </button>
+        </div>
+      </footer>
+
+      <p class="confirmaciones__nota">
+        La confirmación se envía al backend y sólo se aplica si el pago sigue pendiente.
+        Un conflicto se informa y el listado se recarga con el estado real. Los pagos
+        confirmados permanecen visibles hasta que actualices el listado.
+      </p>
+    </section>
+
+    <aside class="confirmaciones__aside">
+      @if (seleccionado(); as pago) {
+        <app-detalle-pago
+          [pago]="pago"
+          [nombrePaciente]="nombrePaciente(pago.paciente_id)"
+          [permisos]="permisos()"
+          (pagoActualizado)="actualizarPago($event)"
+          (recargar)="cargar()"
+        />
+      } @else {
+        <div class="confirmaciones__sin-detalle">
+          <h2>Detalle del pago</h2>
+          <p>Selecciona una transferencia o un pago QR para revisar su información.</p>
+        </div>
+      }
+    </aside>
+  }
+</div>

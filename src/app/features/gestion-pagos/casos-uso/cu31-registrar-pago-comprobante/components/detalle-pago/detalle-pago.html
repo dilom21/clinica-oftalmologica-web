@@ -1,0 +1,147 @@
+<section class="detalle" aria-labelledby="detalle-pago-titulo">
+  <header class="detalle__head">
+    <div class="detalle__titulo">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+        <path d="M14 3v5h5"></path>
+        <path d="M14 3H6v18h12V8z"></path>
+      </svg>
+      <div>
+        <h2 id="detalle-pago-titulo">Detalle del pago</h2>
+        <p>Referencia {{ referencia(pago().id) }}</p>
+      </div>
+    </div>
+    <span [class]="'detalle__badge ' + claseEstado()">{{ estado(pago().estado) }}</span>
+  </header>
+
+  <div class="detalle__body">
+    <div class="detalle__principal">
+      <div>
+        <span>{{ metodo(pago().metodo_pago) }}</span>
+        <small>{{ fechaHora(pago().fecha_creacion) }}</small>
+      </div>
+      <strong>{{ monto(pago().monto, pago().moneda) }}</strong>
+    </div>
+
+    <dl class="detalle__datos">
+      <div>
+        <dt>Paciente</dt>
+        <dd>{{ nombrePaciente() }}</dd>
+      </div>
+      <div>
+        <dt>Consulta</dt>
+        <dd>#{{ pago().consulta_clinica_id }}</dd>
+      </div>
+      <div>
+        <dt>Servicios cobrados</dt>
+        <dd>{{ pago().servicio_realizado_ids.length }}</dd>
+      </div>
+      <div>
+        <dt>Referencia bancaria</dt>
+        <dd>{{ pago().referencia_bancaria ?? 'No registrada' }}</dd>
+      </div>
+      <div>
+        <dt>Fecha de registro</dt>
+        <dd>{{ fechaHora(pago().fecha_creacion) }}</dd>
+      </div>
+      <div>
+        <dt>Fecha del pago</dt>
+        <dd>
+          {{ pago().fecha_hora_pago ? fechaHora(pago().fecha_hora_pago) : 'Pendiente de confirmación' }}
+        </dd>
+      </div>
+      @if (pago().observaciones) {
+        <div class="detalle__observaciones">
+          <dt>Observaciones</dt>
+          <dd>{{ pago().observaciones }}</dd>
+        </div>
+      }
+    </dl>
+
+    <div class="detalle__servicios">
+      <h3>Servicios cobrados</h3>
+      <ul>
+        @for (servicioId of pago().servicio_realizado_ids; track servicioId) {
+          <li>Servicio realizado #{{ servicioId }}</li>
+        }
+      </ul>
+      <p class="detalle__ayuda">
+        El desglose por servicio con su importe está disponible en el comprobante PDF.
+      </p>
+    </div>
+
+    @if (pendienteConfirmacion()) {
+      <div class="detalle__confirmacion">
+        <p>
+          {{
+            pago().metodo_pago === 'QR'
+              ? 'Este pago por QR está pendiente de confirmación autorizada.'
+              : 'Esta transferencia está pendiente de confirmación autorizada.'
+          }}
+        </p>
+        @if (puedeConfirmar()) {
+          <button type="button" class="detalle__btn detalle__btn--primario" (click)="abrirConfirmacion()">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+              <path d="m4 12 5 5L20 6"></path>
+            </svg>
+            Confirmar pago
+          </button>
+        } @else {
+          <p class="detalle__aviso">
+            Tu rol no tiene la función «Confirmar pagos bancarios» con acción de escritura.
+          </p>
+        }
+      </div>
+    }
+
+    @if (errorConfirmacion(); as mensaje) {
+      <p class="detalle__alerta" role="alert">{{ mensaje }}</p>
+    }
+    @if (exito(); as mensaje) {
+      <p class="detalle__exito" role="status">{{ mensaje }}</p>
+    }
+
+    @if (comprobanteDisponible(pago()) && permisos().ver) {
+      <button
+        type="button"
+        class="detalle__btn detalle__btn--secundario"
+        [disabled]="descargando()"
+        (click)="descargarComprobante()"
+      >
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+          <path d="M14 3v5h5"></path>
+          <path d="M14 3H6v18h12V8z"></path>
+          <path d="M9 13h6M9 17h6"></path>
+        </svg>
+        {{ descargando() ? 'Descargando…' : 'Descargar comprobante' }}
+      </button>
+    }
+    @if (errorDescarga(); as mensaje) {
+      <p class="detalle__alerta" role="alert">{{ mensaje }}</p>
+    }
+
+    @if (pago().estado === 'APROBADO') {
+      <app-estado-notificacion
+        [pagoId]="pago().id"
+        [estadoPago]="pago().estado"
+        [notificacionInicial]="pago().notificacion"
+        [puedeReintentar]="permisos().registrar"
+      />
+    } @else {
+      <div class="detalle__correo">
+        <h3>Comprobante por correo</h3>
+        <p>Pendiente de aprobación del pago.</p>
+      </div>
+    }
+  </div>
+
+  @if (dialogoAbierto()) {
+    <app-confirmar-pago-dialog
+      [pago]="pago()"
+      [nombrePaciente]="nombrePaciente()"
+      [procesando]="procesando()"
+      [error]="errorConfirmacion()"
+      (confirmar)="confirmarPago()"
+      (cancelar)="cerrarConfirmacion()"
+    />
+  }
+</section>

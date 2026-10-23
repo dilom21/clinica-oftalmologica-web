@@ -1,0 +1,16 @@
+<div class="spinner-pago" role="status" aria-live="polite" aria-atomic="true">
+  <div class="spinner-pago__tarjeta">
+    <span class="spinner-pago__aro" aria-hidden="true">
+      @for (segmento of segmentos; track segmento) {
+        <span
+          class="spinner-pago__segmento"
+          [class.spinner-pago__segmento--claro]="segmento % 2 === 1"
+          [style.transform]="transformacion(segmento)"
+          [style.animation-delay]="retardo(segmento)"
+        ></span>
+      }
+    </span>
+    <p class="spinner-pago__titulo">{{ mensaje() }}</p>
+    <p class="spinner-pago__detalle">{{ detalle() }}</p>
+  </div>
+</div>

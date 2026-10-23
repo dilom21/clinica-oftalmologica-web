@@ -1,5 +1,6 @@
 import { provideHttpClient } from '@angular/common/http';
 import { provideHttpClientTesting } from '@angular/common/http/testing';
+import { signal } from '@angular/core';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { provideRouter } from '@angular/router';
 import { Observable, Subject, of, throwError } from 'rxjs';
@@ -47,6 +48,10 @@ describe('Reportes', () => {
           logout: () => undefined,
           obtenerPerfilActual: () => null,
           tenantCode: () => null,
+          empresa: signal(null).asReadonly(),
+          estadoEmpresa: signal('sin-tenant').asReadonly(),
+          inicializarContextoEmpresa: () => undefined,
+          reintentarContextoEmpresa: () => undefined,
         },
       },
     ] }).compileComponents();

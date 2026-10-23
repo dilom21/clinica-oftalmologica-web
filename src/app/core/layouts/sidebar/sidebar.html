@@ -10,6 +10,12 @@
         <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path>
         <polyline points="9 22 9 12 15 12 15 22"></polyline>
       </symbol>
+      <symbol id="icono-clinica" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M3 21h18"></path>
+        <path d="M5 21V7l7-4 7 4v14"></path>
+        <line x1="12" y1="9" x2="12" y2="15"></line>
+        <line x1="9" y1="12" x2="15" y2="12"></line>
+      </symbol>
       <symbol id="icono-seguridad" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
         <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path>
       </symbol>
@@ -184,19 +190,17 @@
   <a
     routerLink="/inicio"
     class="sidebar__brand"
-    title="Sistema clínico"
+    [title]="'Sesión activa: ' + companyName()"
     (click)="navegarInicio()"
   >
-    <img
-      class="sidebar__brand-logo"
-      src="/images/logo/logo-clinica.png"
-      alt="Logo del sistema clínico"
-      width="36"
-      height="36"
-    />
+    <!-- Icono neutro: la empresa autenticada no tiene un logo verificable
+         propio, así que nunca se muestra el logo de otra clínica. -->
+    <span class="sidebar__brand-icono" aria-hidden="true">
+      <svg class="sidebar__svg"><use href="#icono-clinica"></use></svg>
+    </span>
     <span class="sidebar__brand-texto">
-      <span class="sidebar__brand-nombre">Centro Oftalmológico</span>
-      <span class="sidebar__brand-linea">Visión Clara</span>
+      <span class="sidebar__brand-nombre">{{ companyName() }}</span>
+      <span class="sidebar__brand-linea">Sistema clínico</span>
     </span>
   </a>
 

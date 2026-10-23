@@ -1,0 +1,204 @@
+<main class="pagos-page">
+  <div class="pagos-page__body">
+    <app-sidebar [mobileOpen]="sidebarMovilAbierto()" (mobileClose)="cerrarSidebar()" />
+
+    <section class="pagos-page__main">
+      <header class="pagos-page__topbar">
+        <button
+          type="button"
+          class="pagos-page__hamburger"
+          [attr.aria-expanded]="sidebarMovilAbierto()"
+          (click)="alternarSidebar()"
+          aria-label="Abrir o cerrar menú"
+        >
+          ☰
+        </button>
+      </header>
+
+      <div class="pagos-page__content">
+        <header class="pagos-page__hero">
+          <div class="pagos-page__hero-texto">
+            <p class="pagos-page__eyebrow">CU31 · Gestión administrativa</p>
+            <h1>Gestión de pagos</h1>
+            <p>
+              Registra cobros, confirma operaciones y gestiona los comprobantes de tus pacientes.
+            </p>
+          </div>
+          <span class="pagos-page__sello">
+            <span class="pagos-page__sello-icono" aria-hidden="true">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <circle cx="12" cy="12" r="9"></circle>
+                <path d="M12 7h4M12 11h4M8 7v10"></path>
+                <path d="M6 12h3"></path>
+              </svg>
+            </span>
+            <span>
+              <strong>
+                {{
+                  vista() === 'registro' ? 'Operaciones por clínica' : 'Permisos de administración'
+                }}
+              </strong>
+              <small>Cifras y estados provistos por el backend</small>
+            </span>
+          </span>
+        </header>
+
+        @if (estadoPermiso() === 'verificando') {
+          <div class="pagos-estado" role="status">Verificando los permisos del menú…</div>
+        } @else if (estadoPermiso() === 'error') {
+          <div class="pagos-estado pagos-estado--error" role="alert">
+            <strong>{{ tituloSinAcceso() }}</strong>
+            <p>{{ detalleSinAcceso() }}</p>
+            <button
+              type="button"
+              class="pagos-btn pagos-btn--secundario"
+              (click)="reintentarMenu()"
+            >
+              Reintentar
+            </button>
+          </div>
+        } @else if (estadoPermiso() === 'denegado') {
+          <div class="pagos-estado pagos-estado--error" role="alert">
+            <strong>{{ tituloSinAcceso() }}</strong>
+            <p>{{ detalleSinAcceso() }}</p>
+            <button
+              type="button"
+              class="pagos-btn pagos-btn--secundario"
+              (click)="reintentarMenu()"
+            >
+              Volver a comprobar
+            </button>
+          </div>
+        } @else {
+          <nav class="pagos-tabs" aria-label="Vistas de gestión de pagos">
+            @if (puedeVerVista('registro')) {
+              <button
+                type="button"
+                class="pagos-tabs__item"
+                [class.pagos-tabs__item--activo]="vista() === 'registro'"
+                [attr.aria-current]="vista() === 'registro' ? 'page' : null"
+                (click)="seleccionarVista('registro')"
+              >
+                <svg
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  stroke-width="2"
+                  aria-hidden="true"
+                >
+                  <path d="M12 5v14M5 12h14"></path>
+                </svg>
+                Registrar pago
+              </button>
+            }
+            @if (puedeVerVista('historial')) {
+              <button
+                type="button"
+                class="pagos-tabs__item"
+                [class.pagos-tabs__item--activo]="vista() === 'historial'"
+                [attr.aria-current]="vista() === 'historial' ? 'page' : null"
+                (click)="seleccionarVista('historial')"
+              >
+                <svg
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  stroke-width="2"
+                  aria-hidden="true"
+                >
+                  <circle cx="12" cy="12" r="9"></circle>
+                  <path d="M12 7v5l3 2"></path>
+                </svg>
+                Historial de pagos
+              </button>
+            }
+            @if (puedeVerVista('confirmaciones')) {
+              <button
+                type="button"
+                class="pagos-tabs__item"
+                [class.pagos-tabs__item--activo]="vista() === 'confirmaciones'"
+                [attr.aria-current]="vista() === 'confirmaciones' ? 'page' : null"
+                (click)="seleccionarVista('confirmaciones')"
+              >
+                <svg
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  stroke-width="2"
+                  aria-hidden="true"
+                >
+                  <path d="M4 6h16v12H4z"></path>
+                  <path d="m4 7 8 6 8-6"></path>
+                </svg>
+                Confirmaciones pendientes
+              </button>
+            }
+          </nav>
+
+          @if (errorPacientes(); as mensaje) {
+            <div class="pagos-estado pagos-estado--error" role="alert">
+              <span>{{ mensaje }}</span>
+              <button
+                type="button"
+                class="pagos-btn pagos-btn--secundario"
+                (click)="reintentarPacientes()"
+              >
+                Reintentar
+              </button>
+            </div>
+          }
+
+          @switch (vista()) {
+            @case ('registro') {
+              @if (permisos().ver) {
+                <app-registro-pago
+                  [pacientes]="pacientes()"
+                  [permisos]="permisos()"
+                  [cargandoPacientes]="cargandoPacientes()"
+                />
+              } @else {
+                <div class="pagos-estado pagos-estado--error" role="alert">
+                  No tienes permiso de lectura para registrar pagos.
+                </div>
+              }
+            }
+            @case ('historial') {
+              @if (permisos().ver) {
+                <app-historial-pagos
+                  [pacientes]="pacientes()"
+                  [permisos]="permisos()"
+                  [cargandoPacientes]="cargandoPacientes()"
+                />
+              } @else {
+                <div class="pagos-estado pagos-estado--error" role="alert">
+                  No tienes permiso de lectura para consultar el historial.
+                </div>
+              }
+            }
+            @case ('confirmaciones') {
+              <app-confirmaciones-pendientes
+                [pacientes]="pacientes()"
+                [permisos]="permisos()"
+                [cargandoPacientes]="cargandoPacientes()"
+              />
+            }
+            @default {
+              <div class="pagos-estado pagos-estado--error" role="alert">
+                No hay una vista disponible para esta ruta. Usa las pestañas para continuar.
+              </div>
+            }
+          }
+        }
+      </div>
+    </section>
+  </div>
+
+  @if (sidebarMovilAbierto()) {
+    <button
+      type="button"
+      class="pagos-page__backdrop"
+      (click)="cerrarSidebar()"
+      aria-label="Cerrar menú"
+    ></button>
+  }
+</main>

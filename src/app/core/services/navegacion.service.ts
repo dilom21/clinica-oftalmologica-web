@@ -59,6 +59,8 @@ export class NavegacionService {
     ['configurar disponibilidad del oftalmólogo', '/configurar-disponibilidad'],
     ['gestionar citas médicas', '/gestionar-citas'],
     ['consultar historial de citas', '/historial-citas'],
+    ['gestionar pagos', '/pagos'],
+    ['confirmar pagos bancarios', '/pagos/confirmaciones'],
     ['generar reportes', '/reportes'],
   ]);
 

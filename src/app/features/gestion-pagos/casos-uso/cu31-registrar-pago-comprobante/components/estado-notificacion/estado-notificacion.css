@@ -1,0 +1,212 @@
+:host {
+  display: block;
+}
+
+.notificacion {
+  display: grid;
+  gap: 0.55rem;
+  padding: 0.8rem;
+  background: var(--color-surface-muted);
+  border: 1px solid var(--color-border-soft);
+  border-radius: var(--radius-sm);
+}
+
+.notificacion__head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 0.6rem;
+}
+
+.notificacion__head h4 {
+  color: var(--color-heading);
+  font-size: 0.82rem;
+}
+
+.notificacion__head p {
+  font-size: 0.72rem;
+}
+
+.notificacion__estado {
+  display: inline-flex;
+  align-items: center;
+  padding: 0.18rem 0.55rem;
+  border-radius: var(--radius-pill);
+  border: 1px solid transparent;
+  font-size: 0.7rem;
+  font-weight: 700;
+  white-space: nowrap;
+}
+
+.notificacion__estado--pendiente {
+  color: var(--color-warning-text);
+  background: var(--color-warning-bg);
+  border-color: var(--color-warning-border);
+}
+
+.notificacion__estado--proceso {
+  color: var(--color-info-text);
+  background: var(--color-info-bg);
+  border-color: var(--color-info-border);
+}
+
+.notificacion__estado--entregado {
+  color: var(--color-success-text);
+  background: var(--color-success-bg-soft);
+  border-color: var(--color-success-border);
+}
+
+.notificacion__estado--fallido {
+  color: var(--color-danger-text);
+  background: var(--color-danger-bg);
+  border-color: var(--color-danger-border);
+}
+
+.notificacion__datos {
+  display: grid;
+  gap: 0.3rem;
+  margin: 0;
+}
+
+.notificacion__datos > div {
+  display: flex;
+  justify-content: space-between;
+  gap: 0.6rem;
+  font-size: 0.76rem;
+}
+
+.notificacion__datos dt {
+  color: var(--color-text-soft);
+}
+
+.notificacion__datos dd {
+  margin: 0;
+  color: var(--color-heading);
+  font-weight: 600;
+  text-align: right;
+}
+
+.notificacion__texto {
+  color: var(--color-text-soft);
+  font-size: 0.76rem;
+  line-height: 1.45;
+}
+
+.notificacion__texto--aviso {
+  color: var(--color-warning-text);
+  font-weight: 600;
+}
+
+.notificacion__seguimiento {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  color: var(--color-info-text);
+  font-size: 0.76rem;
+  font-weight: 600;
+}
+
+.notificacion__pulso {
+  flex: 0 0 auto;
+  width: 0.5rem;
+  height: 0.5rem;
+  border-radius: 50%;
+  background: var(--color-primary-light);
+  box-shadow: 0 0 0 0 color-mix(in srgb, var(--color-primary-light) 55%, transparent);
+  animation: notificacion-pulso 1.6s ease-out infinite;
+}
+
+@keyframes notificacion-pulso {
+  0% {
+    box-shadow: 0 0 0 0 color-mix(in srgb, var(--color-primary-light) 55%, transparent);
+  }
+
+  70%,
+  100% {
+    box-shadow: 0 0 0 0.45rem transparent;
+  }
+}
+
+.notificacion__acciones {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.45rem;
+}
+
+.notificacion__acciones .notificacion__btn {
+  flex: 1 1 8rem;
+  justify-self: stretch;
+  text-align: center;
+}
+
+.notificacion__detalle-error {
+  color: var(--color-danger-text);
+  font-size: 0.76rem;
+}
+
+.notificacion__mensaje {
+  color: var(--color-success-text);
+  font-size: 0.76rem;
+  font-weight: 600;
+}
+
+.notificacion__alerta {
+  display: grid;
+  gap: 0.35rem;
+  padding: 0.55rem 0.65rem;
+  border-radius: var(--radius-sm);
+  font-size: 0.76rem;
+  color: var(--color-danger-text);
+  background: var(--color-danger-bg);
+  border: 1px solid var(--color-danger-border);
+}
+
+.notificacion__alerta--info {
+  color: var(--color-info-text);
+  background: var(--color-info-bg);
+  border-color: var(--color-info-border);
+}
+
+.notificacion__enlace {
+  justify-self: start;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  color: inherit;
+  font: inherit;
+  font-weight: 700;
+  text-decoration: underline;
+  cursor: pointer;
+}
+
+.notificacion__btn {
+  justify-self: start;
+  min-height: 2.2rem;
+  padding: 0.4rem 0.8rem;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-sm);
+  background: var(--color-surface);
+  color: var(--color-heading);
+  font: inherit;
+  font-size: 0.78rem;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.notificacion__btn:disabled {
+  cursor: not-allowed;
+  opacity: 0.6;
+}
+
+.notificacion__btn:focus-visible,
+.notificacion__enlace:focus-visible {
+  outline: 3px solid color-mix(in srgb, var(--color-primary) 45%, transparent);
+  outline-offset: 2px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .notificacion__pulso {
+    animation: none;
+    box-shadow: none;
+  }
+}

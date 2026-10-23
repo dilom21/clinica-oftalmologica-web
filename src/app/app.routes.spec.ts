@@ -74,3 +74,26 @@ describe('app.routes — SaaS backups', () => {
     expect(saas?.canActivate).toHaveLength(1);
   });
 });
+
+describe('app.routes — CU31', () => {
+  it('expone /pagos con registro, historial y confirmaciones antes del comodín', () => {
+    const indiceComodin = routes.findIndex((route) => route.path === '**');
+    const indicePagos = routes.findIndex((route) => route.path === 'pagos');
+    const pagos = routes[indicePagos];
+
+    expect(indicePagos).toBeGreaterThanOrEqual(0);
+    expect(indicePagos).toBeLessThan(indiceComodin);
+    expect(pagos?.canActivate).toContain(authGuard);
+
+    const hijos = pagos?.children ?? [];
+    expect(hijos.map((hijo) => hijo.path)).toEqual(['', 'historial', 'confirmaciones']);
+    expect(hijos.map((hijo) => hijo.data?.['vista'])).toEqual([
+      'registro',
+      'historial',
+      'confirmaciones',
+    ]);
+    for (const hijo of hijos) {
+      expect(typeof hijo.loadComponent).toBe('function');
+    }
+  });
+});

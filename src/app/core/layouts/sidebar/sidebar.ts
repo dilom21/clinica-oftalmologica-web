@@ -14,7 +14,6 @@ import { NavigationEnd, Router, RouterLink, RouterLinkActive } from '@angular/ro
 import { filter } from 'rxjs';
 
 import { PerfilUsuario } from '../../../features/autenticacion-seguridad/Auth/models/auth.models';
-import { TenantCompany } from '../../../features/autenticacion-seguridad/Auth/models/auth.models';
 import { AuthService } from '../../../features/autenticacion-seguridad/Auth/services/auth.service';
 import { MenuModulo } from '../../models/menu.models';
 import { MenuService } from '../../services/menu.service';
@@ -50,8 +49,6 @@ export class Sidebar implements OnInit {
   protected readonly menuError = this.menuService.error;
   protected readonly perfil = signal<PerfilUsuario | null>(null);
   protected readonly esOscuro = this.themeService.esOscuro;
-  private readonly companies = signal<TenantCompany[]>([]);
-  private readonly tokenAtLoad = localStorage.getItem('access_token');
   protected readonly openModuleId = signal<number | null>(null);
   protected readonly selectedModuleId = signal<number | null>(null);
   protected readonly selectedFuncionId = signal<number | null>(null);
@@ -69,29 +66,31 @@ export class Sidebar implements OnInit {
       .filter((modulo) => modulo.funciones.length > 0),
   );
 
+  /** Contexto de empresa compartido: se resuelve una vez por sesión. */
+  protected readonly empresa = this.authService.empresa;
+  protected readonly estadoEmpresa = this.authService.estadoEmpresa;
+
   /**
-   * La empresa se muestra solo si coincide con el JWT tenant actual y la
-   * sesión ya fue validada por el menú, salvo el token recién emitido durante
-   * este mismo inicio de sesión.
+   * Nombre real de la empresa autenticada.
+   *
+   * Procede del contexto de sesión de `AuthService`, validado contra los claims
+   * del JWT tenant vigente y conservado durante toda la navegación. El sidebar
+   * ya no consulta el catálogo al crearse, así que el nombre no parpadea ni cae
+   * en "Empresa no verificada" al cambiar de módulo.
    */
   protected readonly companyName = computed(() => {
-    const tenantCode = this.authService.tenantCode(this.tokenAtLoad);
-    if (!tenantCode) {
-      return 'Acceso anterior (sin empresa tenant)';
+    const empresa = this.empresa();
+    if (empresa) {
+      return empresa.nombre;
     }
-    if (localStorage.getItem('access_token') !== this.tokenAtLoad) {
-      return 'Empresa no verificada';
+    switch (this.estadoEmpresa()) {
+      case 'verificando':
+        return 'Verificando empresa…';
+      case 'error':
+        return 'Empresa no verificada';
+      default:
+        return 'Acceso anterior (sin empresa tenant)';
     }
-    const sesionValidada =
-      this.menuService.estado() === 'listo' ||
-      this.authService.hasFreshTenantToken(this.tokenAtLoad);
-    if (!sesionValidada) {
-      return 'Empresa no verificada';
-    }
-    return (
-      this.companies().find((company) => company.codigo === tenantCode)?.nombre ??
-      'Empresa no verificada'
-    );
   });
 
   /**
@@ -107,17 +106,10 @@ export class Sidebar implements OnInit {
   ngOnInit(): void {
     this.perfil.set(this.authService.obtenerPerfilActual());
     this.menuService.cargar();
+    // Resuelve (o restaura tras F5) la empresa del token vigente. Es
+    // idempotente: si ya está resuelta no genera ninguna petición.
+    this.authService.inicializarContextoEmpresa();
     this.sincronizarConRuta(this.router.url);
-
-    if (this.authService.tenantCode(this.tokenAtLoad)) {
-      this.authService
-        .companies()
-        .pipe(takeUntilDestroyed(this.destroyRef))
-        .subscribe({
-          next: (companies) => this.companies.set(companies),
-          error: () => this.companies.set([]),
-        });
-    }
 
     this.router.events
       .pipe(
@@ -167,6 +159,7 @@ export class Sidebar implements OnInit {
 
   reintentarMenu(): void {
     this.menuService.reintentar();
+    this.authService.reintentarContextoEmpresa();
   }
 
   alternarTema(): void {
@@ -213,6 +206,30 @@ export class Sidebar implements OnInit {
         this.openModuleId.set(modulo.id);
         return;
       }
+    }
+
+    // Subrutas (p. ej. `/pagos/historial`): se resalta la función cuya ruta es
+    // el prefijo más específico, sin alterar la coincidencia exacta anterior.
+    let candidata: { moduloId: number; funcionId: number; longitud: number } | null = null;
+    for (const modulo of this.modulos()) {
+      for (const funcion of modulo.funciones) {
+        const ruta = this.normalizarUrl(this.rutaDeFuncion(funcion.nombre) ?? '');
+        if (!ruta || !rutaActiva.startsWith(`${ruta}/`)) {
+          continue;
+        }
+        if (!candidata || ruta.length > candidata.longitud) {
+          candidata = {
+            moduloId: modulo.id,
+            funcionId: funcion.id,
+            longitud: ruta.length,
+          };
+        }
+      }
+    }
+    if (candidata) {
+      this.selectedModuleId.set(candidata.moduloId);
+      this.selectedFuncionId.set(candidata.funcionId);
+      this.openModuleId.set(candidata.moduloId);
     }
   }
 

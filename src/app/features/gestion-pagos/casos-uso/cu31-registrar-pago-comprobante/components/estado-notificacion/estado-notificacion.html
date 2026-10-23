@@ -1,0 +1,146 @@
+<section class="notificacion" aria-labelledby="notificacion-titulo">
+  <header class="notificacion__head">
+    <div>
+      <h4 id="notificacion-titulo">Comprobante por correo</h4>
+      <p>Estado informado por el backend (Resend).</p>
+    </div>
+    @if (notificacion(); as actual) {
+      <span
+        [class]="'notificacion__estado ' + claseEstado(actual.estado)"
+        aria-live="polite"
+      >
+        {{ etiquetaEstado(actual.estado) }}
+      </span>
+    }
+  </header>
+
+  @if (notificacion(); as actual) {
+    @if (cargando()) {
+      <p class="notificacion__texto" role="status">Actualizando el estado del envío…</p>
+    } @else if (seguimiento()) {
+      <p class="notificacion__seguimiento" role="status">
+        <span class="notificacion__pulso" aria-hidden="true"></span>
+        Actualizando automáticamente el estado del envío…
+      </p>
+    }
+
+    @if (error(); as mensaje) {
+      <div class="notificacion__alerta" role="alert">
+        <span>{{ mensaje }}</span>
+        <button type="button" class="notificacion__enlace" (click)="consultar()">
+          Reintentar consulta
+        </button>
+      </div>
+    }
+
+    @if (errorSeguimiento(); as mensaje) {
+      <div class="notificacion__alerta" role="alert">
+        <span>{{ mensaje }}</span>
+        <button type="button" class="notificacion__enlace" (click)="consultar()">
+          Actualizar estado
+        </button>
+      </div>
+    }
+
+    <dl class="notificacion__datos">
+      <div>
+        <dt>Intentos de envío</dt>
+        <dd>{{ actual.intentos }}</dd>
+      </div>
+      <div>
+        <dt>Aceptado por el proveedor</dt>
+        <dd>{{ fechaOpcional(actual.fecha_aceptado) }}</dd>
+      </div>
+      <div>
+        <dt>Entregado</dt>
+        <dd>{{ fechaOpcional(actual.fecha_entregado) }}</dd>
+      </div>
+    </dl>
+
+    @if (errorVisible(); as codigo) {
+      <p class="notificacion__detalle-error">
+        <strong>Último error:</strong> {{ descripcionError(codigo) }}
+      </p>
+    }
+
+    @if (seguimientoAgotado() && enSeguimiento()) {
+      <p class="notificacion__texto notificacion__texto--aviso" role="status">
+        El seguimiento automático se detuvo después de
+        {{ consultasSeguimiento() }} consultas. Actualiza el estado manualmente; no se
+        ha reenviado ningún correo.
+      </p>
+    }
+
+    <div class="notificacion__acciones">
+      @if (puedeReintentarAhora(actual)) {
+        <button
+          type="button"
+          class="notificacion__btn"
+          [disabled]="reintentando()"
+          (click)="reintentar()"
+        >
+          {{ reintentando() ? 'Solicitando…' : 'Reintentar envío' }}
+        </button>
+      }
+      <button
+        type="button"
+        class="notificacion__btn"
+        [disabled]="cargando()"
+        (click)="consultar()"
+      >
+        {{ cargando() ? 'Actualizando…' : 'Actualizar estado' }}
+      </button>
+    </div>
+
+    @if (limiteAlcanzado(actual)) {
+      <p class="notificacion__texto">
+        Se alcanzó el límite de {{ maxReintentos }} reintentos desde esta interfaz.
+        Contacta al administrador del sistema para un reenvío adicional.
+      </p>
+    } @else if (actual.estado === 'ACEPTADO_POR_PROVEEDOR') {
+      <p class="notificacion__texto">
+        El proveedor aceptó el envío. La entrega final todavía no está confirmada.
+      </p>
+    } @else if (actual.estado === 'ENTREGADO') {
+      <p class="notificacion__texto">
+        El proveedor confirmó la entrega del comprobante por correo.
+      </p>
+    } @else if (actual.estado === 'PROCESANDO') {
+      <p class="notificacion__texto">
+        El envío está en proceso. Espera a que el backend actualice el estado antes de
+        reintentar.
+      </p>
+    } @else if (actual.estado === 'PENDIENTE') {
+      <p class="notificacion__texto">
+        El comprobante está en cola de envío; el estado se actualiza automáticamente.
+      </p>
+    } @else if (!puedeReintentar()) {
+      <p class="notificacion__texto">
+        Tu permiso actual no habilita el reenvío del comprobante.
+      </p>
+    }
+
+    @if (mensaje(); as aviso) {
+      <p class="notificacion__mensaje" role="status">{{ aviso }}</p>
+    }
+  } @else if (cargando()) {
+    <p class="notificacion__texto" role="status">Consultando el estado del envío…</p>
+  } @else if (error(); as mensaje) {
+    <div class="notificacion__alerta" role="alert">
+      <span>{{ mensaje }}</span>
+      <button type="button" class="notificacion__enlace" (click)="consultar()">
+        Reintentar consulta
+      </button>
+    </div>
+  } @else if (sinNotificacion()) {
+    <div class="notificacion__alerta notificacion__alerta--info" role="status">
+      <span>
+        Aún no hay una notificación registrada para este pago. El backend la crea al
+        aprobarse el cobro.
+      </span>
+      <button type="button" class="notificacion__enlace" (click)="consultar()">
+        Actualizar
+      </button>
+    </div>
+  }
+</section>

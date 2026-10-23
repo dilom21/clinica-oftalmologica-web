@@ -75,4 +75,23 @@ describe('NavegacionService — funciones del menú', () => {
     expect(servicio.iconoDeFuncion('Gestionar servicios oftalmológicos')).toBe('servicios');
     expect(servicio.iconoDeFuncion('Función desconocida')).toBe('documento');
   });
+
+  it('resuelve las funciones del CU31 sin falsos positivos', () => {
+    expect(servicio.rutaDeFuncion('Gestionar pagos')).toBe('/pagos');
+    expect(servicio.rutaDeFuncion('GESTIONAR PAGOS')).toBe('/pagos');
+    expect(servicio.rutaDeFuncion('Confirmar pagos bancarios')).toBe(
+      '/pagos/confirmaciones',
+    );
+    expect(servicio.rutaDeFuncion('confirmar pagos bancarios')).toBe(
+      '/pagos/confirmaciones',
+    );
+    expect(servicio.rutaDeFuncion('Gestionar pagos generales')).toBeNull();
+    expect(servicio.rutaDeFuncion('Confirmar transferencias')).toBeNull();
+  });
+
+  it('asigna iconografía de pagos a las funciones del CU31', () => {
+    expect(servicio.iconoDeModulo('Pagos')).toBe('pagos');
+    expect(servicio.iconoDeFuncion('Gestionar pagos')).toBe('pagos');
+    expect(servicio.iconoDeFuncion('Confirmar pagos bancarios')).toBe('pagos');
+  });
 });
