@@ -62,6 +62,7 @@ export class NavegacionService {
     ['gestionar pagos', '/pagos'],
     ['confirmar pagos bancarios', '/pagos/confirmaciones'],
     ['generar reportes', '/reportes'],
+    ['gestionar proveedores', '/proveedores'],
   ]);
 
   private readonly iconosModulo: ReadonlyArray<{
