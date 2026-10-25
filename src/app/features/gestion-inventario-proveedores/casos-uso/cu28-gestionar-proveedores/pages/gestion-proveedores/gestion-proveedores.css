@@ -1,11 +1,16 @@
 :host { display: block; }
-.proveedores-page { min-height: 100vh; background: #f4f7fb; color: #172033; }
-.proveedores-page__main { min-height: 100vh; margin-left: 17.5rem; }
+/*
+ * `app-sidebar` es `position: sticky` y mide 100vh: debe ir al lado del contenido
+ * con flex. Con `margin-left` su host ocupaba todo el ancho por encima de la
+ * pagina y absorbia los clics de los botones.
+ */
+.proveedores-page { display: flex; min-height: 100vh; background: #f4f7fb; color: #172033; }
+.proveedores-page__main { flex: 1 1 auto; min-width: 0; min-height: 100vh; }
 .proveedores-page__topbar { display: none; }
 .proveedores-page__content { max-width: 90rem; margin: 0 auto; padding: 2rem; }
 .proveedores-page__hero { display: flex; align-items: center; justify-content: space-between; gap: 1.5rem; padding: 1.5rem; margin-bottom: 1.25rem; color: #fff; background: #124e96; border-radius: 1rem; }
-.proveedores-page__hero h1 { margin: .25rem 0 .4rem; font-size: clamp(1.5rem, 3vw, 2.1rem); }
-.proveedores-page__hero p { margin: 0; }
+.proveedores-page__hero h1 { margin: .25rem 0 .4rem; color: #fff; font-size: clamp(1.5rem, 3vw, 2.1rem); }
+.proveedores-page__hero p { margin: 0; color: rgb(255 255 255 / 88%); }
 .proveedores-page__eyebrow { font-size: .75rem; font-weight: 700; letter-spacing: .08em; text-transform: uppercase; opacity: .85; }
 .toolbar { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 1rem; margin-bottom: 1rem; }
 .tabs { display: inline-flex; padding: .25rem; background: #fff; border: 1px solid #dfe6ef; border-radius: .7rem; }
@@ -48,7 +53,6 @@ th { color: #526176; font-size: .75rem; letter-spacing: .04em; text-transform: u
 .modal__actions { display: flex; justify-content: flex-end; gap: .75rem; }
 .proveedores-page__backdrop { display: none; }
 @media (max-width: 820px) {
-  .proveedores-page__main { margin-left: 0; }
   .proveedores-page__topbar { display: flex; min-height: 3.5rem; padding: .5rem 1rem; background: #fff; border-bottom: 1px solid #dfe6ef; }
   .proveedores-page__hamburger { min-width: 2.75rem; border: 1px solid #cbd5e1; border-radius: .5rem; background: #fff; font-size: 1.3rem; }
   .proveedores-page__content { padding: 1rem; }
