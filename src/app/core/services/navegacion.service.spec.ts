@@ -3,10 +3,9 @@ import { NavegacionService } from './navegacion.service';
 
 describe('NavegacionService — CU30', () => {
   const servicio = new NavegacionService();
-  it('mapea el nombre canónico de consulta y su etiqueta web sin aliases de gestión', () => {
+  it('mapea únicamente el nombre canónico literal de la función exigida por la API', () => {
     expect(servicio.rutaDeFuncion('Consultar inventario y alertas')).toBe('/inventario-alertas');
-    expect(servicio.rutaDeFuncion(' CONSULTAR  INVENTARIO Y ALERTAS (WEB) ')).toBe('/inventario-alertas');
-    for (const nombre of ['Gestionar inventario', 'Consultar inventario', 'Consultar alertas', 'Consultar inventario y alertas de todas las empresas']) {
+    for (const nombre of ['Consultar inventario y alertas (Web)', 'consultar inventario y alertas', ' CONSULTAR  INVENTARIO Y ALERTAS ', 'Consultar inventario y alertas ', 'Gestionar inventario', 'Consultar inventario', 'Consultar alertas', 'Consultar inventario y alertas de todas las empresas']) {
       expect(servicio.rutaDeFuncion(nombre)).toBeNull();
     }
   });

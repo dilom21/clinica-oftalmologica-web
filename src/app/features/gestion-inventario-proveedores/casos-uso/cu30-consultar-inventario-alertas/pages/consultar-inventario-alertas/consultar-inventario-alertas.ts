@@ -40,13 +40,6 @@ const FILTROS_INICIALES = {
   dias_vencimiento: 30,
   page_size: 20,
 } as const;
-const normalizar = (valor: string) =>
-  valor
-    .normalize('NFD')
-    .replace(/[\u0300-\u036f]/g, '')
-    .trim()
-    .replace(/\s+/g, ' ')
-    .toLowerCase();
 
 @Component({
   selector: 'app-consultar-inventario-alertas',
@@ -81,12 +74,14 @@ export class ConsultarInventarioAlertas implements OnInit {
       this.menu.estado() === 'listo' &&
       this.menu
         .modulos()
-        .some((modulo) =>
-          modulo.funciones.some(
-            (funcion) =>
-              normalizar(funcion.nombre) === 'consultar inventario y alertas' &&
-              ['LECTURA', 'AMBAS'].includes(funcion.accion_nombre.trim().toUpperCase()),
-          ),
+        .some(
+          (modulo) =>
+            modulo.nombre === 'Inventario y Proveedores' &&
+            modulo.funciones.some(
+              (funcion) =>
+                funcion.nombre === 'Consultar inventario y alertas' &&
+                ['LECTURA', 'AMBAS'].includes(funcion.accion_nombre.trim().toUpperCase()),
+            ),
         ),
   );
   readonly puedeConsultar = computed(

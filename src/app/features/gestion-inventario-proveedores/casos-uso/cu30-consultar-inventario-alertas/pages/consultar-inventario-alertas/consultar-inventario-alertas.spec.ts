@@ -82,7 +82,7 @@ describe('CU30 — consulta y seguridad de la página', () => {
     modulos.set([
       {
         id: 5,
-        nombre: 'Inventario',
+        nombre: 'Inventario y Proveedores',
         funciones: [{ id: 30, nombre, accion_id: 1, accion_nombre: accion }],
       },
     ]);
@@ -171,10 +171,17 @@ describe('CU30 — consulta y seguridad de la página', () => {
     permiso('LECTURA', 'Gestionar inventario');
     fixture.detectChanges();
     expect(api.consultar).not.toHaveBeenCalled();
-    permiso('LECTURA', 'Consultar inventario y alertas (Web)');
-    fixture.detectChanges();
-    expect(api.consultar).not.toHaveBeenCalled();
-    permiso('AMBAS', '  CONSULTAR   INVENTARIO Y ALERTAS  ');
+    for (const nombre of [
+      'Consultar inventario y alertas (Web)',
+      'consultar inventario y alertas',
+      '  CONSULTAR   INVENTARIO Y ALERTAS  ',
+      'Consultar inventario y alertas ',
+    ]) {
+      permiso('LECTURA', nombre);
+      fixture.detectChanges();
+      expect(api.consultar).not.toHaveBeenCalled();
+    }
+    permiso('AMBAS');
     fixture.detectChanges();
     expect(api.consultar).toHaveBeenCalledTimes(1);
   });
@@ -187,6 +194,16 @@ describe('CU30 — consulta y seguridad de la página', () => {
     expect(texto()).toContain('Inicia sesión en tu empresa');
     pagina.actualizar();
     expect(api.consultar).not.toHaveBeenCalled();
+  });
+
+  it('rechaza la función canónica asignada a un módulo ajeno', () => {
+    modulos.set(modulos().map((modulo) => ({ ...modulo, nombre: 'Otra área' })));
+    iniciar();
+    expect(api.consultar).not.toHaveBeenCalled();
+    expect(texto()).toContain('Acceso no autorizado');
+    permiso();
+    fixture.detectChanges();
+    expect(api.consultar).toHaveBeenCalledTimes(1);
   });
 
   it('distingue dependencia pendiente de inventario vacío y permite reintentar', () => {
