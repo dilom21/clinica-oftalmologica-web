@@ -192,6 +192,13 @@ export const routes: Routes = [
     canActivate: [authGuard],
   },
   {
+    path: 'inventario-alertas',
+    loadComponent: () =>
+      import('./features/gestion-inventario-proveedores/casos-uso/cu30-consultar-inventario-alertas/pages/consultar-inventario-alertas/consultar-inventario-alertas')
+        .then((m) => m.ConsultarInventarioAlertas),
+    canActivate: [authGuard],
+  },
+  {
     path: 'pagos',
     canActivate: [authGuard],
     children: [

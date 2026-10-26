@@ -112,6 +112,10 @@ export class NavegacionService {
   rutaDeFuncion(nombre: string): string | null {
     const clave = (nombre ?? '').toLowerCase().trim();
 
+    if (['consultar inventario y alertas', 'consultar inventario y alertas (web)'].includes(this.normalizarNombre(clave))) {
+      return '/inventario-alertas';
+    }
+
     if (this.nombresGestionServicios.has(this.normalizarNombre(clave))) {
       return '/gestion-servicios';
     }

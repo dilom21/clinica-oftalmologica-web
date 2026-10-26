@@ -1,6 +1,17 @@
 import { TestBed } from '@angular/core/testing';
 import { NavegacionService } from './navegacion.service';
 
+describe('NavegacionService — CU30', () => {
+  const servicio = new NavegacionService();
+  it('mapea el nombre canónico de consulta y su etiqueta web sin aliases de gestión', () => {
+    expect(servicio.rutaDeFuncion('Consultar inventario y alertas')).toBe('/inventario-alertas');
+    expect(servicio.rutaDeFuncion(' CONSULTAR  INVENTARIO Y ALERTAS (WEB) ')).toBe('/inventario-alertas');
+    for (const nombre of ['Gestionar inventario', 'Consultar inventario', 'Consultar alertas', 'Consultar inventario y alertas de todas las empresas']) {
+      expect(servicio.rutaDeFuncion(nombre)).toBeNull();
+    }
+  });
+});
+
 describe('NavegacionService — funciones del menú', () => {
   let servicio: NavegacionService;
 

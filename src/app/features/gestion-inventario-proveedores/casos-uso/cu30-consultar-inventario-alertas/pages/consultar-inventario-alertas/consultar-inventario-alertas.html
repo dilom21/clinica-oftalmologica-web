@@ -1,0 +1,463 @@
+<div class="inventario-page">
+  <app-sidebar
+    [mobileOpen]="sidebarMovilAbierto()"
+    (mobileClose)="sidebarMovilAbierto.set(false)"
+  />
+  <main class="inventario-page__main">
+    <header class="inventario-page__header">
+      <button
+        type="button"
+        class="boton boton--menu"
+        aria-label="Abrir menú"
+        [attr.aria-expanded]="sidebarMovilAbierto()"
+        (click)="sidebarMovilAbierto.set(true)"
+      >
+        ☰
+      </button>
+      <span class="empresa">{{ empresa() || 'Clínica' }}</span>
+      <button type="button" class="boton boton--secundario" (click)="cerrarSesion()">
+        Cerrar sesión
+      </button>
+    </header>
+    <div class="contenido">
+      <div class="cabecera">
+        <div>
+          <p class="eyebrow">Inventario y proveedores</p>
+          <h1>Inventario y alertas</h1>
+          <p class="subtitulo">Consulta productos, existencias y vencimientos de tu empresa.</p>
+        </div>
+        @if (puedeConsultar()) {
+          <button
+            type="button"
+            class="boton boton--secundario"
+            [disabled]="cargando()"
+            (click)="actualizar()"
+          >
+            Actualizar
+          </button>
+        }
+      </div>
+
+      @if (!sesionTenant()) {
+        <section class="estado" role="alert">
+          <h2>Inicia sesión en tu empresa</h2>
+          <p>La sesión no está disponible o ha expirado. Selecciona tu empresa al ingresar.</p>
+          <a class="boton" routerLink="/login">Iniciar sesión</a>
+        </section>
+      } @else if (cargandoPermisos()) {
+        <p class="estado" role="status">Comprobando acceso…</p>
+      } @else if (errorPermisos()) {
+        <section class="estado" role="alert">
+          <h2>No se pudo comprobar el acceso</h2>
+          <p>Intenta consultar tus permisos nuevamente.</p>
+          <button type="button" class="boton" (click)="comprobarPermisos()">Reintentar</button>
+        </section>
+      } @else if (!puedeConsultar()) {
+        <section class="estado" role="alert">
+          <h2>Acceso no autorizado</h2>
+          <p>Tu cuenta no tiene permiso para consultar el inventario y sus alertas.</p>
+          <button type="button" class="boton boton--secundario" (click)="comprobarPermisos()">
+            Comprobar acceso
+          </button>
+        </section>
+      } @else {
+        <section class="panel" aria-labelledby="filtros-titulo">
+          <h2 id="filtros-titulo">Buscar en inventario</h2>
+          <form class="filtros" [formGroup]="filtros" (ngSubmit)="aplicarFiltros()">
+            <label class="campo"
+              ><span>Producto, código o lote</span
+              ><input
+                formControlName="q"
+                maxlength="120"
+                placeholder="Buscar producto, código o lote"
+            /></label>
+            <label class="campo"
+              ><span>Categoría</span
+              ><input
+                formControlName="categoria"
+                maxlength="120"
+                placeholder="Nombre completo de la categoría"
+              /><small>Deja vacío para consultar todas.</small></label
+            >
+            <label class="campo"
+              ><span>Stock</span
+              ><select formControlName="stock">
+                <option value="TODOS">Todos</option>
+                <option value="BAJO">Stock bajo</option>
+                <option value="AGOTADO">Agotado</option>
+                <option value="NORMAL">Normal</option>
+              </select></label
+            >
+            <label class="campo"
+              ><span>Vencimiento</span
+              ><select formControlName="vencimiento">
+                <option value="TODOS">Todos</option>
+                <option value="PROXIMO">Próximo a vencer</option>
+                <option value="VENCIDO">Vencido</option>
+                <option value="SIN_FECHA">Sin fecha</option>
+              </select></label
+            >
+            <label class="campo"
+              ><span>Próximos a vencer en (días)</span
+              ><input
+                type="number"
+                min="1"
+                max="365"
+                step="1"
+                formControlName="dias_vencimiento"
+                [attr.aria-invalid]="
+                  filtros.controls.dias_vencimiento.touched &&
+                  filtros.controls.dias_vencimiento.invalid
+                "
+              />
+              @if (
+                filtros.controls.dias_vencimiento.touched &&
+                filtros.controls.dias_vencimiento.invalid
+              ) {
+                <small class="campo-error">Ingresa un número entero de 1 a 365.</small>
+              }
+            </label>
+            <label class="campo"
+              ><span>Resultados por página</span
+              ><select formControlName="page_size">
+                <option [ngValue]="10">10</option>
+                <option [ngValue]="20">20</option>
+                <option [ngValue]="50">50</option>
+                <option [ngValue]="100">100</option>
+              </select></label
+            >
+            <div class="acciones filtros__acciones">
+              <button type="button" class="boton boton--secundario" (click)="limpiarFiltros()">
+                Limpiar</button
+              ><button type="submit" class="boton">Buscar</button>
+            </div>
+          </form>
+        </section>
+
+        <div class="pestanas" aria-label="Vista del inventario">
+          <button
+            type="button"
+            [class.activa]="vista() === 'productos'"
+            [attr.aria-pressed]="vista() === 'productos'"
+            (click)="cambiarVista('productos')"
+          >
+            Productos y existencias
+          </button>
+          <button
+            type="button"
+            [class.activa]="vista() === 'alertas'"
+            [attr.aria-pressed]="vista() === 'alertas'"
+            (click)="cambiarVista('alertas')"
+          >
+            Alertas
+          </button>
+        </div>
+
+        @if (cargando()) {
+          <p class="estado" role="status">
+            Cargando {{ vista() === 'productos' ? 'inventario' : 'alertas' }}…
+          </p>
+        } @else if (noDisponible()) {
+          <section class="estado" role="status">
+            <h2>Inventario no disponible</h2>
+            <p>{{ error() }}</p>
+            <button type="button" class="boton boton--secundario" (click)="actualizar()">
+              Reintentar
+            </button>
+          </section>
+        } @else if (error(); as mensaje) {
+          <div class="aviso aviso--error" role="alert">
+            <span>{{ mensaje }}</span
+            ><button type="button" class="boton boton--secundario" (click)="actualizar()">
+              Reintentar
+            </button>
+          </div>
+        } @else {
+          @if (inventario(); as datos) {
+            <section class="resumen" aria-label="Resumen de la consulta">
+              <div class="metrica">
+                <span>Productos</span><strong>{{ datos.resumen.productos | number }}</strong>
+              </div>
+              <div class="metrica metrica--alerta">
+                <span>Stock bajo</span><strong>{{ datos.resumen.stock_bajo | number }}</strong>
+              </div>
+              <div class="metrica metrica--peligro">
+                <span>Agotados</span><strong>{{ datos.resumen.agotados | number }}</strong>
+              </div>
+              <div class="metrica metrica--alerta">
+                <span>Lotes próximos a vencer</span
+                ><strong>{{ datos.resumen.lotes_proximos | number }}</strong>
+              </div>
+              <div class="metrica metrica--peligro">
+                <span>Lotes vencidos</span
+                ><strong>{{ datos.resumen.lotes_vencidos | number }}</strong>
+              </div>
+            </section>
+          }
+          @if (resultado(); as datos) {
+            <section class="panel" aria-labelledby="resultados-titulo">
+              <div class="panel__titulo">
+                <div>
+                  <h2 id="resultados-titulo">
+                    {{
+                      vista() === 'productos' ? 'Productos y existencias' : 'Alertas de inventario'
+                    }}
+                  </h2>
+                  <p class="subtitulo">
+                    {{ datos.total | number }} resultados · Al {{ fechaLegible(datos.fecha_corte) }}
+                  </p>
+                  @if (vista() === 'productos') {
+                    <p class="subtitulo">
+                      El stock actual muestra las existencias físicas, incluidos los lotes vencidos.
+                    </p>
+                  }
+                </div>
+              </div>
+              @if (datos.items.length === 0) {
+                <div class="vacio">
+                  <h3>
+                    {{
+                      vista() === 'productos'
+                        ? 'No se encontraron productos'
+                        : 'No se encontraron alertas'
+                    }}
+                  </h3>
+                  <p>No hay resultados para esta consulta. Puedes cambiar los filtros.</p>
+                </div>
+              } @else {
+                @if (inventario(); as productos) {
+                  <div class="tabla-contenedor">
+                    <table>
+                      <caption class="solo-lectores">
+                        Existencias por producto de la empresa actual
+                      </caption>
+                      <thead>
+                        <tr>
+                          <th>Producto</th>
+                          <th>Categoría</th>
+                          <th>Stock actual</th>
+                          <th>Stock mínimo</th>
+                          <th>Estado</th>
+                          <th>Lotes</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        @for (producto of productos.items; track producto.id) {
+                          <tr>
+                            <td data-label="Producto">
+                              <div>
+                                <strong>{{ producto.nombre }}</strong
+                                ><small>{{ producto.codigo || 'Sin código' }}</small>
+                              </div>
+                            </td>
+                            <td data-label="Categoría">
+                              {{ producto.categoria || 'Sin categoría' }}
+                            </td>
+                            <td data-label="Stock actual">
+                              {{ producto.stock_actual | number: '1.0-3' }}
+                            </td>
+                            <td data-label="Stock mínimo">
+                              {{
+                                producto.stock_minimo === null
+                                  ? 'Sin definir'
+                                  : (producto.stock_minimo | number: '1.0-3')
+                              }}
+                            </td>
+                            <td data-label="Estado">
+                              <span
+                                class="etiqueta"
+                                [class.etiqueta--alerta]="producto.estado_stock === 'BAJO'"
+                                [class.etiqueta--peligro]="producto.estado_stock === 'AGOTADO'"
+                                [class.etiqueta--neutral]="producto.estado_stock === 'SIN_UMBRAL'"
+                                >{{ etiquetaStock(producto.estado_stock) }}</span
+                              >
+                            </td>
+                            <td data-label="Lotes">
+                              <button
+                                type="button"
+                                class="enlace"
+                                [attr.aria-label]="'Ver lotes de ' + producto.nombre"
+                                (click)="verLotes(producto, $event)"
+                              >
+                                Ver lotes
+                              </button>
+                            </td>
+                          </tr>
+                        }
+                      </tbody>
+                    </table>
+                  </div>
+                }
+                @if (alertas(); as avisos) {
+                  <div class="tabla-contenedor">
+                    <table>
+                      <caption class="solo-lectores">
+                        Alertas de stock y vencimientos de la empresa actual
+                      </caption>
+                      <thead>
+                        <tr>
+                          <th>Alerta</th>
+                          <th>Producto</th>
+                          <th>Lote</th>
+                          <th>Existencia</th>
+                          <th>Vencimiento</th>
+                          <th>Detalle</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        @for (alerta of avisos.items; track $index) {
+                          <tr>
+                            <td data-label="Alerta">
+                              <span
+                                class="etiqueta"
+                                [class.etiqueta--alerta]="
+                                  alerta.tipo === 'STOCK_BAJO' ||
+                                  alerta.tipo === 'PROXIMO_VENCIMIENTO'
+                                "
+                                [class.etiqueta--peligro]="
+                                  alerta.tipo === 'AGOTADO' || alerta.tipo === 'VENCIDO'
+                                "
+                                >{{ etiquetaAlerta(alerta.tipo) }}</span
+                              >
+                            </td>
+                            <td data-label="Producto">
+                              <strong>{{ alerta.producto_nombre }}</strong>
+                            </td>
+                            <td data-label="Lote">{{ alerta.lote_codigo || 'Por producto' }}</td>
+                            <td data-label="Existencia">
+                              {{ alerta.existencia | number: '1.0-3' }}
+                            </td>
+                            <td data-label="Vencimiento">
+                              {{ fechaLegible(alerta.fecha_vencimiento) }}
+                            </td>
+                            <td data-label="Detalle">
+                              <button
+                                type="button"
+                                class="enlace"
+                                [attr.aria-label]="'Ver lotes de ' + alerta.producto_nombre"
+                                (click)="
+                                  verLotes(
+                                    {
+                                      id: alerta.producto_id,
+                                      nombre: alerta.producto_nombre,
+                                    },
+                                    $event
+                                  )
+                                "
+                              >
+                                Ver lotes
+                              </button>
+                            </td>
+                          </tr>
+                        }
+                      </tbody>
+                    </table>
+                  </div>
+                }
+                <nav class="paginacion" aria-label="Paginación de inventario">
+                  <span>Página {{ datos.page }} de {{ datos.total_pages }}</span>
+                  <div class="acciones">
+                    <button
+                      type="button"
+                      class="boton boton--secundario"
+                      [disabled]="datos.page <= 1"
+                      (click)="cambiarPagina(datos.page - 1)"
+                    >
+                      Anterior</button
+                    ><button
+                      type="button"
+                      class="boton boton--secundario"
+                      [disabled]="datos.page >= datos.total_pages"
+                      (click)="cambiarPagina(datos.page + 1)"
+                    >
+                      Siguiente
+                    </button>
+                  </div>
+                </nav>
+              }
+            </section>
+          }
+        }
+
+        @if (seleccionado(); as producto) {
+          <section class="panel" aria-labelledby="lotes-titulo" [attr.aria-busy]="cargandoLotes()">
+            <div class="panel__titulo">
+              <div>
+                <h2 id="lotes-titulo" #tituloLotes tabindex="-1">Lotes de {{ producto.nombre }}</h2>
+                @if (detalle(); as datos) {
+                  <p class="subtitulo">Al {{ fechaLegible(datos.fecha_corte) }}</p>
+                }
+              </div>
+              <button type="button" class="boton boton--secundario" (click)="cerrarLotes()">
+                Cerrar detalle
+              </button>
+            </div>
+            @if (cargandoLotes()) {
+              <p class="estado" role="status">Cargando lotes…</p>
+            } @else if (errorLotes(); as mensaje) {
+              <div class="aviso aviso--error" role="alert">
+                <span>{{ mensaje }}</span
+                ><button type="button" class="boton boton--secundario" (click)="verLotes(producto)">
+                  Reintentar
+                </button>
+              </div>
+            } @else if (detalle(); as datos) {
+              @if (datos.lotes.length === 0) {
+                <p class="vacio">Este producto no tiene lotes registrados.</p>
+              } @else {
+                <div class="tabla-contenedor">
+                  <table>
+                    <caption class="solo-lectores">
+                      Existencias y vencimiento de cada lote de
+                      {{
+                        producto.nombre
+                      }}
+                    </caption>
+                    <thead>
+                      <tr>
+                        <th>Lote</th>
+                        <th>Existencia</th>
+                        <th>Vencimiento</th>
+                        <th>Estado</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      @for (lote of datos.lotes; track lote.id) {
+                        <tr>
+                          <td data-label="Lote">
+                            <strong>{{ lote.codigo }}</strong>
+                          </td>
+                          <td data-label="Existencia">{{ lote.existencia | number: '1.0-3' }}</td>
+                          <td data-label="Vencimiento">
+                            {{ fechaLegible(lote.fecha_vencimiento) }}
+                          </td>
+                          <td data-label="Estado">
+                            <span
+                              class="etiqueta"
+                              [class.etiqueta--alerta]="lote.estado_vencimiento === 'PROXIMO'"
+                              [class.etiqueta--peligro]="lote.estado_vencimiento === 'VENCIDO'"
+                              [class.etiqueta--neutral]="lote.estado_vencimiento === 'SIN_FECHA'"
+                              >{{ etiquetaVencimiento(lote.estado_vencimiento) }}</span
+                            >
+                          </td>
+                        </tr>
+                      }
+                    </tbody>
+                  </table>
+                </div>
+              }
+            }
+          </section>
+        }
+      }
+    </div>
+  </main>
+</div>
+@if (sidebarMovilAbierto()) {
+  <button
+    type="button"
+    class="menu-fondo"
+    aria-label="Cerrar menú"
+    (click)="sidebarMovilAbierto.set(false)"
+  ></button>
+}

@@ -1,0 +1,10 @@
+{
+  "extends": "./tsconfig.spec.json",
+  "include": [
+    "src/**/*.d.ts",
+    "src/app/features/gestion-inventario-proveedores/casos-uso/cu30-consultar-inventario-alertas/**/*.spec.ts",
+    "src/app/app.routes.spec.ts",
+    "src/app/core/services/navegacion.service.spec.ts",
+    "src/app/core/layouts/sidebar/sidebar.spec.ts"
+  ]
+}
