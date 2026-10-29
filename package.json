@@ -8,7 +8,7 @@
     "watch": "ng build --watch --configuration development",
     "test": "ng test",
     "test:cu30:e2e": "playwright test --config playwright.cu30.config.ts",
-    "test:cu30": "ng test --watch=false --ts-config tsconfig.cu30.spec.json --include=src/app/features/gestion-inventario-proveedores/casos-uso/cu30-consultar-inventario-alertas/**/*.spec.ts --include=src/app/app.routes.spec.ts --include=src/app/core/services/navegacion.service.spec.ts --include=src/app/core/layouts/sidebar/sidebar.spec.ts",
+    "test:cu30": "ng test --watch=false --ts-config tsconfig.cu30.spec.json --include=src/app/features/gestion-inventario-proveedores/casos-uso/cu30-consultar-inventario-alertas/**/*.spec.ts --include=src/app/app.routes.spec.ts --include=src/app/core/services/navegacion.service.spec.ts --include=src/app/core/layouts/sidebar/sidebar.spec.ts --include=src/app/core/layouts/sidebar/sidebar-render.spec.ts --include=src/app/core/services/menu.service.spec.ts --include=src/app/core/interceptors/auth.interceptor.spec.ts --include=src/app/features/autenticacion-seguridad/Auth/services/auth.service.spec.ts --include=src/app/features/autenticacion-seguridad/Auth/pages/login/login.spec.ts --include=src/app/features/autenticacion-seguridad/Auth/pages/inicio/inicio.spec.ts",
     "test:cu22": "ng test --watch=false --ts-config tsconfig.cu22.spec.json --include=src/app/features/gestion-historial-clinico/casos-uso/cu22-registrar-servicios-realizados/**/*.spec.ts --include=src/app/app.routes.spec.ts --include=src/app/core/layouts/sidebar/sidebar.spec.ts --include=src/app/services/servicio-oftalmologico.service.spec.ts"
   },
   "private": true,

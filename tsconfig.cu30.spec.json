@@ -5,6 +5,12 @@
     "src/app/features/gestion-inventario-proveedores/casos-uso/cu30-consultar-inventario-alertas/**/*.spec.ts",
     "src/app/app.routes.spec.ts",
     "src/app/core/services/navegacion.service.spec.ts",
-    "src/app/core/layouts/sidebar/sidebar.spec.ts"
+    "src/app/core/layouts/sidebar/sidebar.spec.ts",
+    "src/app/core/layouts/sidebar/sidebar-render.spec.ts",
+    "src/app/core/services/menu.service.spec.ts",
+    "src/app/core/interceptors/auth.interceptor.spec.ts",
+    "src/app/features/autenticacion-seguridad/Auth/services/auth.service.spec.ts",
+    "src/app/features/autenticacion-seguridad/Auth/pages/login/login.spec.ts",
+    "src/app/features/autenticacion-seguridad/Auth/pages/inicio/inicio.spec.ts"
   ]
 }

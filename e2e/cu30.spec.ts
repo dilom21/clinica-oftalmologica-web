@@ -47,6 +47,13 @@ async function denegadosPorAPI(page: Page) {
   }
 }
 
+async function comprobarEmpresa(page: Page, empresa: string) {
+  await expect(page.locator('main .empresa')).toHaveText(`Clinica aislada ${empresa}`);
+  await expect(page.locator('app-sidebar .sidebar__company-name')).toHaveText(`Clinica aislada ${empresa}`);
+  await expect(page.getByText(`Gotas ${empresa}`, { exact: true })).toBeVisible();
+  await expect(page.locator('table tbody tr')).toHaveCount(7);
+}
+
 for (const [indice, empresa] of EMPRESAS.entries()) {
   test(`${empresa}: login, menú, inventario, lotes y alertas aislados`, async ({ page }) => {
     await login(page, empresa, indice % 2 ? 'lectura@cu30.test' : 'admin@cu30.test');
@@ -85,6 +92,7 @@ for (const [indice, empresa] of EMPRESAS.entries()) {
 
   test(`${empresa}: escritura sola no autoriza consultas`, async ({ page }) => {
     await login(page, empresa, 'escritura@cu30.test');
+    await expect(page.locator('app-sidebar a[href="/inventario-alertas"]')).toHaveCount(0);
     await denegadosPorAPI(page);
     await page.goto('/inventario-alertas');
     await expect(page.getByRole('heading', { name: 'Acceso no autorizado', exact: true })).toBeVisible();
@@ -153,4 +161,184 @@ test('vista móvil permite consultar inventario y abrir el menú sin desbordamie
 test('sin sesión la ruta protegida redirige a login', async ({ page }) => {
   await page.goto('/inventario-alertas');
   await expect(page).toHaveURL(/\/login$/);
+});
+
+test('las siete empresas sincronizan identidad, resultados y menú entre pestañas', async ({ page, context }) => {
+  test.setTimeout(90_000);
+  await login(page, EMPRESAS[0]);
+  await abrirDesdeMenu(page);
+  await comprobarEmpresa(page, EMPRESAS[0]);
+  const otraPestana = await context.newPage();
+  for (const empresa of EMPRESAS.slice(1)) {
+    await login(otraPestana, empresa, 'lectura@cu30.test');
+    await comprobarEmpresa(page, empresa);
+    await expect(page.locator('app-sidebar a[href="/inventario-alertas"]')).toHaveCount(1);
+    for (const anterior of EMPRESAS.filter(codigo => codigo !== empresa)) {
+      await expect(page.getByText(`Gotas ${anterior}`, { exact: true })).toHaveCount(0);
+    }
+  }
+});
+
+test('F5 descarta la identidad por pestaña que no coincide con el JWT vigente', async ({ page, context }) => {
+  await login(page, EMPRESAS[0]);
+  await abrirDesdeMenu(page);
+  await comprobarEmpresa(page, EMPRESAS[0]);
+  const empresaAnterior = await page.evaluate(() => sessionStorage.getItem('sesion_empresa'));
+  expect(empresaAnterior).toBeTruthy();
+  const otraPestana = await context.newPage();
+  await login(otraPestana, EMPRESAS[1]);
+  await comprobarEmpresa(page, EMPRESAS[1]);
+  await page.evaluate(empresa => sessionStorage.setItem('sesion_empresa', empresa!), empresaAnterior);
+  await page.reload();
+  await comprobarEmpresa(page, EMPRESAS[1]);
+  await expect(page.getByText(`Gotas ${EMPRESAS[0]}`, { exact: true })).toHaveCount(0);
+  const restaurada = await page.evaluate(() => JSON.parse(sessionStorage.getItem('sesion_empresa')!));
+  expect(restaurada.codigo).toBe(EMPRESAS[1]);
+});
+
+for (const correo of ['sin-permiso@cu30.test', 'escritura@cu30.test']) {
+  test(`cambiar de usuario en otra pestaña retira CU30 de la misma empresa: ${correo}`, async ({ page, context }) => {
+    await login(page, EMPRESAS[0]);
+    await abrirDesdeMenu(page);
+    await comprobarEmpresa(page, EMPRESAS[0]);
+    await page.getByRole('button', { name: `Ver lotes de Gotas ${EMPRESAS[0]}`, exact: true }).click();
+    await expect(page.getByRole('heading', { name: `Lotes de Gotas ${EMPRESAS[0]}`, exact: true })).toBeVisible();
+    const otraPestana = await context.newPage();
+    await login(otraPestana, EMPRESAS[0], correo);
+    await expect(page.getByRole('heading', { name: 'Acceso no autorizado', exact: true })).toBeVisible();
+    await expect(page.locator('app-sidebar .sidebar__usuario-nombre')).toHaveText(correo);
+    await expect(page.locator('main .empresa')).toHaveText(`Clinica aislada ${EMPRESAS[0]}`);
+    await expect(page.locator('app-sidebar a[href="/inventario-alertas"]')).toHaveCount(0);
+    await expect(page.locator('form.filtros')).toHaveCount(0);
+    await expect(page.locator('.resumen')).toHaveCount(0);
+    await expect(page.getByText(`Gotas ${EMPRESAS[0]}`, { exact: true })).toHaveCount(0);
+    await expect(page.getByRole('heading', { name: `Lotes de Gotas ${EMPRESAS[0]}`, exact: true })).toHaveCount(0);
+    await denegadosPorAPI(page);
+  });
+}
+
+test('cerrar sesión desde otra pestaña elimina identidad, inventario y permisos', async ({ page, context }) => {
+  await login(page, EMPRESAS[0]);
+  await abrirDesdeMenu(page);
+  await comprobarEmpresa(page, EMPRESAS[0]);
+  const otraPestana = await context.newPage();
+  await otraPestana.goto('/inventario-alertas');
+  await comprobarEmpresa(otraPestana, EMPRESAS[0]);
+  await otraPestana.getByRole('main').getByRole('button', { name: 'Cerrar sesión', exact: true }).click();
+  await expect(page.getByRole('heading', { name: 'Inicia sesión en tu empresa', exact: true })).toBeVisible();
+  await expect(page.locator('main .empresa')).not.toContainText(EMPRESAS[0]);
+  await expect(page.locator('app-sidebar .sidebar__company-name')).not.toContainText(EMPRESAS[0]);
+  await expect(page.locator('app-sidebar a[href="/inventario-alertas"]')).toHaveCount(0);
+  await expect(page.locator('.resumen')).toHaveCount(0);
+  await expect(page.getByText(`Gotas ${EMPRESAS[0]}`, { exact: true })).toHaveCount(0);
+});
+
+for (const recurso of ['inventario', 'productos/1/lotes']) {
+  test(`descarta una respuesta real tardía de ${recurso} tras cambiar de empresa`, async ({ page, context }) => {
+    await login(page, EMPRESAS[0]);
+    await abrirDesdeMenu(page);
+    await comprobarEmpresa(page, EMPRESAS[0]);
+    let liberar!: () => void;
+    let recibida!: () => void;
+    let finalizada!: () => void;
+    const retenida = new Promise<void>(resolve => { liberar = resolve; });
+    const capturada = new Promise<void>(resolve => { recibida = resolve; });
+    const completa = new Promise<void>(resolve => { finalizada = resolve; });
+    let primera = true;
+    await page.route(`${API}/inventario-proveedores/${recurso}**`, async route => {
+      if (!primera) return route.continue();
+      primera = false;
+      try {
+        const respuesta = await route.fetch();
+        expect(respuesta.status()).toBe(200);
+        const datos = await respuesta.json();
+        if (recurso === 'inventario') {
+          expect(datos.items.every((p: { nombre: string }) => p.nombre.includes(EMPRESAS[0]))).toBe(true);
+        } else {
+          expect(datos.lotes.every((l: { codigo: string }) => l.codigo.startsWith(EMPRESAS[0]))).toBe(true);
+        }
+        recibida();
+        await retenida;
+        // Angular may already have cancelled the old request. Either cancelling
+        // it or discarding its late response must leave the new tenant intact.
+        await route.fulfill({ response: respuesta }).catch(() => {});
+      } finally {
+        finalizada();
+      }
+    });
+    try {
+      if (recurso === 'inventario') {
+        await page.getByRole('button', { name: 'Actualizar', exact: true }).click();
+      } else {
+        await page.getByRole('button', { name: `Ver lotes de Gotas ${EMPRESAS[0]}`, exact: true }).click();
+      }
+      await capturada;
+      const otraPestana = await context.newPage();
+      await login(otraPestana, EMPRESAS[1], 'lectura@cu30.test');
+      await comprobarEmpresa(page, EMPRESAS[1]);
+      liberar();
+      await completa;
+      await comprobarEmpresa(page, EMPRESAS[1]);
+      await expect(page.getByText(`Gotas ${EMPRESAS[0]}`, { exact: true })).toHaveCount(0);
+      await expect(page.getByRole('heading', { name: `Lotes de Gotas ${EMPRESAS[0]}`, exact: true })).toHaveCount(0);
+    } finally {
+      liberar();
+    }
+  });
+}
+
+test('error del menú tras cambiar de tenant borra A y permite reintentar solamente B', async ({ page, context }) => {
+  await login(page, EMPRESAS[0]);
+  await abrirDesdeMenu(page);
+  await comprobarEmpresa(page, EMPRESAS[0]);
+  const otraPestana = await context.newPage();
+  await page.route(`${API}/seguridad/menu`, route => route.fulfill({ status: 503, json: { detail: 'fallo controlado' } }));
+  await login(otraPestana, EMPRESAS[1]);
+  await expect(page.getByRole('heading', { name: 'No se pudo comprobar el acceso', exact: true })).toBeVisible();
+  await expect(page.locator('main .empresa')).toHaveText(`Clinica aislada ${EMPRESAS[1]}`);
+  await expect(page.locator('app-sidebar a[href="/inventario-alertas"]')).toHaveCount(0);
+  await expect(page.getByText(`Gotas ${EMPRESAS[0]}`, { exact: true })).toHaveCount(0);
+  await expect(page.locator('.resumen')).toHaveCount(0);
+  await page.unroute(`${API}/seguridad/menu`);
+  await page.getByRole('main').getByRole('button', { name: 'Reintentar', exact: true }).click();
+  await comprobarEmpresa(page, EMPRESAS[1]);
+});
+
+test('un error al resolver la clínica tras F5 elimina la identidad obsoleta y permite reintentar', async ({ page, context }) => {
+  await login(page, EMPRESAS[0]);
+  await abrirDesdeMenu(page);
+  const empresaAnterior = await page.evaluate(() => sessionStorage.getItem('sesion_empresa'));
+  const otraPestana = await context.newPage();
+  await login(otraPestana, EMPRESAS[1]);
+  await comprobarEmpresa(page, EMPRESAS[1]);
+  await page.evaluate(empresa => sessionStorage.setItem('sesion_empresa', empresa!), empresaAnterior);
+  await page.route(`${API}/seguridad/tenant/empresas`, route => route.fulfill({ status: 503, json: { detail: 'fallo controlado' } }));
+  await page.reload();
+  await expect(page.getByRole('heading', { name: 'No se pudo comprobar la clínica', exact: true })).toBeVisible();
+  await expect(page.locator('main .empresa')).toHaveText('Clínica');
+  await expect(page.locator('app-sidebar .sidebar__company-name')).not.toContainText(EMPRESAS[0]);
+  await expect(page.locator('.resumen')).toHaveCount(0);
+  await expect(page.getByText(`Gotas ${EMPRESAS[0]}`, { exact: true })).toHaveCount(0);
+  await page.unroute(`${API}/seguridad/tenant/empresas`);
+  await page.getByRole('main').getByRole('button', { name: 'Reintentar', exact: true }).click();
+  await comprobarEmpresa(page, EMPRESAS[1]);
+});
+
+test('SIN_UMBRAL se envía al API real y puede limpiarse y combinarse con alertas', async ({ page }) => {
+  await login(page, EMPRESAS[0]);
+  await abrirDesdeMenu(page);
+  await page.locator('[formControlName="stock"]').selectOption('SIN_UMBRAL');
+  const respuesta = page.waitForResponse(r => r.url().includes('/inventario-proveedores/inventario?') && r.url().includes('stock=SIN_UMBRAL'));
+  await page.getByRole('button', { name: 'Buscar', exact: true }).click();
+  const datos = await (await respuesta).json();
+  expect(datos.total).toBe(0);
+  expect(datos.items).toEqual([]);
+  await expect(page.getByRole('heading', { name: 'No se encontraron productos', exact: true })).toBeVisible();
+  const respuestaAlertas = page.waitForResponse(r => r.url().includes('/inventario-proveedores/alertas?') && r.url().includes('stock=SIN_UMBRAL'));
+  await page.getByRole('button', { name: 'Alertas', exact: true }).click();
+  expect((await (await respuestaAlertas).json()).total).toBe(0);
+  await page.getByRole('button', { name: 'Limpiar', exact: true }).click();
+  await expect(page.locator('[formControlName="stock"]')).toHaveValue('TODOS');
+  await page.getByRole('button', { name: 'Productos y existencias', exact: true }).click();
+  await comprobarEmpresa(page, EMPRESAS[0]);
 });

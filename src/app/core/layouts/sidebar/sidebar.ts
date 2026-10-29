@@ -8,6 +8,7 @@ import {
   input,
   output,
   signal,
+  untracked,
 } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { NavigationEnd, Router, RouterLink, RouterLinkActive } from '@angular/router';
@@ -60,7 +61,7 @@ export class Sidebar implements OnInit {
       .map((modulo) => ({
         ...modulo,
         funciones: (modulo.funciones ?? []).filter(
-          (funcion) => !this.navegacion.estaOcultaEnWeb(funcion.nombre),
+          (funcion) => this.navegacion.puedeMostrarFuncion(modulo, funcion),
         ),
       }))
       .filter((modulo) => modulo.funciones.length > 0),
@@ -69,6 +70,15 @@ export class Sidebar implements OnInit {
   /** Contexto de empresa compartido: se resuelve una vez por sesión. */
   protected readonly empresa = this.authService.empresa;
   protected readonly estadoEmpresa = this.authService.estadoEmpresa;
+
+  /** Refresca el perfil también cuando cambia el JWT dentro de la misma empresa. */
+  private readonly sincronizarPerfilSesion = effect(() => {
+    this.authService.revisionSesion?.();
+    this.authService.revisionPerfil?.();
+    this.empresa();
+    this.estadoEmpresa();
+    untracked(() => this.perfil.set(this.authService.obtenerPerfilActual()));
+  });
 
   /**
    * Nombre real de la empresa autenticada.

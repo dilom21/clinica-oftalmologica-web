@@ -1,4 +1,5 @@
 import { Injectable } from '@angular/core';
+import { MenuFuncion, MenuModulo } from '../models/menu.models';
 
 /**
  * Resolución compartida entre el sidebar y el inicio:
@@ -226,6 +227,25 @@ export class NavegacionService {
       grupo.claves.some((texto) => clave.includes(this.normalizarNombre(texto))),
     );
     return coincidencia?.icono ?? 'documento';
+  }
+
+  /** CU30 exige el módulo, nombre y lectura exactos; conserva las demás reglas web. */
+  puedeMostrarFuncion(modulo: MenuModulo, funcion: MenuFuncion): boolean {
+    const nombre = this.normalizarNombre(funcion.nombre ?? '');
+    const nombreInventario = 'consultar inventario y alertas';
+    const esInventario =
+      nombre === nombreInventario || nombre.startsWith(`${nombreInventario} `);
+
+    if (esInventario) {
+      const accion = (funcion.accion_nombre ?? '').trim().toUpperCase();
+      return (
+        modulo.nombre === 'Inventario y Proveedores' &&
+        funcion.nombre === 'Consultar inventario y alertas' &&
+        (accion === 'LECTURA' || accion === 'AMBAS')
+      );
+    }
+
+    return !this.estaOcultaEnWeb(funcion.nombre);
   }
 
   /** Indica si una función debe ocultarse en la navegación web. */

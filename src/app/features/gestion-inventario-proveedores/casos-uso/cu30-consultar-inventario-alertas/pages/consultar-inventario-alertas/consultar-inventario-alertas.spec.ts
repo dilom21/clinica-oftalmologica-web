@@ -61,6 +61,8 @@ describe('CU30 — consulta y seguridad de la página', () => {
   let pagina: ConsultarInventarioAlertas;
   let codigoEmpresa: string | null;
   const empresa = signal<{ codigo: string; nombre: string; tenantId: number } | null>(null);
+  const revisionSesion = signal(0);
+  const estadoEmpresa = signal<'sin-tenant' | 'verificando' | 'listo' | 'error'>('listo');
   const estadoMenu = signal<EstadoMenu>('listo');
   const modulos = signal<MenuModulo[]>([]);
   const api = { consultar: vi.fn(), alertas: vi.fn(), lotes: vi.fn() };
@@ -71,6 +73,11 @@ describe('CU30 — consulta y seguridad de la página', () => {
     reintentar: vi.fn(),
   };
   const auth = {
+    revisionSesion: revisionSesion.asReadonly(),
+    estadoEmpresa: estadoEmpresa.asReadonly(),
+    sincronizarSesion: vi.fn(),
+    esSesionActual: vi.fn((revision: number) => revision === revisionSesion()),
+    empresaCoincideConSesion: vi.fn(() => estadoEmpresa() === 'listo' && !!codigoEmpresa && empresa()?.codigo === codigoEmpresa),
     empresa: empresa.asReadonly(),
     empresaNombre: computed(() => empresa()?.nombre ?? null),
     tenantCode: vi.fn(() => codigoEmpresa),
@@ -99,12 +106,18 @@ describe('CU30 — consulta y seguridad de la página', () => {
   beforeEach(async () => {
     vi.resetAllMocks();
     codigoEmpresa = 'EMPRESA-1';
+    revisionSesion.set(0);
+    estadoEmpresa.set('listo');
     empresa.set({ codigo: codigoEmpresa, nombre: 'Empresa de prueba', tenantId: 1 });
     estadoMenu.set('listo');
     permiso();
     auth.tenantCode.mockImplementation(() => codigoEmpresa);
+    auth.esSesionActual.mockImplementation(revision => revision === revisionSesion());
+    auth.empresaCoincideConSesion.mockImplementation(() => estadoEmpresa() === 'listo' && !!codigoEmpresa && empresa()?.codigo === codigoEmpresa);
     auth.logout.mockImplementation(() => {
       codigoEmpresa = null;
+      revisionSesion.update(revision => revision + 1);
+      estadoEmpresa.set('sin-tenant');
       empresa.set(null);
       estadoMenu.set('inicial');
     });
@@ -368,6 +381,7 @@ describe('CU30 — consulta y seguridad de la página', () => {
     const nueva = new Subject<PaginaInventario>();
     api.consultar.mockReturnValue(nueva);
     codigoEmpresa = 'EMPRESA-7';
+    revisionSesion.update(revision => revision + 1);
     empresa.set({ codigo: codigoEmpresa, nombre: 'Séptima empresa', tenantId: 7 });
     fixture.detectChanges();
     expect(pagina.inventario()).toBeNull();
@@ -409,14 +423,134 @@ describe('CU30 — consulta y seguridad de la página', () => {
     expect(pendiente.observed).toBe(false);
   });
 
-  it('el cambio de token en otra pestaña cancela consultas y oculta datos', () => {
+  it('reinicia filtros, lotes y datos al cambiar de usuario aunque conserve la clínica', () => {
+    iniciar();
+    pagina.filtros.patchValue({ q: 'Producto', stock: 'BAJO' });
+    pagina.aplicarFiltros();
+    pagina.verLotes(producto);
+    const nueva = new Subject<PaginaInventario>();
+    api.consultar.mockReturnValue(nueva);
+    revisionSesion.update(revision => revision + 1);
+    fixture.detectChanges();
+    expect(pagina.inventario()).toBeNull();
+    expect(pagina.detalle()).toBeNull();
+    expect(pagina.seleccionado()).toBeNull();
+    expect(pagina.filtros.getRawValue()).toMatchObject({ q: '', stock: 'TODOS' });
+    expect(api.consultar).toHaveBeenLastCalledWith(expect.objectContaining({ q: '', page: 1 }));
+    nueva.next({ ...datos, items: [{ ...producto, nombre: 'Producto del usuario nuevo' }] });
+    fixture.detectChanges();
+    expect(texto()).toContain('Producto del usuario nuevo');
+  });
+
+  it('descarta un resultado si cambió el token antes de recibirse el evento storage', () => {
+    const anterior = new Subject<PaginaInventario>();
+    api.consultar.mockReturnValue(anterior);
+    iniciar();
+    auth.esSesionActual.mockReturnValue(false);
+    auth.sincronizarSesion.mockImplementation(() => {
+      revisionSesion.update(revision => revision + 1);
+      codigoEmpresa = 'EMPRESA-7';
+      empresa.set(null);
+      estadoEmpresa.set('verificando');
+      estadoMenu.set('cargando');
+    });
+    anterior.next(datos);
+    fixture.detectChanges();
+    expect(pagina.inventario()).toBeNull();
+    expect(texto()).not.toContain('Empresa de prueba');
+    expect(texto()).not.toContain(producto.nombre);
+    expect(texto()).toContain('Comprobando clínica');
+  });
+
+  it.each(['productos', 'alertas', 'lotes'] as const)(
+    'un 401 tardío de %s no cierra la sesión nueva',
+    origen => {
+      iniciar();
+      const anterior = new Subject<any>();
+      if (origen === 'productos') {
+        api.consultar.mockReturnValue(anterior);
+        pagina.actualizar();
+      } else if (origen === 'alertas') {
+        api.alertas.mockReturnValue(anterior);
+        pagina.cambiarVista('alertas');
+      } else {
+        api.lotes.mockReturnValue(anterior);
+        pagina.verLotes(producto);
+      }
+      auth.esSesionActual.mockReturnValue(false);
+      anterior.error(new HttpErrorResponse({ status: 401 }));
+      expect(auth.logout).not.toHaveBeenCalled();
+      expect(auth.sincronizarSesion).toHaveBeenCalled();
+      expect(pagina.inventario()).toBeNull();
+      expect(pagina.alertas()).toBeNull();
+      expect(pagina.detalle()).toBeNull();
+    },
+  );
+
+  it('espera la identidad de la clínica nueva y permite reintentar un error de contexto', () => {
+    iniciar();
+    revisionSesion.update(revision => revision + 1);
+    codigoEmpresa = 'EMPRESA-7';
+    empresa.set(null);
+    estadoEmpresa.set('error');
+    fixture.detectChanges();
+    expect(texto()).toContain('No se pudo comprobar la clínica');
+    expect(texto()).not.toContain('Empresa de prueba');
+    expect(texto()).not.toContain(producto.nombre);
+    const consultas = api.consultar.mock.calls.length;
+    pagina.comprobarPermisos();
+    expect(auth.inicializarContextoEmpresa).toHaveBeenCalled();
+    expect(menu.reintentar).toHaveBeenCalled();
+    expect(api.consultar.mock.calls.length).toBe(consultas);
+    api.consultar.mockReturnValue(of({ ...datos, items: [] }));
+    empresa.set({ codigo: codigoEmpresa, nombre: 'Séptima empresa', tenantId: 7 });
+    estadoEmpresa.set('listo');
+    fixture.detectChanges();
+    expect(texto()).toContain('Séptima empresa');
+    expect(pagina.inventario()?.items).toEqual([]);
+  });
+
+  it.each(['productos', 'lotes'] as const)('finaliza la carga de %s si la sesión expira durante la solicitud', origen => {
+    const pendiente = new Subject<any>();
+    iniciar();
+    if (origen === 'productos') {
+      api.consultar.mockReturnValue(pendiente);
+      pagina.actualizar();
+    } else {
+      api.lotes.mockReturnValue(pendiente);
+      pagina.verLotes(producto);
+    }
+    codigoEmpresa = null;
+    pendiente.error(new HttpErrorResponse({ status: 401 }));
+    fixture.detectChanges();
+    expect(auth.logout).toHaveBeenCalledOnce();
+    expect(pagina.cargando()).toBe(false);
+    expect(pagina.cargandoLotes()).toBe(false);
+    expect(texto()).toContain('Inicia sesión en tu empresa');
+    expect(texto()).not.toContain(producto.nombre);
+  });
+
+  it('envía SIN_UMBRAL con búsqueda, categoría y vencimiento en productos y alertas', () => {
+    iniciar();
+    pagina.filtros.patchValue({ q: ' lente ', categoria: ' Insumos ', stock: 'SIN_UMBRAL', vencimiento: 'PROXIMO' });
+    pagina.aplicarFiltros();
+    const filtros = { q: 'lente', categoria: 'Insumos', stock: 'SIN_UMBRAL', vencimiento: 'PROXIMO', page: 1 };
+    expect(api.consultar).toHaveBeenLastCalledWith(expect.objectContaining(filtros));
+    pagina.cambiarVista('alertas');
+    expect(api.alertas).toHaveBeenLastCalledWith(expect.objectContaining(filtros));
+  });
+
+  it('el cierre de sesión en otra pestaña cancela consultas y oculta datos', () => {
     const pendiente = new Subject<PaginaInventario>();
     api.consultar.mockReturnValue(pendiente);
     iniciar();
-    pagina.cambioSesion(new StorageEvent('storage', { key: 'access_token' }));
+    codigoEmpresa = null;
+    revisionSesion.update(revision => revision + 1);
+    empresa.set(null);
     fixture.detectChanges();
     expect(pendiente.observed).toBe(false);
     expect(pagina.inventario()).toBeNull();
-    expect(pagina.accesoDenegado()).toBe(true);
+    expect(pagina.sesionTenant()).toBe(false);
+    expect(texto()).not.toContain('Empresa de prueba');
   });
 });

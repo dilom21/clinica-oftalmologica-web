@@ -319,4 +319,18 @@ describe('Inicio — panel de bienvenida', () => {
     expect(texto()).not.toContain('Centro Médico Ocular');
     expect(empresaEnEncabezado()).toBe('Sistema clínico');
   });
+
+  it.each(['LECTURA', 'AMBAS', 'ESCRITURA'])('cuenta CU30 en Inicio solo con lectura: %s', accion => {
+    montar();
+    responderMenu([{
+      id: 5,
+      nombre: 'Inventario y Proveedores',
+      funciones: [{ id: 30, nombre: 'Consultar inventario y alertas', accion_id: 1, accion_nombre: accion }],
+    }]);
+    if (accion === 'ESCRITURA') {
+      expect(texto()).not.toContain('Inventario y Proveedores');
+    } else {
+      expect(texto()).toContain('Inventario y Proveedores');
+    }
+  });
 });

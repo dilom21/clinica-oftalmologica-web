@@ -5,7 +5,7 @@ export type TipoAlerta = 'STOCK_BAJO' | 'AGOTADO' | 'PROXIMO_VENCIMIENTO' | 'VEN
 export interface FiltrosInventario {
   q?: string;
   categoria?: string;
-  stock?: 'TODOS' | 'BAJO' | 'AGOTADO' | 'NORMAL';
+  stock?: 'TODOS' | 'BAJO' | 'AGOTADO' | 'NORMAL' | 'SIN_UMBRAL';
   vencimiento?: 'TODOS' | 'PROXIMO' | 'VENCIDO' | 'SIN_FECHA';
   dias_vencimiento?: number;
   page?: number;

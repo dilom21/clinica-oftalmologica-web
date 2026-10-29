@@ -85,6 +85,18 @@ describe('CU30 — consultas HTTP y contexto de empresa', () => {
     lotes.flush({});
   });
 
+  it('envía SIN_UMBRAL como filtro sin convertirlo en stock mínimo cero', () => {
+    servicio.consultar({ stock: 'SIN_UMBRAL' }).subscribe();
+    const productos = http.expectOne(`${url}/inventario?stock=SIN_UMBRAL`);
+    expect(productos.request.params.keys()).toEqual(['stock']);
+    productos.flush({ items: [], total: 0 });
+
+    servicio.alertas({ stock: 'SIN_UMBRAL' }).subscribe();
+    const alertas = http.expectOne(`${url}/alertas?stock=SIN_UMBRAL`);
+    expect(alertas.request.params.keys()).toEqual(['stock']);
+    alertas.flush({ items: [], total: 0 });
+  });
+
   it('propaga la indisponibilidad del tenant sin convertirla en una lista vacía', () => {
     let codigo: string | undefined;
     servicio.consultar().subscribe({

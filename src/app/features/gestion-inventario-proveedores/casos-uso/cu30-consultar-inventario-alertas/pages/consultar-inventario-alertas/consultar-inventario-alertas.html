@@ -44,6 +44,14 @@
           <p>La sesión no está disponible o ha expirado. Selecciona tu empresa al ingresar.</p>
           <a class="boton" routerLink="/login">Iniciar sesión</a>
         </section>
+      } @else if (cargandoEmpresa()) {
+        <p class="estado" role="status">Comprobando clínica…</p>
+      } @else if (errorEmpresa()) {
+        <section class="estado" role="alert">
+          <h2>No se pudo comprobar la clínica</h2>
+          <p>Vuelve a consultar los datos de tu sesión.</p>
+          <button type="button" class="boton" (click)="comprobarPermisos()">Reintentar</button>
+        </section>
       } @else if (cargandoPermisos()) {
         <p class="estado" role="status">Comprobando acceso…</p>
       } @else if (errorPermisos()) {
@@ -86,6 +94,7 @@
                 <option value="BAJO">Stock bajo</option>
                 <option value="AGOTADO">Agotado</option>
                 <option value="NORMAL">Normal</option>
+                <option value="SIN_UMBRAL">Sin mínimo definido</option>
               </select></label
             >
             <label class="campo"

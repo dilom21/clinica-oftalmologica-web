@@ -7,7 +7,6 @@ import {
   DestroyRef,
   effect,
   ElementRef,
-  HostListener,
   inject,
   Injector,
   OnInit,
@@ -59,14 +58,25 @@ export class ConsultarInventarioAlertas implements OnInit {
   private focoAnterior: HTMLElement | null = null;
   private peticion?: Subscription;
   private peticionLotes?: Subscription;
-  private empresaCargada: string | null = null;
+  private revisionObservada: number | null = null;
+  private revisionCargada: number | null = null;
+  private numeroPeticion = 0;
+  private numeroPeticionLotes = 0;
   private filtrosAplicados: FiltrosInventario = { ...FILTROS_INICIALES };
 
   readonly sidebarMovilAbierto = signal(false);
   readonly vista = signal<'productos' | 'alertas'>('productos');
   readonly sesionTenant = signal(!!this.auth.tenantCode());
   readonly accesoDenegado = signal(false);
-  readonly empresa = this.auth.empresaNombre;
+  readonly contextoListo = computed(() => {
+    this.auth.revisionSesion();
+    this.auth.estadoEmpresa();
+    this.auth.empresa();
+    return this.auth.empresaCoincideConSesion();
+  });
+  readonly empresa = computed(() => this.contextoListo() ? this.auth.empresaNombre() : null);
+  readonly cargandoEmpresa = computed(() => this.auth.estadoEmpresa() === 'verificando');
+  readonly errorEmpresa = computed(() => this.auth.estadoEmpresa() === 'error');
   readonly cargandoPermisos = computed(() => ['inicial', 'cargando'].includes(this.menu.estado()));
   readonly errorPermisos = computed(() => this.menu.estado() === 'error');
   readonly permisoLectura = computed(
@@ -85,7 +95,7 @@ export class ConsultarInventarioAlertas implements OnInit {
         ),
   );
   readonly puedeConsultar = computed(
-    () => this.sesionTenant() && this.permisoLectura() && !this.accesoDenegado(),
+    () => this.sesionTenant() && this.contextoListo() && this.permisoLectura() && !this.accesoDenegado(),
   );
   readonly inventario = signal<PaginaInventario | null>(null);
   readonly alertas = signal<PaginaAlertas | null>(null);
@@ -118,22 +128,32 @@ export class ConsultarInventarioAlertas implements OnInit {
   });
 
   private readonly sincronizarAcceso = effect(() => {
-    this.auth.empresa();
+    const revision = this.auth.revisionSesion();
     const empresa = this.auth.tenantCode();
+    const contextoListo = this.contextoListo();
+    const estadoMenu = this.menu.estado();
     const autorizado = this.permisoLectura() && !this.accesoDenegado();
     this.sesionTenant.set(!!empresa);
     untracked(() => {
-      if (!empresa || !autorizado) {
-        this.empresaCargada = null;
+      if (this.revisionObservada !== revision) {
+        this.revisionObservada = revision;
+        this.revisionCargada = null;
         this.limpiarDatos();
-        return;
-      }
-      if (this.empresaCargada !== empresa) {
-        this.limpiarDatos();
-        this.empresaCargada = empresa;
+        this.accesoDenegado.set(false);
         this.filtrosAplicados = { ...FILTROS_INICIALES };
         this.filtros.reset(FILTROS_INICIALES);
         this.pagina.set(1);
+        this.vista.set('productos');
+      }
+      if (empresa && contextoListo && estadoMenu === 'inicial') this.menu.cargar();
+      if (!empresa || !contextoListo || !autorizado) {
+        this.revisionCargada = null;
+        this.limpiarDatos();
+        return;
+      }
+      if (this.revisionCargada !== revision) {
+        this.limpiarDatos();
+        this.revisionCargada = revision;
         this.actualizar();
       }
     });
@@ -151,16 +171,9 @@ export class ConsultarInventarioAlertas implements OnInit {
     this.menu.cargar();
   }
 
-  @HostListener('window:storage', ['$event'])
-  cambioSesion(evento: StorageEvent): void {
-    if (evento.key === 'access_token' || evento.key === null) {
-      this.limpiarDatos();
-      this.sesionTenant.set(false);
-      this.accesoDenegado.set(true);
-    }
-  }
-
   comprobarPermisos(): void {
+    this.auth.sincronizarSesion();
+    this.auth.inicializarContextoEmpresa();
     this.accesoDenegado.set(false);
     this.menu.reintentar();
   }
@@ -204,6 +217,8 @@ export class ConsultarInventarioAlertas implements OnInit {
 
   actualizar(): void {
     if (!this.validarAcceso()) return;
+    const revision = this.auth.revisionSesion();
+    const peticion = ++this.numeroPeticion;
     this.peticion?.unsubscribe();
     this.cerrarLotes(false);
     this.inventario.set(null);
@@ -215,20 +230,26 @@ export class ConsultarInventarioAlertas implements OnInit {
     if (this.vista() === 'productos') {
       this.peticion = this.api.consultar(filtros).subscribe({
         next: (resultado) => {
+          if (!this.respuestaVigente(revision, peticion, false)) return;
           if (this.ajustarPagina(resultado.total_pages)) return;
           this.inventario.set(resultado);
           this.cargando.set(false);
         },
-        error: (error) => this.procesarError(error),
+        error: (error) => {
+          if (this.respuestaVigente(revision, peticion, false)) this.procesarError(error);
+        },
       });
     } else {
       this.peticion = this.api.alertas(filtros).subscribe({
         next: (resultado) => {
+          if (!this.respuestaVigente(revision, peticion, false)) return;
           if (this.ajustarPagina(resultado.total_pages)) return;
           this.alertas.set(resultado);
           this.cargando.set(false);
         },
-        error: (error) => this.procesarError(error),
+        error: (error) => {
+          if (this.respuestaVigente(revision, peticion, false)) this.procesarError(error);
+        },
       });
     }
   }
@@ -238,11 +259,14 @@ export class ConsultarInventarioAlertas implements OnInit {
     const origen = evento?.currentTarget;
     const focoAnterior = origen instanceof HTMLElement ? origen : this.focoAnterior;
     this.cerrarLotes(false);
+    const revision = this.auth.revisionSesion();
+    const peticion = this.numeroPeticionLotes;
     this.focoAnterior = focoAnterior;
     this.seleccionado.set(producto);
     this.cargandoLotes.set(true);
     afterNextRender(
       () => {
+        if (!this.respuestaVigente(revision, peticion, true)) return;
         const titulo = this.tituloLotes()?.nativeElement;
         titulo?.focus({ preventScroll: true });
         titulo?.scrollIntoView?.({ block: 'start' });
@@ -253,10 +277,12 @@ export class ConsultarInventarioAlertas implements OnInit {
       .lotes(producto.id, this.filtrosAplicados.dias_vencimiento)
       .subscribe({
         next: (detalle) => {
+          if (!this.respuestaVigente(revision, peticion, true)) return;
           this.detalle.set(detalle);
           this.cargandoLotes.set(false);
         },
         error: (error) => {
+          if (!this.respuestaVigente(revision, peticion, true)) return;
           if (this.procesarErrorAcceso(error)) return;
           this.cargandoLotes.set(false);
           this.errorLotes.set(
@@ -267,6 +293,7 @@ export class ConsultarInventarioAlertas implements OnInit {
   }
 
   cerrarLotes(restaurarFoco = true): void {
+    this.numeroPeticionLotes++;
     this.peticionLotes?.unsubscribe();
     this.seleccionado.set(null);
     this.detalle.set(null);
@@ -320,13 +347,36 @@ export class ConsultarInventarioAlertas implements OnInit {
   }
 
   private validarAcceso(): boolean {
+    this.auth.sincronizarSesion();
     const empresa = this.auth.tenantCode();
-    if (!empresa || empresa !== this.empresaCargada || !this.puedeConsultar()) {
+    if (
+      !empresa ||
+      this.revisionCargada !== this.auth.revisionSesion() ||
+      !this.auth.empresaCoincideConSesion() ||
+      !this.puedeConsultar()
+    ) {
       this.sesionTenant.set(!!empresa);
       this.limpiarDatos();
       return false;
     }
     return true;
+  }
+
+  private respuestaVigente(revision: number, peticion: number, lotes: boolean): boolean {
+    if (peticion !== (lotes ? this.numeroPeticionLotes : this.numeroPeticion)) return false;
+    // El almacenamiento puede haber cambiado antes de que llegue el evento de otra pestaña.
+    if (!this.auth.esSesionActual(revision)) {
+      this.auth.sincronizarSesion();
+      this.limpiarDatos();
+      return false;
+    }
+    if (!this.auth.tenantCode()) {
+      this.limpiarDatos();
+      this.sesionTenant.set(false);
+      this.auth.logout();
+      return false;
+    }
+    return this.revisionCargada === revision && this.auth.empresaCoincideConSesion() && this.puedeConsultar();
   }
 
   private ajustarPagina(totalPaginas: number): boolean {
@@ -338,6 +388,7 @@ export class ConsultarInventarioAlertas implements OnInit {
   }
 
   private limpiarDatos(): void {
+    this.numeroPeticion++;
     this.peticion?.unsubscribe();
     this.cerrarLotes(false);
     this.inventario.set(null);

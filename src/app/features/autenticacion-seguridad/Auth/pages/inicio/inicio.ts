@@ -131,7 +131,7 @@ export class Inicio implements OnInit {
     const rutas = new Set<string>();
     for (const modulo of this.menuService.modulos()) {
       for (const funcion of modulo.funciones ?? []) {
-        if (this.navegacion.estaOcultaEnWeb(funcion.nombre)) {
+        if (!this.navegacion.puedeMostrarFuncion(modulo, funcion)) {
           continue;
         }
         const ruta = this.navegacion.rutaDeFuncion(funcion.nombre);
@@ -163,7 +163,7 @@ export class Inicio implements OnInit {
         id: modulo.id,
         nombre: modulo.nombre,
         totalFunciones: (modulo.funciones ?? []).filter(
-          (funcion) => !this.navegacion.estaOcultaEnWeb(funcion.nombre),
+          (funcion) => this.navegacion.puedeMostrarFuncion(modulo, funcion),
         ).length,
       }))
       .filter((modulo) => modulo.totalFunciones > 0),

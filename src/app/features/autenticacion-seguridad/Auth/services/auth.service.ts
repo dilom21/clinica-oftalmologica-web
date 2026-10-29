@@ -1,6 +1,7 @@
-import { Injectable, computed, inject, signal } from '@angular/core';
+import { DestroyRef, Injectable, computed, inject, signal } from '@angular/core';
+import { DOCUMENT } from '@angular/common';
 import { HttpClient } from '@angular/common/http';
-import { Observable, Subscription, tap } from 'rxjs';
+import { defer, Observable, Subscription, tap } from 'rxjs';
 import { environment } from '../../../../../environments/environment';
 import { MenuService } from '../../../../core/services/menu.service';
 import {
@@ -39,6 +40,15 @@ export interface EmpresaSesion {
 
 @Injectable({ providedIn: 'root' })
 export class AuthService {
+  private readonly revisionSesionSignal = signal(0);
+  private readonly revisionPerfilSignal = signal(0);
+  private tokenObservado = this.leerToken();
+  private correoObservado = this.leerCorreoGuardado();
+  private correoPerfil = this.correoObservado;
+  private generacionEmpresa = 0;
+  private destruido = false;
+  readonly revisionSesion = this.revisionSesionSignal.asReadonly();
+  readonly revisionPerfil = this.revisionPerfilSignal.asReadonly();
   private readonly freshlyIssuedTenantToken = signal<string | null>(null);
   /** Empresa resuelta para el JWT tenant vigente; se comparte con toda la UI. */
   private readonly empresaSignal = signal<EmpresaSesion | null>(null);
@@ -61,17 +71,50 @@ export class AuthService {
   private readonly restablecerPasswordUrl = `${environment.apiUrl}/seguridad/password/restablecer`;
 
   private readonly menuService = inject(MenuService);
+  private readonly ventana = inject(DOCUMENT).defaultView;
+  private readonly destroyRef = inject(DestroyRef);
 
-  constructor(private readonly http: HttpClient) {}
+  constructor(private readonly http: HttpClient) {
+    const sincronizarStorage = (evento: StorageEvent) => {
+      if (evento.key !== CLAVE_TOKEN && evento.key !== CLAVE_CORREO && evento.key !== null) return;
+      const revision = this.revisionSesionSignal();
+      this.sincronizarSesion();
+      if (
+        (revision !== this.revisionSesionSignal() || this.menuService.estado() === 'inicial') &&
+        this.contextoDeToken(this.leerToken())
+      ) {
+        this.menuService.cargar();
+      }
+    };
+    this.ventana?.addEventListener('storage', sincronizarStorage);
+    this.destroyRef.onDestroy(() => {
+      this.destruido = true;
+      this.generacionEmpresa++;
+      this.suscripcionEmpresa?.unsubscribe();
+      this.ventana?.removeEventListener('storage', sincronizarStorage);
+    });
+  }
 
   login(datos: LoginRequest): Observable<LoginResponse> {
     return this.http.post<LoginResponse>(this.loginUrl, datos);
   }
 
   companies(): Observable<TenantCompany[]> {
-    return this.http
-      .get<TenantCompany[]>(`${this.tenantUrl}/empresas`)
-      .pipe(tap((empresas) => (this.catalogoEmpresas = empresas ?? [])));
+    return defer(() => {
+      const token = this.leerToken();
+      const revision = this.revisionSesionSignal();
+      return this.http.get<TenantCompany[]>(`${this.tenantUrl}/empresas`).pipe(
+        tap((empresas) => {
+          if (
+            !this.destruido &&
+            token === this.leerToken() &&
+            revision === this.revisionSesionSignal()
+          ) {
+            this.catalogoEmpresas = empresas ?? [];
+          }
+        }),
+      );
+    });
   }
 
   tenantLogin(datos: TenantLoginRequest): Observable<LoginResponse> {
@@ -79,7 +122,7 @@ export class AuthService {
   }
 
   // Decoding a JWT is not signature verification. The API remains the authority.
-  tenantCode(token = localStorage.getItem(CLAVE_TOKEN)): string | null {
+  tenantCode(token = this.leerToken()): string | null {
     return this.contextoDeToken(token)?.codigo ?? null;
   }
 
@@ -98,9 +141,13 @@ export class AuthService {
     const expiracion = claims['exp'];
     if (
       claims['token_type'] !== 'tenant' ||
-      typeof codigo !== 'string' || !codigo.trim() ||
-      typeof expiracion !== 'number' || expiracion <= Date.now() / 1000 ||
-      !Number.isInteger(tenantId) || (tenantId as number) <= 0
+      typeof codigo !== 'string' ||
+      !codigo.trim() ||
+      typeof expiracion !== 'number' ||
+      !Number.isFinite(expiracion) ||
+      expiracion <= Date.now() / 1000 ||
+      !Number.isInteger(tenantId) ||
+      (tenantId as number) <= 0
     ) {
       return null;
     }
@@ -110,15 +157,77 @@ export class AuthService {
   acceptTenantToken(token: string, selectedCode: string): boolean {
     if (this.tenantCode(token) !== selectedCode) return false;
     localStorage.setItem(CLAVE_TOKEN, token);
+    this.sincronizarSesion();
+    if (this.leerToken() !== token) return false;
     this.freshlyIssuedTenantToken.set(token);
-    // La empresa anterior nunca puede aportar identidad a la nueva sesión.
-    this.limpiarEmpresa();
     this.inicializarContextoEmpresa();
     return true;
   }
 
   hasFreshTenantToken(token: string | null): boolean {
-    return !!token && this.freshlyIssuedTenantToken() === token;
+    return (
+      !!token &&
+      token === this.tokenObservado &&
+      token === this.leerToken() &&
+      this.freshlyIssuedTenantToken() === token
+    );
+  }
+
+  sincronizarSesion(): void {
+    const token = this.leerToken();
+    if (this.destruido) return;
+    if (token === this.tokenObservado) {
+      this.sincronizarPerfil();
+      return;
+    }
+    const anterior = this.decodeToken(this.tokenObservado);
+    const actual = this.decodeToken(token);
+    const mismaIdentidad =
+      !!anterior &&
+      !!actual &&
+      anterior['sub'] != null &&
+      anterior['sub'] === actual['sub'] &&
+      anterior['tenant_id'] === actual['tenant_id'] &&
+      anterior['empresa_codigo'] === actual['empresa_codigo'];
+    const correo = this.leerCorreoGuardado();
+    this.correoPerfil = correo !== this.correoObservado || mismaIdentidad ? correo : null;
+    this.correoObservado = correo;
+    this.tokenObservado = token;
+    this.revisionSesionSignal.update((revision) => revision + 1);
+    this.revisionPerfilSignal.update((revision) => revision + 1);
+    this.freshlyIssuedTenantToken.set(null);
+    this.limpiarEmpresa();
+    this.menuService.sincronizarSesion();
+    this.resolverContextoActual();
+  }
+
+  private sincronizarPerfil(): void {
+    const correo = this.leerCorreoGuardado();
+    if (correo === this.correoObservado) return;
+    this.correoObservado = correo;
+    this.correoPerfil = correo;
+    this.revisionPerfilSignal.update((revision) => revision + 1);
+  }
+
+  esSesionActual(revision: number): boolean {
+    return (
+      !this.destruido &&
+      revision === this.revisionSesionSignal() &&
+      this.tokenObservado === this.leerToken()
+    );
+  }
+
+  empresaCoincideConSesion(): boolean {
+    const claims = this.contextoDeToken(this.leerToken());
+    const empresa = this.empresaSignal();
+    return (
+      this.esSesionActual(this.revisionSesionSignal()) &&
+      this.estadoEmpresaSignal() === 'listo' &&
+      !!claims &&
+      !!empresa &&
+      empresa.codigo === claims.codigo &&
+      empresa.tenantId === claims.tenantId
+    );
   }
 
   /**
@@ -134,6 +243,12 @@ export class AuthService {
    * Es idempotente: las nuevas instancias del sidebar no repiten la consulta.
    */
   inicializarContextoEmpresa(): void {
+    this.sincronizarSesion();
+    this.resolverContextoActual();
+  }
+
+  private resolverContextoActual(): void {
+    if (this.destruido) return;
     const claims = this.contextoDeToken(this.leerToken());
     if (!claims) {
       this.limpiarEmpresa();
@@ -168,23 +283,33 @@ export class AuthService {
 
     this.estadoEmpresaSignal.set('verificando');
     this.suscripcionEmpresa?.unsubscribe();
+    const revision = this.revisionSesionSignal();
+    const generacion = ++this.generacionEmpresa;
     this.suscripcionEmpresa = this.companies().subscribe({
       next: (empresas) => {
+        if (!this.contextoActual(revision, generacion)) return;
         this.suscripcionEmpresa = null;
-        const vigente = this.contextoDeToken(this.leerToken());
-        if (!vigente) {
-          // La sesión se cerró o cambió mientras se consultaba el catálogo.
+        if (!this.contextoDeToken(this.leerToken())) {
           this.limpiarEmpresa();
           return;
         }
-        this.resolverEmpresa(empresas ?? [], vigente);
+        this.resolverEmpresa(empresas ?? [], claims);
       },
       error: () => {
+        if (!this.contextoActual(revision, generacion)) return;
         this.suscripcionEmpresa = null;
         this.empresaSignal.set(null);
         this.estadoEmpresaSignal.set('error');
       },
     });
+  }
+
+  private contextoActual(revision: number, generacion: number): boolean {
+    if (!this.esSesionActual(revision)) {
+      this.sincronizarSesion();
+      return false;
+    }
+    return generacion === this.generacionEmpresa;
   }
 
   /** Reintenta la resolución de la empresa tras un fallo del catálogo. */
@@ -201,6 +326,7 @@ export class AuthService {
    * porque no contiene datos de ninguna sesión.
    */
   limpiarEmpresa(): void {
+    this.generacionEmpresa++;
     this.suscripcionEmpresa?.unsubscribe();
     this.suscripcionEmpresa = null;
     this.empresaSignal.set(null);
@@ -218,6 +344,7 @@ export class AuthService {
   ): void {
     const nombre = catalogo.find((item) => item.codigo === claims.codigo)?.nombre?.trim();
     if (!nombre) {
+      this.catalogoEmpresas = null;
       this.empresaSignal.set(null);
       this.estadoEmpresaSignal.set('error');
       return;
@@ -249,9 +376,12 @@ export class AuthService {
       const valor = JSON.parse(crudo) as Partial<EmpresaSesion> | null;
       if (
         !valor ||
-        typeof valor.codigo !== 'string' || !valor.codigo.trim() ||
-        typeof valor.nombre !== 'string' || !valor.nombre.trim() ||
-        !Number.isInteger(valor.tenantId) || (valor.tenantId as number) <= 0
+        typeof valor.codigo !== 'string' ||
+        !valor.codigo.trim() ||
+        typeof valor.nombre !== 'string' ||
+        !valor.nombre.trim() ||
+        !Number.isInteger(valor.tenantId) ||
+        (valor.tenantId as number) <= 0
       ) {
         return null;
       }
@@ -293,7 +423,7 @@ export class AuthService {
     } catch {
       // Almacenamiento no disponible.
     }
-    this.menuService.limpiar();
+    this.sincronizarSesion();
     // Deriva la empresa del token recién guardado: si no es tenant, no queda
     // ninguna identidad de empresa de una sesión anterior.
     this.inicializarContextoEmpresa();
@@ -308,6 +438,7 @@ export class AuthService {
     }
     // El menú y la empresa pertenecen a la sesión: se limpian para que la
     // siguiente sesión no herede permisos ni identidad de la anterior.
+    this.sincronizarSesion();
     this.menuService.limpiar();
     this.limpiarEmpresa();
     this.freshlyIssuedTenantToken.set(null);
@@ -356,7 +487,7 @@ export class AuthService {
       'full_name',
     ]);
     const correoClaim = this.leerTextoClaim(claims, ['correo', 'email', 'mail']);
-    const correoGuardado = this.leerCorreoGuardado();
+    const correoGuardado = this.tokenObservado === this.leerToken() ? this.correoPerfil : null;
     const correo = correoClaim ?? correoGuardado;
 
     const nombre = nombreClaim;
@@ -430,13 +561,8 @@ export class AuthService {
       }
       const base64 = segmento.replace(/-/g, '+').replace(/_/g, '/');
       const binario = atob(base64);
-      const bytes = Uint8Array.from(binario, (caracter) =>
-        caracter.charCodeAt(0),
-      );
-      const claims = JSON.parse(new TextDecoder().decode(bytes)) as Record<
-        string,
-        unknown
-      >;
+      const bytes = Uint8Array.from(binario, (caracter) => caracter.charCodeAt(0));
+      const claims = JSON.parse(new TextDecoder().decode(bytes)) as Record<string, unknown>;
       return claims && typeof claims === 'object' ? claims : null;
     } catch {
       return null;

@@ -3,11 +3,51 @@ import { NavegacionService } from './navegacion.service';
 
 describe('NavegacionService — CU30', () => {
   const servicio = new NavegacionService();
+  const modulo = { id: 4, nombre: 'Inventario y Proveedores', funciones: [] };
+  const funcion = {
+    id: 30,
+    nombre: 'Consultar inventario y alertas',
+    accion_id: 1,
+    accion_nombre: 'LECTURA',
+  };
   it('mapea únicamente el nombre canónico literal de la función exigida por la API', () => {
     expect(servicio.rutaDeFuncion('Consultar inventario y alertas')).toBe('/inventario-alertas');
     for (const nombre of ['Consultar inventario y alertas (Web)', 'consultar inventario y alertas', ' CONSULTAR  INVENTARIO Y ALERTAS ', 'Consultar inventario y alertas ', 'Gestionar inventario', 'Consultar inventario', 'Consultar alertas', 'Consultar inventario y alertas de todas las empresas']) {
       expect(servicio.rutaDeFuncion(nombre)).toBeNull();
     }
+  });
+
+  it('muestra CU30 únicamente con módulo exacto y lectura o ambas normalizadas', () => {
+    for (const accion_nombre of ['LECTURA', 'AMBAS', ' lectura ', ' ambas ']) {
+      expect(servicio.puedeMostrarFuncion(modulo, { ...funcion, accion_nombre })).toBe(true);
+    }
+    for (const accion_nombre of ['ESCRITURA', 'ver', '', 'LECTURA Y ESCRITURA']) {
+      expect(servicio.puedeMostrarFuncion(modulo, { ...funcion, accion_nombre })).toBe(false);
+    }
+    for (const nombre of ['Otro módulo', 'inventario y proveedores', 'Inventario y Proveedores ']) {
+      expect(servicio.puedeMostrarFuncion({ ...modulo, nombre }, funcion)).toBe(false);
+    }
+  });
+
+  it('oculta las variantes de CU30 aunque no tengan ruta y conserva otras funciones', () => {
+    for (const nombre of [
+      'Consultar inventario y alertas (Web)',
+      'consultar inventario y alertas',
+      ' CONSULTAR  INVENTARIO Y ALERTAS ',
+      'Consultar inventario y alertas ',
+      'Consultar inventario y alertas de todas las empresas',
+    ]) {
+      expect(servicio.puedeMostrarFuncion(modulo, { ...funcion, nombre })).toBe(false);
+    }
+    expect(servicio.puedeMostrarFuncion(modulo, {
+      ...funcion, nombre: 'Gestionar pacientes', accion_nombre: 'ESCRITURA',
+    })).toBe(true);
+    expect(servicio.puedeMostrarFuncion(modulo, {
+      ...funcion, nombre: 'Gestionar productos', accion_nombre: 'ESCRITURA',
+    })).toBe(true);
+    expect(servicio.puedeMostrarFuncion(modulo, {
+      ...funcion, nombre: 'Gestionar perfil propio',
+    })).toBe(false);
   });
 });
 
