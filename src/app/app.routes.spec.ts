@@ -86,8 +86,15 @@ describe('app.routes — CU31', () => {
     expect(pagos?.canActivate).toContain(authGuard);
 
     const hijos = pagos?.children ?? [];
-    expect(hijos.map((hijo) => hijo.path)).toEqual(['', 'historial', 'confirmaciones']);
-    expect(hijos.map((hijo) => hijo.data?.['vista'])).toEqual([
+    expect(hijos.map((hijo) => hijo.path)).toEqual([
+      '',
+      'historial',
+      'confirmaciones',
+      'planes',
+      'planes/nuevo',
+      'planes/:id',
+    ]);
+    expect(hijos.slice(0, 3).map((hijo) => hijo.data?.['vista'])).toEqual([
       'registro',
       'historial',
       'confirmaciones',
@@ -95,5 +102,19 @@ describe('app.routes — CU31', () => {
     for (const hijo of hijos) {
       expect(typeof hijo.loadComponent).toBe('function');
     }
+  });
+});
+
+describe('app.routes — CU32/CU33', () => {
+  it('expone /pagos/planes, /pagos/planes/nuevo y /pagos/planes/:id antes del comodín', () => {
+    const indiceComodin = routes.findIndex((route) => route.path === '**');
+    const pagos = routes.find((route) => route.path === 'pagos');
+    const paths = (pagos?.children ?? []).map((hijo) => hijo.path);
+
+    expect(paths).toEqual(expect.arrayContaining(['planes', 'planes/nuevo', 'planes/:id']));
+    // La ruta literal debe ir antes que la paramétrica para que «nuevo» no se
+    // interprete como un identificador de plan.
+    expect(paths.indexOf('planes/nuevo')).toBeLessThan(paths.indexOf('planes/:id'));
+    expect(routes.findIndex((route) => route.path === 'pagos')).toBeLessThan(indiceComodin);
   });
 });

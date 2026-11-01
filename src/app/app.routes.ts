@@ -219,6 +219,27 @@ export const routes: Routes = [
             './features/gestion-pagos/casos-uso/cu31-registrar-pago-comprobante/pages/gestion-pagos/gestion-pagos'
           ).then((m) => m.GestionPagos),
       },
+      {
+        path: 'planes',
+        loadComponent: () =>
+          import(
+            './features/gestion-pagos/casos-uso/cu32-cu33-gestionar-planes-cuotas/pages/planes-pago/planes-pago'
+          ).then((m) => m.PlanesPago),
+      },
+      {
+        path: 'planes/nuevo',
+        loadComponent: () =>
+          import(
+            './features/gestion-pagos/casos-uso/cu32-cu33-gestionar-planes-cuotas/pages/crear-plan-pago/crear-plan-pago'
+          ).then((m) => m.CrearPlanPago),
+      },
+      {
+        path: 'planes/:id',
+        loadComponent: () =>
+          import(
+            './features/gestion-pagos/casos-uso/cu32-cu33-gestionar-planes-cuotas/pages/plan-pago-detalle/plan-pago-detalle'
+          ).then((m) => m.PlanPagoDetalle),
+      },
     ],
   },
   {

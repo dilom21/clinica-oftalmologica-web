@@ -60,6 +60,10 @@ export class NavegacionService {
     ['gestionar citas médicas', '/gestionar-citas'],
     ['consultar historial de citas', '/historial-citas'],
     ['gestionar pagos', '/pagos'],
+    ['gestionar planes de pago', '/pagos/planes'],
+    ['gestionar plan de pago', '/pagos/planes'],
+    ['gestionar cuotas', '/pagos/planes'],
+    ['gestionar cuotas de pago', '/pagos/planes'],
     ['confirmar pagos bancarios', '/pagos/confirmaciones'],
     ['generar reportes', '/reportes'],
   ]);
@@ -162,6 +166,14 @@ export class NavegacionService {
 
     if (clave.includes('cita') && clave.includes('gestionar')) {
       return '/gestionar-citas';
+    }
+
+    if (clave.includes('plan') && clave.includes('pago')) {
+      return '/pagos/planes';
+    }
+
+    if (clave.includes('cuota')) {
+      return '/pagos/planes';
     }
 
     if (clave.includes('reporte')) {

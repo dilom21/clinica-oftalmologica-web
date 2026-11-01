@@ -1,0 +1,804 @@
+<main class="detalle-page">
+  <div class="detalle-page__body">
+    <app-sidebar [mobileOpen]="sidebarMovilAbierto()" (mobileClose)="cerrarSidebar()" />
+
+    <section class="detalle-page__main">
+      <header class="detalle-page__topbar">
+        <button
+          type="button"
+          class="detalle-page__hamburger"
+          [attr.aria-expanded]="sidebarMovilAbierto()"
+          (click)="alternarSidebar()"
+          aria-label="Abrir o cerrar menú"
+        >
+          ☰
+        </button>
+      </header>
+
+      <div class="detalle-page__content">
+        <header class="detalle-hero">
+          <div class="detalle-hero__texto">
+            <p class="detalle-eyebrow">CU33 · Detalle del acuerdo</p>
+            <h1>
+              Cuotas del plan
+              @if (plan(); as actual) {
+                <span class="detalle-hero__folio">#{{ actual.id }}</span>
+              }
+            </h1>
+            @if (plan(); as actual) {
+              <p class="detalle-hero__bajada">
+                {{ nombrePaciente() }} · Consulta clínica #{{ actual.consulta_clinica_id }} · Acuerdo
+                creado el {{ fechaLarga(actual.fecha_creacion) }}.
+              </p>
+            } @else {
+              <p class="detalle-hero__bajada">
+                Cobra las cuotas del acuerdo, verifica los intentos de transferencia o QR y cancela el
+                plan cuando corresponda.
+              </p>
+            }
+          </div>
+
+          <div class="detalle-hero__acciones">
+            @if (plan(); as actual) {
+              <span class="detalle-badge detalle-badge--{{ actual.estado.toLowerCase() }}">{{
+                estadoPlan(actual.estado)
+              }}</span>
+            }
+            <button type="button" class="detalle-btn" (click)="recargarPlan()" [disabled]="cargando()">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+                <path d="M21 12a9 9 0 1 1-3-6.7"></path>
+                <path d="M21 3v6h-6"></path>
+              </svg>
+              Actualizar
+            </button>
+            @if (permisos().escribirPlanes && plan()?.estado === 'ACTIVO') {
+              <button
+                type="button"
+                class="detalle-btn detalle-btn--peligro"
+                [disabled]="!puedeCancelarPlan()"
+                [title]="
+                  puedeCancelarPlan()
+                    ? 'Cancelar el plan de pago'
+                    : motivoCancelacionBloqueada
+                "
+                (click)="abrirCancelacion()"
+              >
+                Cancelar plan
+              </button>
+            }
+            <button type="button" class="detalle-btn" (click)="volver()">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+                <path d="M15 18l-6-6 6-6"></path>
+              </svg>
+              Volver
+            </button>
+          </div>
+        </header>
+
+        @if (cancelacionBloqueada()) {
+          <div class="detalle-aviso detalle-aviso--advertencia" role="status">
+            <strong>Este plan no puede cancelarse</strong>
+            <p>{{ motivoCancelacionBloqueada }}</p>
+          </div>
+        }
+
+        @switch (estadoPermiso()) {
+          @case ('verificando') {
+            <div class="detalle-aviso" role="status">Verificando los permisos del menú…</div>
+          }
+          @case ('error') {
+            <div class="detalle-aviso detalle-aviso--error" role="alert">
+              <strong>{{ tituloSinAcceso() }}</strong>
+              <p>{{ detalleSinAcceso() }}</p>
+              <button type="button" class="detalle-btn" (click)="reintentarMenu()">Reintentar</button>
+            </div>
+          }
+          @case ('denegado') {
+            <div class="detalle-aviso detalle-aviso--error" role="alert">
+              <strong>{{ tituloSinAcceso() }}</strong>
+              <p>{{ detalleSinAcceso() }}</p>
+              <button type="button" class="detalle-btn" (click)="reintentarMenu()">
+                Volver a comprobar
+              </button>
+              <button type="button" class="detalle-btn detalle-btn--texto" (click)="volver()">
+                Ir al listado
+              </button>
+            </div>
+          }
+          @case ('autorizado') {
+            @if (cargando() && !plan()) {
+              <div class="detalle-aviso" role="status">Cargando el plan de pago…</div>
+            }
+
+            @if (error(); as mensaje) {
+              <div class="detalle-aviso detalle-aviso--error" role="alert">
+                <strong>No se pudo cargar el plan</strong>
+                <p>{{ mensaje }}</p>
+                <button type="button" class="detalle-btn" (click)="recargarPlan()">Reintentar</button>
+                <button type="button" class="detalle-btn detalle-btn--texto" (click)="volver()">
+                  Ir al listado
+                </button>
+              </div>
+            }
+
+            @if (plan(); as actual) {
+              <nav class="detalle-tabs" role="tablist" aria-label="Secciones del acuerdo">
+                <button
+                  type="button"
+                  role="tab"
+                  class="detalle-tabs__item"
+                  [class.detalle-tabs__item--activo]="pestana() === 'cuotas'"
+                  [attr.aria-selected]="pestana() === 'cuotas'"
+                  (click)="seleccionarPestana('cuotas')"
+                >
+                  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+                    <path d="M8 6h13M8 12h13M8 18h13M3 6h.01M3 12h.01M3 18h.01"></path>
+                  </svg>
+                  Cuotas del plan
+                </button>
+                <button
+                  type="button"
+                  role="tab"
+                  class="detalle-tabs__item"
+                  [class.detalle-tabs__item--activo]="pestana() === 'servicios'"
+                  [attr.aria-selected]="pestana() === 'servicios'"
+                  (click)="seleccionarPestana('servicios')"
+                >
+                  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+                    <path d="M14 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8z"></path>
+                    <path d="M14 3v5h5"></path>
+                  </svg>
+                  Servicios financiados
+                </button>
+                <button
+                  type="button"
+                  role="tab"
+                  class="detalle-tabs__item"
+                  [class.detalle-tabs__item--activo]="pestana() === 'intentos'"
+                  [attr.aria-selected]="pestana() === 'intentos'"
+                  (click)="seleccionarPestana('intentos')"
+                >
+                  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+                    <circle cx="12" cy="12" r="9"></circle>
+                    <path d="M12 7v5l3 2"></path>
+                  </svg>
+                  Intentos de pago
+                  @if (intentosPendientes().length) {
+                    <span class="detalle-tabs__contador">{{ intentosPendientes().length }}</span>
+                  }
+                </button>
+              </nav>
+
+              <div class="detalle-grid">
+                <div class="detalle-panel">
+                  @switch (pestana()) {
+                    @case ('cuotas') {
+                      <section class="detalle-card detalle-card--cronograma" aria-labelledby="titulo-cuotas">
+                        <header class="detalle-card__cabecera">
+                          <div>
+                            <h2 id="titulo-cuotas">Cronograma y estado de cobros</h2>
+                            <p>Cada cobro confirmado actualiza automáticamente el saldo del acuerdo.</p>
+                          </div>
+                          <span class="detalle-pill">
+                            {{ resumenCuotas().pagadas }} de {{ actual.cantidad_cuotas }} pagadas
+                          </span>
+                        </header>
+
+                        <div class="detalle-cronograma__resumen">
+                          <div class="detalle-cifra">
+                            <span>Monto del acuerdo</span>
+                            <strong>{{ monto(actual.monto_total) }}</strong>
+                          </div>
+                          <div class="detalle-cifra detalle-cifra--cobrado">
+                            <span>Total cobrado</span>
+                            <strong>{{ monto(actual.monto_pagado) }}</strong>
+                          </div>
+                          <div class="detalle-cifra detalle-cifra--saldo">
+                            <span>Saldo pendiente</span>
+                            <strong>{{ monto(actual.saldo_pendiente) }}</strong>
+                          </div>
+                        </div>
+
+                        <div class="detalle-avance">
+                          <div
+                            class="detalle-avance__barra"
+                            role="progressbar"
+                            aria-label="Avance de pagos"
+                            aria-valuemin="0"
+                            aria-valuemax="100"
+                            [attr.aria-valuenow]="avance(actual)"
+                          >
+                            <span [style.width.%]="avance(actual)"></span>
+                          </div>
+                          <div class="detalle-avance__pie">
+                            <span>Avance de pagos</span>
+                            <span>{{ avance(actual) }}% completado</span>
+                          </div>
+                        </div>
+
+                        @if (!cuotasOrdenadas().length) {
+                          <p class="detalle-vacio">El plan no tiene cuotas registradas.</p>
+                        } @else {
+                          <div class="detalle-tabla__scroll">
+                            <table class="detalle-tabla">
+                              <thead>
+                                <tr>
+                                  <th scope="col">Cuota</th>
+                                  <th scope="col">Vencimiento</th>
+                                  <th scope="col">Importe</th>
+                                  <th scope="col">Estado</th>
+                                  <th scope="col" class="detalle-tabla__acciones-col">Acciones</th>
+                                </tr>
+                              </thead>
+                              <tbody>
+                                @for (cuota of cuotasOrdenadas(); track cuota.id) {
+                                  <tr
+                                    [class.detalle-tabla__fila--vencida]="cuota.estado === 'VENCIDA'"
+                                    [class.detalle-tabla__fila--activa]="cuotaCobro()?.id === cuota.id"
+                                  >
+                                    <th scope="row">
+                                      <span class="detalle-cuota__numero">Cuota {{ cuota.numero_cuota }}</span>
+                                      <small class="detalle-cuota__total">de {{ actual.cantidad_cuotas }}</small>
+                                    </th>
+                                    <td>{{ fechaTabla(cuota.fecha_vencimiento) }}</td>
+                                    <td class="detalle-tabla__monto">{{ monto(cuota.monto_programado) }}</td>
+                                    <td>
+                                      <span
+                                        class="detalle-badge detalle-badge--{{ cuota.estado.toLowerCase() }}"
+                                      >{{ estadoCuota(cuota.estado) }}</span>
+                                    </td>
+                                    <td class="detalle-tabla__acciones">
+                                      @if (puedeGestionarCuota(cuota)) {
+                                        <button
+                                          type="button"
+                                          class="detalle-btn detalle-btn--mini detalle-btn--accion"
+                                          title="Registrar el cobro de la cuota"
+                                          (click)="abrirCobro(cuota)"
+                                        >
+                                          Cobrar cuota
+                                          <span aria-hidden="true">→</span>
+                                        </button>
+                                      } @else {
+                                        <button
+                                          type="button"
+                                          class="detalle-btn detalle-btn--mini detalle-btn--texto"
+                                          (click)="verIntentos(cuota)"
+                                        >
+                                          Ver pagos
+                                        </button>
+                                      }
+                                      @if (pendientesDePago(cuota).length) {
+                                        <button
+                                          type="button"
+                                          class="detalle-chip detalle-chip--pendiente"
+                                          (click)="verIntentos(cuota)"
+                                        >
+                                          {{ pendientesDePago(cuota).length }} por verificar
+                                        </button>
+                                      }
+                                    </td>
+                                  </tr>
+                                }
+                              </tbody>
+                            </table>
+                          </div>
+                        }
+
+                        @if (!permisos().escribirCuotas) {
+                          <p class="detalle-nota detalle-nota--pie">
+                            Solo lectura: tu rol no permite cobrar cuotas.
+                          </p>
+                        }
+                        @if (actual.observaciones) {
+                          <p class="detalle-observaciones">{{ actual.observaciones }}</p>
+                        }
+                      </section>
+
+                    }
+                    @case ('servicios') {
+                      <section class="detalle-card" aria-labelledby="titulo-servicios">
+                        <header class="detalle-card__cabecera">
+                          <div>
+                            <h2 id="titulo-servicios">Servicios financiados</h2>
+                            <p>Servicios del acuerdo que respaldan el monto total.</p>
+                          </div>
+                          <span class="detalle-pill">{{ monto(actual.monto_total) }}</span>
+                        </header>
+
+                        @if (!actual.servicios.length) {
+                          <p class="detalle-vacio">El plan no tiene servicios asociados.</p>
+                        } @else {
+                          <ul class="detalle-servicios">
+                            @for (servicio of actual.servicios; track servicio.servicio_realizado_id) {
+                              <li>
+                                <span>{{ servicio.nombre_servicio }}</span>
+                                <strong>{{ monto(servicio.monto_financiado) }}</strong>
+                              </li>
+                            }
+                          </ul>
+                        }
+
+                        <dl class="detalle-datos detalle-datos--acuerdo">
+                          <div>
+                            <dt>Consulta clínica</dt>
+                            <dd>#{{ actual.consulta_clinica_id }}</dd>
+                          </div>
+                          <div>
+                            <dt>Cuotas</dt>
+                            <dd>{{ actual.cantidad_cuotas }}</dd>
+                          </div>
+                          <div>
+                            <dt>Moneda</dt>
+                            <dd>{{ actual.moneda }}</dd>
+                          </div>
+                          <div>
+                            <dt>Creado</dt>
+                            <dd>{{ fechaLarga(actual.fecha_creacion) }}</dd>
+                          </div>
+                          <div>
+                            <dt>Registrado por</dt>
+                            <dd>Usuario #{{ actual.creado_por }}</dd>
+                          </div>
+                        </dl>
+                      </section>
+                    }
+                    @case ('intentos') {
+                      <section class="detalle-card" aria-labelledby="titulo-intentos-plan">
+                        <header class="detalle-card__cabecera">
+                          <div>
+                            <h2 id="titulo-intentos-plan">Intentos de pago</h2>
+                            <p>Transferencias y pagos QR pendientes de verificación.</p>
+                          </div>
+                          <span class="detalle-pill">
+                            {{ intentosPendientes().length }} por verificar
+                          </span>
+                        </header>
+
+                        @if (!intentosPendientes().length) {
+                          <p class="detalle-vacio">No hay transferencias ni pagos QR pendientes.</p>
+                        } @else {
+                          <ul class="detalle-intentos detalle-intentos--lista">
+                            @for (item of intentosPendientes(); track item.pago.pago_id) {
+                              <li>
+                                <div class="detalle-intentos__datos">
+                                  <strong>
+                                    Cuota {{ item.cuota.numero_cuota }} ·
+                                    {{ metodo(item.pago.metodo_pago) }}
+                                  </strong>
+                                  <small>{{ fechaTabla(item.pago.fecha_creacion) }}</small>
+                                </div>
+                                <span class="detalle-intentos__monto">{{ monto(item.pago.monto) }}</span>
+                                <div class="detalle-intentos__acciones">
+                                  <button
+                                    type="button"
+                                    class="detalle-btn detalle-btn--mini"
+                                    (click)="verIntentos(item.cuota)"
+                                  >
+                                    Revisar intento
+                                  </button>
+                                </div>
+                              </li>
+                            }
+                          </ul>
+                        }
+
+                        <p class="detalle-nota detalle-nota--pie">
+                          Abre «Revisar intento» para confirmar o rechazar el comprobante. Cada cuota
+                          conserva su historial completo de pagos.
+                        </p>
+                      </section>
+                    }
+                  }
+                </div>
+
+                <aside class="detalle-lateral">
+                  <section class="detalle-card detalle-cobro" aria-labelledby="titulo-cobro">
+                    <header class="detalle-cobro__cabecera">
+                      <p class="detalle-eyebrow">Cobro administrativo</p>
+                      @if (cuotaCobro(); as cuota) {
+                        <h2 id="titulo-cobro">Registrar cuota {{ cuota.numero_cuota }}</h2>
+                        <p>Selecciona un método de pago para esta cuota.</p>
+                      } @else {
+                        <h2 id="titulo-cobro">Registrar cobro de cuota</h2>
+                        <p>Elige una cuota cobrable del cronograma.</p>
+                      }
+                    </header>
+
+                    @if (cuotaCobro(); as cuota) {
+                      <div class="detalle-cobro__monto">
+                        <div>
+                          <span>Importe exacto a cobrar</span>
+                          <strong>{{ monto(cuota.monto_programado) }}</strong>
+                          <small>Vence el {{ fechaLarga(cuota.fecha_vencimiento) }}</small>
+                        </div>
+                        <span class="detalle-cobro__icono" aria-hidden="true">
+                          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M3 8a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path>
+                            <path d="M16 12h2"></path>
+                          </svg>
+                        </span>
+                      </div>
+                    } @else {
+                      <div class="detalle-cobro__vacio">
+                        <span class="detalle-cobro__vacio-icono" aria-hidden="true">
+                          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M7 3h10a2 2 0 0 1 2 2v16l-7-4-7 4V5a2 2 0 0 1 2-2z"></path>
+                          </svg>
+                        </span>
+                        <p>Selecciona una cuota cobrable de la tabla y su importe aparecerá aquí.</p>
+                        @if (proximaCuota(); as siguiente) {
+                          <button
+                            type="button"
+                            class="detalle-btn detalle-btn--accion"
+                            [disabled]="!puedeGestionarCuota(siguiente)"
+                            (click)="abrirCobro(siguiente)"
+                          >
+                            Cobrar cuota {{ siguiente.numero_cuota }}
+                            <span aria-hidden="true">→</span>
+                          </button>
+                        }
+                      </div>
+                    }
+
+                    <div class="detalle-metodos" role="radiogroup" aria-label="Método de pago">
+                      <span class="detalle-metodos__etiqueta">Método de pago</span>
+                      <div class="detalle-metodos__opciones">
+                        @for (opcion of metodos; track opcion) {
+                          <button
+                            type="button"
+                            role="radio"
+                            class="detalle-metodo"
+                            [class.detalle-metodo--activo]="metodoCobro() === opcion"
+                            [attr.aria-checked]="metodoCobro() === opcion"
+                            [disabled]="!cuotaCobro()"
+                            (click)="cambiarMetodo(opcion)"
+                          >
+                            <span class="detalle-metodo__icono" aria-hidden="true">
+                              @switch (opcion) {
+                                @case ('EFECTIVO') {
+                                  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <rect x="2" y="6" width="20" height="12" rx="2"></rect>
+                                    <circle cx="12" cy="12" r="2.5"></circle>
+                                  </svg>
+                                }
+                                @case ('TRANSFERENCIA') {
+                                  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <path d="M3 10l9-6 9 6"></path>
+                                    <path d="M5 10v9M9 10v9M15 10v9M19 10v9"></path>
+                                    <path d="M3 21h18"></path>
+                                  </svg>
+                                }
+                                @default {
+                                  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <rect x="7" y="2" width="10" height="20" rx="2"></rect>
+                                    <path d="M11 18h2"></path>
+                                  </svg>
+                                }
+                              }
+                            </span>
+                            <span class="detalle-metodo__texto">{{ metodo(opcion) }}</span>
+                          </button>
+                        }
+                      </div>
+                    </div>
+
+                    @if (requiereReferencia()) {
+                      <label class="detalle-campo">
+                        <span>Referencia bancaria</span>
+                        <input
+                          type="text"
+                          placeholder="Nro. de operación o comprobante"
+                          maxlength="60"
+                          [value]="referenciaCobro()"
+                          [disabled]="!cuotaCobro()"
+                          (input)="escribirReferencia($any($event.target).value)"
+                        />
+                        <small>Obligatoria para transferencias y pagos QR.</small>
+                      </label>
+                    }
+
+                    <label class="detalle-campo">
+                      <span>Observaciones (opcional)</span>
+                      <textarea
+                        rows="3"
+                        maxlength="300"
+                        placeholder="Añadir nota sobre el cobro…"
+                        [value]="observacionesCobro()"
+                        [disabled]="!cuotaCobro()"
+                        (input)="escribirObservacionesCobro($any($event.target).value)"
+                      ></textarea>
+                    </label>
+
+                    @if (errorCobro(); as mensaje) {
+                      <p class="detalle-modal__error" role="alert">{{ mensaje }}</p>
+                    }
+
+                    @if (!permisos().escribirCuotas) {
+                      <p class="detalle-nota">Solo lectura: tu rol no permite registrar cobros.</p>
+                    }
+
+                    <button
+                      type="button"
+                      class="detalle-btn detalle-btn--primario detalle-btn--bloque detalle-cobro__enviar"
+                      [disabled]="!cuotaCobro() || guardandoCobro() || !permisos().escribirCuotas"
+                      (click)="registrarCobro()"
+                    >
+                      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+                        <circle cx="12" cy="12" r="9"></circle>
+                        <path d="M8.5 12.5l2.5 2.5 4.5-5"></path>
+                      </svg>
+                      {{ guardandoCobro() ? 'Registrando…' : textoBotonCobro() }}
+                    </button>
+
+                    @if (cuotaCobro()) {
+                      <button
+                        type="button"
+                        class="detalle-btn detalle-btn--texto detalle-cobro__limpiar"
+                        [disabled]="guardandoCobro()"
+                        (click)="cerrarCobro()"
+                      >
+                        Quitar selección
+                      </button>
+                    }
+                  </section>
+                </aside>
+              </div>
+            }
+          }
+        }
+
+
+
+        @if (cuotaIntentos(); as cuota) {
+          <div class="detalle-overlay" role="presentation" (click)="cerrarIntentos()">
+            <section
+              class="detalle-modal detalle-modal--ancho"
+              role="dialog"
+              aria-modal="true"
+              aria-labelledby="titulo-intentos"
+              (click)="$event.stopPropagation()"
+            >
+              <header class="detalle-modal__cabecera">
+                <div>
+                  <p class="detalle-eyebrow">CU33 · Intentos de pago</p>
+                  <h2 id="titulo-intentos">Cuota {{ cuota.numero_cuota }}</h2>
+                  <p>
+                    {{ monto(cuota.monto_programado) }} · vence el
+                    {{ fechaLarga(cuota.fecha_vencimiento) }}
+                  </p>
+                </div>
+                <span
+                  class="detalle-badge detalle-badge--{{ cuota.estado.toLowerCase() }}"
+                >{{ estadoCuota(cuota.estado) }}</span>
+                <button
+                  type="button"
+                  class="detalle-btn detalle-btn--icono"
+                  aria-label="Cerrar"
+                  [disabled]="procesandoPago()"
+                  (click)="cerrarIntentos()"
+                >
+                  ✕
+                </button>
+              </header>
+
+              <div class="detalle-modal__cuerpo">
+                @if (cargandoIntentos()) {
+                  <p class="detalle-vacio" role="status">Consultando los intentos de la cuota…</p>
+                } @else if (!intentos().length) {
+                  <p class="detalle-vacio">
+                    La cuota no tiene intentos de pago registrados. Puedes registrar el cobro
+                    directamente.
+                  </p>
+                } @else {
+                  <ul class="detalle-intentos detalle-intentos--lista">
+                    @for (intento of intentos(); track intento.pago_id) {
+                      <li>
+                        <div class="detalle-intentos__datos">
+                          <strong>Pago #{{ intento.pago_id }}</strong>
+                          <small>
+                            {{ metodo(intento.metodo_pago) }} ·
+                            {{ fechaTabla(intento.fecha_creacion) }}
+                          </small>
+                        </div>
+                        <span class="detalle-intentos__monto">{{ monto(intento.monto) }}</span>
+                        <span
+                          class="detalle-badge detalle-badge--{{ intento.estado.toLowerCase() }}"
+                        >{{ estadoPago(intento.estado) }}</span>
+
+                        @if (intento.estado === 'PENDIENTE') {
+                          <div class="detalle-intentos__acciones">
+                            <button
+                              type="button"
+                              class="detalle-btn detalle-btn--mini detalle-btn--primario"
+                              [disabled]="procesandoPago() || !permisos().escribirCuotas"
+                              (click)="confirmarIntento(intento)"
+                            >
+                              Confirmar
+                            </button>
+                            <button
+                              type="button"
+                              class="detalle-btn detalle-btn--mini"
+                              [disabled]="procesandoPago() || !permisos().escribirCuotas"
+                              (click)="abrirRechazo(intento)"
+                            >
+                              Rechazar
+                            </button>
+                          </div>
+                        }
+
+                        @if (intento.estado === 'APROBADO' && puedeDescargarComprobante(intento)) {
+                          <div class="detalle-intentos__acciones">
+                            <button
+                              type="button"
+                              class="detalle-btn detalle-btn--mini"
+                              title="Descargar el comprobante PDF de este pago"
+                              [disabled]="descargandoComprobante() === intento.pago_id"
+                              (click)="descargarComprobante(intento)"
+                            >
+                              <svg
+                                viewBox="0 0 24 24"
+                                fill="none"
+                                stroke="currentColor"
+                                stroke-width="2"
+                                aria-hidden="true"
+                              >
+                                <path d="M12 3v12"></path>
+                                <path d="M7 11l5 5 5-5"></path>
+                                <path d="M5 21h14"></path>
+                              </svg>
+                              {{
+                                descargandoComprobante() === intento.pago_id
+                                  ? 'Descargando…'
+                                  : 'Descargar comprobante'
+                              }}
+                            </button>
+                          </div>
+                        }
+
+                        @if (pagoARechazar(); as rechazo) {
+                          @if (rechazo.pago_id === intento.pago_id) {
+                            <div class="detalle-rechazo">
+                              <label class="detalle-campo">
+                                <span>Motivo del rechazo</span>
+                                <textarea
+                                  rows="2"
+                                  maxlength="200"
+                                  placeholder="Ej. el comprobante no corresponde al monto"
+                                  [value]="motivoRechazo()"
+                                  (input)="escribirMotivoRechazo($any($event.target).value)"
+                                ></textarea>
+                              </label>
+                              <div class="detalle-rechazo__acciones">
+                                <button
+                                  type="button"
+                                  class="detalle-btn detalle-btn--mini detalle-btn--texto"
+                                  [disabled]="procesandoPago()"
+                                  (click)="cerrarRechazo()"
+                                >
+                                  Cancelar
+                                </button>
+                                <button
+                                  type="button"
+                                  class="detalle-btn detalle-btn--mini detalle-btn--peligro"
+                                  [disabled]="procesandoPago()"
+                                  (click)="rechazarIntento()"
+                                >
+                                  Rechazar intento
+                                </button>
+                              </div>
+                            </div>
+                          }
+                        }
+                      </li>
+                    }
+                  </ul>
+                }
+
+                @if (errorIntentos(); as mensaje) {
+                  <p class="detalle-modal__error" role="alert">{{ mensaje }}</p>
+                }
+
+                @if (errorComprobante(); as mensaje) {
+                  <p class="detalle-modal__error" role="alert">{{ mensaje }}</p>
+                }
+              </div>
+
+              <footer class="detalle-modal__pie">
+                <button
+                  type="button"
+                  class="detalle-btn"
+                  [disabled]="procesandoPago()"
+                  (click)="cerrarIntentos()"
+                >
+                  Cerrar
+                </button>
+                <button
+                  type="button"
+                  class="detalle-btn detalle-btn--primario"
+                  [disabled]="!puedeGestionarCuota(cuota) || procesandoPago()"
+                  (click)="abrirCobro(cuota)"
+                >
+                  Registrar cobro
+                </button>
+              </footer>
+            </section>
+          </div>
+        }
+
+        @if (confirmarCancelacion()) {
+          <div class="detalle-overlay" role="presentation" (click)="cerrarCancelacion()">
+            <section
+              class="detalle-modal"
+              role="dialog"
+              aria-modal="true"
+              aria-labelledby="titulo-cancelar"
+              (click)="$event.stopPropagation()"
+            >
+              <header class="detalle-modal__cabecera">
+                <div>
+                  <p class="detalle-eyebrow">CU32 · Cancelar acuerdo</p>
+                  <h2 id="titulo-cancelar">Cancelar el plan #{{ plan()?.id }}</h2>
+                  <p>Las cuotas pendientes dejarán de ser exigibles y no se podrán cobrar.</p>
+                </div>
+                <button
+                  type="button"
+                  class="detalle-btn detalle-btn--icono"
+                  aria-label="Cerrar"
+                  [disabled]="cancelando()"
+                  (click)="cerrarCancelacion()"
+                >
+                  ✕
+                </button>
+              </header>
+
+              <div class="detalle-modal__cuerpo">
+                <div class="detalle-aviso detalle-aviso--advertencia">
+                  <strong>Esta acción no se puede deshacer.</strong>
+                  <p>
+                    Saldo pendiente actual: {{ monto(plan()?.saldo_pendiente) }}. Si ya recibiste el
+                    dinero, registra el cobro antes de cancelar.
+                  </p>
+                </div>
+
+                <label class="detalle-campo">
+                  <span>Motivo de la cancelación</span>
+                  <textarea
+                    rows="3"
+                    maxlength="300"
+                    placeholder="Ej. el paciente desistió del tratamiento"
+                    [value]="motivoCancelacion()"
+                    (input)="escribirMotivoCancelacion($any($event.target).value)"
+                  ></textarea>
+                  <small>Mínimo 5 caracteres; queda registrado en el historial del plan.</small>
+                </label>
+
+                @if (errorCancelacion(); as mensaje) {
+                  <p class="detalle-modal__error" role="alert">{{ mensaje }}</p>
+                }
+              </div>
+
+              <footer class="detalle-modal__pie">
+                <button
+                  type="button"
+                  class="detalle-btn"
+                  [disabled]="cancelando()"
+                  (click)="cerrarCancelacion()"
+                >
+                  Volver
+                </button>
+                <button
+                  type="button"
+                  class="detalle-btn detalle-btn--peligro"
+                  [disabled]="cancelando()"
+                  (click)="cancelarPlan()"
+                >
+                  {{ cancelando() ? 'Cancelando…' : 'Cancelar plan' }}
+                </button>
+              </footer>
+            </section>
+          </div>
+        }
+      </div>
+    </section>
+  </div>
+</main>
