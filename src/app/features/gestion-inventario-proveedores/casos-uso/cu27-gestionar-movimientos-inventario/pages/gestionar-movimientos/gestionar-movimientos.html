@@ -1,0 +1,23 @@
+<main class="movimientos">
+  <header class="hero"><div><span class="eyebrow">Inventario y proveedores</span><h1>Movimientos de inventario</h1><p>Registra ajustes manuales y consulta el historial por lote.</p></div></header>
+  <div *ngIf="error()" class="alert error" role="alert">{{ error() }} <button type="button" (click)="cargarCatalogo()">Reintentar</button></div>
+  <div *ngIf="exito()" class="alert success" role="status">{{ exito() }} <button type="button" (click)="exito.set(null)">Cerrar</button></div>
+  <section class="layout">
+    <article class="card selection"><h2>Seleccionar lote</h2><p class="muted">Solo se muestran productos y lotes activos.</p>
+      <label>Producto *<select [formControl]="form.controls.producto_id" (change)="seleccionarProducto()"><option [ngValue]="null">Selecciona un producto</option><option *ngFor="let producto of productos()" [ngValue]="producto.id">{{ producto.nombre }} · {{ producto.codigo }}</option></select></label>
+      <label>Lote *<select [formControl]="form.controls.lote_id" (change)="seleccionarLote()"><option [ngValue]="null">Selecciona un lote</option><option *ngFor="let lote of lotesDelProducto()" [ngValue]="lote.id">{{ lote.numero_lote }}<span *ngIf="lote.fecha_vencimiento"> · vence {{ lote.fecha_vencimiento }}</span></option></select></label>
+      <div class="stock" *ngIf="cargandoExistencia()">Consultando existencias…</div><div class="stock" *ngIf="!cargandoExistencia() && existencia()"><span><b>Actual</b>{{ existencia()!.stock_actual }}</span><span><b>Reservado</b>{{ existencia()!.stock_reservado }}</span><span><b>Disponible</b>{{ existencia()!.stock_disponible }}</span></div><div class="state" *ngIf="!cargandoExistencia() && form.controls.lote_id.value && !existencia()">No hay datos de existencias.</div>
+    </article>
+    <article class="card"><h2>Registrar movimiento</h2><form [formGroup]="form" (ngSubmit)="guardar()">
+      <label>Tipo de movimiento *<select formControlName="tipo"><option value="">Selecciona un tipo</option><option *ngFor="let tipo of tiposManuales" [value]="tipo.value">{{ tipo.label }}</option></select></label>
+      <label>Cantidad *<input type="number" min="1" step="1" formControlName="cantidad"><small *ngIf="form.controls.cantidad.touched && form.controls.cantidad.invalid">Ingresa una cantidad entera positiva.</small></label>
+      <label>Motivo u observaciones <span *ngIf="form.controls.observaciones.hasError('required')">*</span><textarea rows="3" formControlName="observaciones" maxlength="1000"></textarea><small *ngIf="form.controls.observaciones.touched && form.controls.observaciones.hasError('required')">Este tipo requiere un motivo.</small></label>
+      <button class="primary" [disabled]="guardando() || cargandoCatalogo()">{{ guardando() ? 'Guardando…' : 'Registrar movimiento' }}</button>
+    </form></article>
+  </section>
+  <section class="card history"><div class="section-heading"><div><h2>Historial</h2><p class="muted">Los registros automáticos también aparecen aquí. Página {{ skip() / limite + 1 }}.</p></div><button type="button" class="secondary" (click)="cargarHistorial()" [disabled]="cargandoHistorial()">Actualizar</button></div>
+    <div *ngIf="cargandoHistorial()" class="state">Cargando historial…</div><div *ngIf="!cargandoHistorial() && !historial().length" class="state">No hay movimientos para el lote seleccionado.</div>
+    <div class="table-wrap" *ngIf="!cargandoHistorial() && historial().length"><table><thead><tr><th>Fecha</th><th>Tipo</th><th>Cantidad</th><th>Anterior</th><th>Posterior</th><th>Observaciones</th></tr></thead><tbody><tr *ngFor="let item of historial()"><td>{{ etiquetaFecha(item.fecha_hora) }}</td><td>{{ etiquetaTipo(item.tipo) }}</td><td>{{ item.cantidad }}</td><td>{{ item.stock_anterior }}</td><td>{{ item.stock_posterior }}</td><td>{{ item.observaciones || '—' }}</td></tr></tbody></table></div>
+    <div class="pagination"><button type="button" class="secondary" (click)="cambiarPagina(-1)" [disabled]="skip() === 0 || cargandoHistorial()">Anterior</button><button type="button" class="secondary" (click)="cambiarPagina(1)" [disabled]="historial().length < limite || cargandoHistorial()">Siguiente</button></div>
+  </section>
+</main>
