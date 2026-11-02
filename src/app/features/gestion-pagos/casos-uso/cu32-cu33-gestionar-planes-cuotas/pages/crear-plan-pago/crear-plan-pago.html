@@ -1,0 +1,405 @@
+<main class="crear-plan">
+  <div class="crear-plan__body">
+    <app-sidebar [mobileOpen]="sidebarMovilAbierto()" (mobileClose)="cerrarSidebar()" />
+
+    <section class="crear-plan__main">
+      <header class="crear-plan__topbar">
+        <button
+          type="button"
+          class="crear-plan__hamburger"
+          [attr.aria-expanded]="sidebarMovilAbierto()"
+          (click)="alternarSidebar()"
+          aria-label="Abrir o cerrar menú"
+        >
+          ☰
+        </button>
+      </header>
+
+      <div class="crear-plan__content">
+        <header class="crear-plan__hero">
+          <button type="button" class="crear-plan__volver" (click)="volver()">
+            <span aria-hidden="true">←</span>
+            Volver a planes de pago
+          </button>
+          <p class="crear-plan__eyebrow">CU32 · Nuevo acuerdo de pago</p>
+          <h1>Crear plan de pago</h1>
+          <p class="crear-plan__bajada">
+            Selecciona al paciente, la consulta y los servicios impagos que se van a financiar. El
+            cronograma se propone en cuotas iguales y puedes ajustarlo antes de guardar.
+          </p>
+        </header>
+
+        @switch (estadoPermiso()) {
+          @case ('verificando') {
+            <div class="crear-plan__aviso" role="status">Verificando los permisos del menú…</div>
+          }
+          @case ('error') {
+            <div class="crear-plan__aviso crear-plan__aviso--error" role="alert">
+              <strong>{{ tituloSinAcceso() }}</strong>
+              <p>{{ detalleSinAcceso() }}</p>
+              <button type="button" class="crear-btn" (click)="reintentarMenu()">Reintentar</button>
+            </div>
+          }
+          @case ('denegado') {
+            <div class="crear-plan__aviso crear-plan__aviso--error" role="alert">
+              <strong>{{ tituloSinAcceso() }}</strong>
+              <p>{{ detalleSinAcceso() }}</p>
+              <button type="button" class="crear-btn" (click)="reintentarMenu()">
+                Volver a comprobar
+              </button>
+            </div>
+          }
+          @default {
+            <div class="crear-plan__layout">
+              <div class="crear-plan__columna">
+                <section class="crear-paso" aria-labelledby="paso-paciente">
+                  <header class="crear-paso__cabecera">
+                    <span class="crear-paso__numero" aria-hidden="true">1</span>
+                    <div>
+                      <h2 id="paso-paciente" class="crear-paso__titulo">Paciente titular</h2>
+                      <p class="crear-paso__nota">Busca por nombre o carnet de identidad.</p>
+                    </div>
+                  </header>
+
+                  <div class="crear-paso__cuerpo">
+                    @if (paciente(); as titular) {
+                      <div class="crear-paciente__tarjeta">
+                        <span class="crear-avatar" aria-hidden="true">{{ iniciales(titular) }}</span>
+                        <div>
+                          <strong>{{ titular.nombres }} {{ titular.apellidos }}</strong>
+                          <small>CI {{ titular.ci }}</small>
+                        </div>
+                        <button type="button" class="crear-btn crear-btn--texto" (click)="quitarPaciente()">
+                          Cambiar
+                        </button>
+                      </div>
+                    } @else {
+                      <div class="crear-paciente__buscador">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+                          <circle cx="11" cy="11" r="7"></circle>
+                          <path d="m20 20-3.5-3.5"></path>
+                        </svg>
+                        <input
+                          type="search"
+                          placeholder="Ej. Ana Quispe o 7845123"
+                          aria-label="Buscar paciente por nombre o CI"
+                          [value]="busqueda()"
+                          (input)="escribirBusqueda($any($event.target).value)"
+                          (focus)="sugerenciasVisibles.set(busqueda().trim().length >= 2)"
+                          (blur)="cerrarSugerencias()"
+                        />
+                        @if (sugerenciasVisibles() && sugerencias().length) {
+                          <ul class="crear-paciente__sugerencias">
+                            @for (item of sugerencias(); track item.id) {
+                              <li>
+                                <button type="button" (mousedown)="elegirPaciente(item)">
+                                  <strong>{{ item.nombres }} {{ item.apellidos }}</strong>
+                                  <span>CI {{ item.ci }}</span>
+                                </button>
+                              </li>
+                            }
+                          </ul>
+                        }
+                      </div>
+                      @if (!pacientes().length) {
+                        <p class="crear-paso__vacio">
+                          No se pudieron cargar los pacientes. Revisa tu conexión o los permisos de
+                          «Gestionar pacientes».
+                        </p>
+                      }
+                    }
+                  </div>
+                </section>
+
+                <section class="crear-paso" aria-labelledby="paso-consulta">
+                  <header class="crear-paso__cabecera">
+                    <span class="crear-paso__numero" aria-hidden="true">2</span>
+                    <div>
+                      <h2 id="paso-consulta" class="crear-paso__titulo">Consulta clínica</h2>
+                      <p class="crear-paso__nota">
+                        Los servicios financiables pertenecen a una consulta concreta.
+                      </p>
+                    </div>
+                  </header>
+
+                  <div class="crear-paso__cuerpo">
+                    @if (!paciente()) {
+                      <p class="crear-paso__vacio">Selecciona primero un paciente.</p>
+                    } @else if (cargandoConsultas()) {
+                      <p class="crear-paso__vacio">Cargando consultas del paciente…</p>
+                    } @else if (errorConsultas()) {
+                      <p class="crear-paso__vacio crear-paso__vacio--error">{{ errorConsultas() }}</p>
+                    } @else if (!consultas().length) {
+                      <p class="crear-paso__vacio">
+                        El paciente no tiene consultas registradas con servicios pendientes de cobro.
+                      </p>
+                    } @else {
+                      <label class="crear-campo">
+                        <span>Consulta</span>
+                        <select
+                          [value]="consulta()?.id ?? ''"
+                          (change)="elegirConsulta($any($event.target).value)"
+                        >
+                          <option value="">Selecciona una consulta</option>
+                          @for (item of consultas(); track item.id) {
+                            <option [value]="item.id">
+                              Consulta #{{ item.id }}
+                              {{ item.fecha ? '· ' + fechaTabla(item.fecha) : '' }}
+                              {{ item.motivo ? '· ' + item.motivo : '' }}
+                            </option>
+                          }
+                        </select>
+                      </label>
+                      @if (origenConsultas() === 'pagos') {
+                        <p class="crear-paso__nota">
+                          Las consultas se obtuvieron desde la API de pagos porque tu rol no tiene
+                          lectura del historial clínico; por eso no se muestra la fecha.
+                        </p>
+                      }
+                    }
+                  </div>
+                </section>
+
+                <section class="crear-paso" aria-labelledby="paso-servicios">
+                  <header class="crear-paso__cabecera">
+                    <span class="crear-paso__numero" aria-hidden="true">3</span>
+                    <div>
+                      <h2 id="paso-servicios" class="crear-paso__titulo">Servicios a financiar</h2>
+                      <p class="crear-paso__nota">
+                        Solo se financian servicios con saldo disponible y sin otro plan activo.
+                      </p>
+                    </div>
+                  </header>
+
+                  <div class="crear-paso__cuerpo">
+                    @if (!consulta()) {
+                      <p class="crear-paso__vacio">Selecciona una consulta para ver sus servicios.</p>
+                    } @else if (cargandoServicios()) {
+                      <p class="crear-paso__vacio">Consultando servicios disponibles…</p>
+                    } @else if (errorServicios()) {
+                      <p class="crear-paso__vacio crear-paso__vacio--error">{{ errorServicios() }}</p>
+                    } @else if (!servicios().length) {
+                      <p class="crear-paso__vacio">
+                        La consulta no tiene servicios con saldo pendiente de financiar.
+                      </p>
+                    } @else {
+                      <ul class="crear-servicios">
+                        @for (servicio of servicios(); track servicio.servicio_realizado_id) {
+                          <li
+                            class="crear-servicios__item"
+                            [class.crear-servicios__item--bloqueado]="!servicio.disponible"
+                          >
+                            <label class="crear-servicios__check">
+                              <input
+                                type="checkbox"
+                                [checked]="estaSeleccionado(servicio.servicio_realizado_id)"
+                                [disabled]="!servicio.disponible"
+                                (change)="alternarServicio(servicio)"
+                              />
+                              <span>
+                                <strong>{{ servicio.nombre_servicio }}</strong>
+                                <small>Precio {{ monto(servicio.precio_aplicado) }}</small>
+                              </span>
+                            </label>
+
+                            <span class="crear-servicios__montos">
+                              <strong>{{ monto(servicio.saldo_disponible) }}</strong>
+                              <small>disponible</small>
+                            </span>
+
+                            @if (servicio.conflicto) {
+                              <p class="crear-servicios__conflicto">{{ servicio.conflicto }}</p>
+                            }
+                          </li>
+                        }
+                      </ul>
+                    }
+                  </div>
+                </section>
+
+                <section class="crear-paso" aria-labelledby="paso-cronograma">
+                  <header class="crear-paso__cabecera">
+                    <span class="crear-paso__numero" aria-hidden="true">4</span>
+                    <div>
+                      <h2 id="paso-cronograma" class="crear-paso__titulo">Cronograma de cuotas</h2>
+                      <p class="crear-paso__nota">
+                        La propuesta reparte el total en partes iguales; el residuo va a la última
+                        cuota.
+                      </p>
+                    </div>
+                  </header>
+
+                  <div class="crear-paso__cuerpo">
+                    <div class="crear-cuotas__controles">
+                      <label class="crear-campo">
+                        <span>Cantidad de cuotas</span>
+                        <input
+                          type="number"
+                          min="1"
+                          [max]="maxCuotas"
+                          step="1"
+                          [value]="cantidadCuotas()"
+                          (input)="cambiarCantidad($any($event.target).value)"
+                        />
+                      </label>
+
+                      <label class="crear-campo">
+                        <span>Primer vencimiento</span>
+                        <input
+                          type="date"
+                          [value]="primerVencimiento()"
+                          (change)="cambiarPrimerVencimiento($any($event.target).value)"
+                        />
+                      </label>
+
+                      <button
+                        type="button"
+                        class="crear-btn crear-btn--secundario"
+                        (click)="restablecerCronograma()"
+                      >
+                        Restablecer propuesta
+                      </button>
+                    </div>
+
+                    @if (!cuotas().length) {
+                      <p class="crear-paso__vacio">
+                        Selecciona servicios con saldo para generar el cronograma.
+                      </p>
+                    } @else {
+                      <div class="crear-cuotas__tabla" role="table" aria-label="Cronograma propuesto">
+                        <div class="crear-cuotas__fila crear-cuotas__fila--cabecera" role="row">
+                          <span role="columnheader">#</span>
+                          <span role="columnheader">Vencimiento</span>
+                          <span role="columnheader">Importe</span>
+                        </div>
+                        @for (cuota of cuotas(); track cuota.numero_cuota; let indice = $index) {
+                          <div class="crear-cuotas__fila" role="row">
+                            <span class="crear-cuotas__numero" role="cell">
+                              Cuota {{ cuota.numero_cuota }}
+                            </span>
+                            <input
+                              type="date"
+                              class="crear-cuotas__input"
+                              aria-label="Vencimiento de la cuota {{ cuota.numero_cuota }}"
+                              [value]="cuota.fecha_vencimiento"
+                              (change)="editarFecha(indice, $any($event.target).value)"
+                            />
+                            <input
+                              type="text"
+                              inputmode="decimal"
+                              class="crear-cuotas__input crear-cuotas__input--monto"
+                              aria-label="Importe de la cuota {{ cuota.numero_cuota }}"
+                              [value]="cuota.monto_programado"
+                              (change)="editarMonto(indice, $any($event.target).value)"
+                            />
+                          </div>
+                        }
+                      </div>
+
+                      <p
+                        class="crear-validacion"
+                        [class.crear-validacion--error]="!validacion().valido"
+                        role="status"
+                      >
+                        @if (validacion().valido) {
+                          Suma de cuotas verificada: {{ monto(totalFinanciado()) }}
+                        } @else {
+                          {{ validacion().mensaje }}
+                        }
+                      </p>
+                    }
+                  </div>
+                </section>
+
+                <section class="crear-paso" aria-labelledby="paso-observaciones">
+                  <header class="crear-paso__cabecera">
+                    <span class="crear-paso__numero" aria-hidden="true">5</span>
+                    <div>
+                      <h2 id="paso-observaciones" class="crear-paso__titulo">Observaciones</h2>
+                      <p class="crear-paso__nota">Opcional: condiciones acordadas con el paciente.</p>
+                    </div>
+                  </header>
+
+                  <div class="crear-paso__cuerpo">
+                    <label class="crear-campo crear-campo--ancho">
+                      <span>Notas del acuerdo</span>
+                      <textarea
+                        rows="3"
+                        maxlength="500"
+                        placeholder="Ej. El paciente pagará en efectivo el día 5 de cada mes."
+                        [value]="observaciones()"
+                        (input)="escribirObservaciones($any($event.target).value)"
+                      ></textarea>
+                    </label>
+                  </div>
+                </section>
+              </div>
+
+              <aside class="crear-resumen" aria-label="Resumen del plan">
+                <h2 class="crear-resumen__titulo">Resumen del plan</h2>
+
+                <dl class="crear-resumen__datos">
+                  <div>
+                    <dt>Paciente</dt>
+                    <dd>
+                      @if (paciente(); as titular) {
+                        {{ titular.nombres }} {{ titular.apellidos }}
+                      } @else {
+                        <span class="crear-resumen__pendiente">Sin seleccionar</span>
+                      }
+                    </dd>
+                  </div>
+                  <div>
+                    <dt>Consulta</dt>
+                    <dd>
+                      @if (consulta(); as seleccionada) {
+                        #{{ seleccionada.id }}
+                      } @else {
+                        <span class="crear-resumen__pendiente">Sin seleccionar</span>
+                      }
+                    </dd>
+                  </div>
+                  <div>
+                    <dt>Servicios</dt>
+                    <dd>{{ serviciosSeleccionados().length }} seleccionado(s)</dd>
+                  </div>
+                  <div>
+                    <dt>Cuotas</dt>
+                    <dd>{{ cuotas().length }} · primer vencimiento {{ fechaTabla(primerVencimiento()) }}</dd>
+                  </div>
+                </dl>
+
+                <div class="crear-resumen__total">
+                  <span>Total a financiar</span>
+                  <strong>{{ monto(totalFinanciado()) }}</strong>
+                </div>
+
+                @if (error()) {
+                  <p class="crear-resumen__error" role="alert">{{ error() }}</p>
+                }
+
+                <button
+                  type="button"
+                  class="crear-btn crear-btn--primario"
+                  [disabled]="!puedeGuardar()"
+                  (click)="guardar()"
+                >
+                  {{ guardando() ? 'Guardando…' : 'Crear plan de pago' }}
+                </button>
+
+                <button type="button" class="crear-btn crear-btn--texto" (click)="volver()">
+                  Cancelar
+                </button>
+
+                <p class="crear-resumen__nota">
+                  El plan queda en estado ACTIVO y sus cuotas pasan a la bandeja de cobros del
+                  módulo de pagos.
+                </p>
+              </aside>
+            </div>
+          }
+        }
+      </div>
+    </section>
+  </div>
+</main>

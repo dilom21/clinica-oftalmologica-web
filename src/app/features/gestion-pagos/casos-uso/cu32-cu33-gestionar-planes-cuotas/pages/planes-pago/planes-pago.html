@@ -1,0 +1,562 @@
+<main class="planes-page">
+  <div class="planes-page__body">
+    <app-sidebar [mobileOpen]="sidebarMovilAbierto()" (mobileClose)="cerrarSidebar()" />
+
+    <section class="planes-page__main">
+      <header class="planes-page__topbar">
+        <button
+          type="button"
+          class="planes-page__hamburger"
+          [attr.aria-expanded]="sidebarMovilAbierto()"
+          (click)="alternarSidebar()"
+          aria-label="Abrir o cerrar menú"
+        >
+          ☰
+        </button>
+      </header>
+
+      <div class="planes-page__content">
+        <header class="planes-hero">
+          <div class="planes-hero__texto">
+            <p class="planes-eyebrow">CU32 + CU33 · Gestión administrativa</p>
+            <h1>Planes de pago y cuotas</h1>
+            <p>
+              Crea acuerdos de pago, revisa el cronograma de cada plan y registra el cobro de las
+              cuotas con trazabilidad.
+            </p>
+          </div>
+          <div class="planes-hero__acciones">
+            <button type="button" class="planes-btn" (click)="actualizar()" [disabled]="cargando()">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+                <path d="M21 12a9 9 0 1 1-3-6.7"></path>
+                <path d="M21 3v6h-6"></path>
+              </svg>
+              Actualizar
+            </button>
+            <button
+              type="button"
+              class="planes-btn planes-btn--primario"
+              [disabled]="!permisos().escribirPlanes"
+              [attr.title]="
+                permisos().escribirPlanes
+                  ? 'Crear un nuevo acuerdo de pago'
+                  : 'Tu rol no permite crear planes de pago'
+              "
+              (click)="irANuevoPlan()"
+            >
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+                <path d="M12 5v14M5 12h14"></path>
+              </svg>
+              Nuevo plan de pago
+            </button>
+          </div>
+        </header>
+
+        @switch (estadoPermiso()) {
+          @case ('verificando') {
+            <div class="planes-aviso" role="status">Verificando los permisos del menú…</div>
+          }
+          @case ('error') {
+            <div class="planes-aviso planes-aviso--error" role="alert">
+              <strong>{{ tituloSinAcceso() }}</strong>
+              <p>{{ detalleSinAcceso() }}</p>
+              <button type="button" class="planes-btn" (click)="reintentarMenu()">Reintentar</button>
+            </div>
+          }
+          @case ('denegado') {
+            <div class="planes-aviso planes-aviso--error" role="alert">
+              <strong>{{ tituloSinAcceso() }}</strong>
+              <p>{{ detalleSinAcceso() }}</p>
+              <button type="button" class="planes-btn" (click)="reintentarMenu()">
+                Volver a comprobar
+              </button>
+            </div>
+          }
+          @case ('autorizado') {
+            <nav class="planes-tabs" aria-label="Secciones de planes de pago">
+              <button
+                type="button"
+                class="planes-tabs__item"
+                [class.planes-tabs__item--activo]="pestana() === 'planes'"
+                (click)="seleccionarPestana('planes')"
+              >
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+                  <rect x="3" y="4" width="18" height="16" rx="2"></rect>
+                  <path d="M7 9h10M7 13h6M7 17h4"></path>
+                </svg>
+                Planes de pago
+                <span class="planes-tabs__contador">{{ resumen().total }}</span>
+              </button>
+              <button
+                type="button"
+                class="planes-tabs__item"
+                [class.planes-tabs__item--activo]="pestana() === 'cuotas'"
+                (click)="seleccionarPestana('cuotas')"
+              >
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+                  <rect x="3" y="5" width="18" height="16" rx="2"></rect>
+                  <path d="M8 3v4M16 3v4M3 11h18"></path>
+                </svg>
+                Cuotas y vencimientos
+              </button>
+              <button
+                type="button"
+                class="planes-tabs__item"
+                [class.planes-tabs__item--activo]="pestana() === 'cobros'"
+                (click)="seleccionarPestana('cobros')"
+              >
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+                  <path d="M20 6 9 17l-5-5"></path>
+                </svg>
+                Cobros por verificar
+                @if (cobrosPendientes().length) {
+                  <span class="planes-tabs__contador">{{ cobrosPendientes().length }}</span>
+                }
+              </button>
+            </nav>
+
+            <section class="planes-kpis" aria-label="Indicadores de los planes cargados">
+              <article class="planes-kpi">
+                <span class="planes-kpi__icono" aria-hidden="true">
+                  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <rect x="4" y="3" width="16" height="18" rx="2"></rect>
+                    <path d="M8 8h8M8 12h8M8 16h5"></path>
+                  </svg>
+                </span>
+                <div>
+                  <p class="planes-kpi__etiqueta">Planes en esta vista</p>
+                  <p class="planes-kpi__valor">
+                    {{ resumen().total }} {{ resumen().total === 1 ? 'plan' : 'planes' }}
+                  </p>
+                  <p class="planes-kpi__nota">
+                    {{ resumen().activos }} activos · {{ resumen().completados }} completados ·
+                    {{ resumen().cancelados }} cancelados
+                  </p>
+                </div>
+              </article>
+              <article class="planes-kpi">
+                <span class="planes-kpi__icono" aria-hidden="true">
+                  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M12 3v18M17 7H9.5a2.5 2.5 0 0 0 0 5h5a2.5 2.5 0 0 1 0 5H7"></path>
+                  </svg>
+                </span>
+                <div>
+                  <p class="planes-kpi__etiqueta">Saldo pendiente visible</p>
+                  <p class="planes-kpi__valor">{{ montoCorto(resumen().saldo) }}</p>
+                  <p class="planes-kpi__nota">Calculado a partir de los planes mostrados</p>
+                </div>
+              </article>
+              <article class="planes-kpi">
+                <span class="planes-kpi__icono" aria-hidden="true">
+                  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <circle cx="12" cy="12" r="9"></circle>
+                    <path d="M12 7v5l3 2"></path>
+                  </svg>
+                </span>
+                <div>
+                  <p class="planes-kpi__etiqueta">Próximo vencimiento</p>
+                  <p class="planes-kpi__valor">
+                    {{ proximaCuota() ? fechaTabla(proximaCuota()!.fecha_vencimiento) : '—' }}
+                  </p>
+                  <p class="planes-kpi__nota">
+                    @if (proximaCuota(); as cuota) {
+                      Cuota {{ cuota.numero_cuota }} por {{ monto(cuota.monto_programado) }}
+                    } @else if (planSeleccionado()) {
+                      El plan seleccionado no tiene cuotas exigibles
+                    } @else {
+                      Selecciona un plan para ver su vencimiento
+                    }
+                  </p>
+                </div>
+              </article>
+            </section>
+
+            @if (pestana() === 'planes') {
+              <section class="planes-filtros" aria-label="Filtros de planes">
+                <div class="planes-buscador">
+                  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+                    <circle cx="11" cy="11" r="7"></circle>
+                    <path d="m20 20-3.5-3.5"></path>
+                  </svg>
+                  <input
+                    type="search"
+                    placeholder="Buscar paciente por nombre o CI…"
+                    aria-label="Buscar paciente por nombre o CI"
+                    [value]="busqueda()"
+                    (input)="escribirBusqueda($any($event.target).value)"
+                    (focus)="sugerenciasVisibles.set(busqueda().trim().length >= 2)"
+                  />
+                  @if (sugerenciasVisibles() && sugerencias().length) {
+                    <ul class="planes-sugerencias">
+                      @for (paciente of sugerencias(); track paciente.id) {
+                        <li>
+                          <button type="button" (mousedown)="elegirPaciente(paciente)">
+                            <strong>{{ paciente.nombres }} {{ paciente.apellidos }}</strong>
+                            <span>CI {{ paciente.ci }}</span>
+                          </button>
+                        </li>
+                      }
+                    </ul>
+                  }
+                  @if (pacienteFiltro()) {
+                    <button
+                      type="button"
+                      class="planes-buscador__limpiar"
+                      aria-label="Quitar filtro de paciente"
+                      (click)="limpiarFiltros()"
+                    >
+                      ×
+                    </button>
+                  }
+                </div>
+
+                <label class="planes-select">
+                  <span class="planes-visually-hidden">Estado del plan</span>
+                  <select [value]="estadoFiltro()" (change)="cambiarEstado($any($event.target).value)">
+                    <option value="">Estado: Todos</option>
+                    @for (estado of estados; track estado) {
+                      <option [value]="estado">{{ estadoPlan(estado) }}</option>
+                    }
+                  </select>
+                </label>
+
+                <label class="planes-select">
+                  <span class="planes-visually-hidden">Orden del listado</span>
+                  <select [value]="orden()" (change)="cambiarOrden($any($event.target).value)">
+                    <option value="recientes">Orden: Más recientes</option>
+                    <option value="saldo">Orden: Mayor saldo</option>
+                    <option value="paciente">Orden: Paciente (A-Z)</option>
+                  </select>
+                </label>
+
+                <button
+                  type="button"
+                  class="planes-btn"
+                  [attr.aria-expanded]="filtrosAbiertos()"
+                  (click)="alternarFiltros()"
+                >
+                  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+                    <path d="M4 6h16M7 12h10M10 18h4"></path>
+                  </svg>
+                  Filtros
+                </button>
+
+                @if (filtrosAbiertos()) {
+                  <div class="planes-filtros__extra">
+                    <label class="planes-check">
+                      <input type="checkbox" [checked]="soloVencidas()" (change)="alternarSoloVencidas()" />
+                      Mostrar solo planes con cuotas vencidas
+                    </label>
+                    <button type="button" class="planes-btn planes-btn--texto" (click)="limpiarFiltros()">
+                      Limpiar filtros
+                    </button>
+                  </div>
+                }
+              </section>
+            }
+
+            <div class="planes-layout">
+              <div class="planes-layout__principal">
+                @if (pestana() === 'planes') {
+                  <section class="planes-card">
+                    <header class="planes-card__cabecera">
+                      <div>
+                        <h2>Planes registrados</h2>
+                        <p>Selecciona uno para consultar el detalle y sus cuotas.</p>
+                      </div>
+                      <span class="planes-card__meta">{{ pagina()?.total ?? 0 }} resultados</span>
+                    </header>
+
+                    @if (cargando()) {
+                      <p class="planes-card__vacio">Cargando planes de pago…</p>
+                    } @else if (error()) {
+                      <div class="planes-card__vacio planes-card__vacio--error">
+                        <p>{{ error() }}</p>
+                        <button type="button" class="planes-btn" (click)="reintentar()">Reintentar</button>
+                      </div>
+                    } @else if (!planesVisibles().length) {
+                      <div class="planes-card__vacio">
+                        <p>No hay planes de pago que coincidan con los filtros aplicados.</p>
+                        <button type="button" class="planes-btn planes-btn--texto" (click)="limpiarFiltros()">
+                          Restablecer filtros
+                        </button>
+                      </div>
+                    } @else {
+                      <div class="planes-tabla" role="table" aria-label="Planes de pago registrados">
+                        @for (plan of planesVisibles(); track plan.id) {
+                          <button
+                            type="button"
+                            class="planes-tabla__fila planes-tabla__fila--dato"
+                            role="row"
+                            [class.planes-tabla__fila--activa]="planSeleccionadoId() === plan.id"
+                            [attr.aria-label]="'Ver el plan ' + plan.id + ' de ' + nombrePaciente(plan.paciente_id)"
+                            (click)="seleccionarPlan(plan)"
+                            (dblclick)="abrirPlan(plan.id)"
+                          >
+                            <span class="planes-paciente" role="cell">
+                              <span class="planes-avatar" aria-hidden="true">{{ iniciales(plan.paciente_id) }}</span>
+                              <span class="planes-paciente__datos">
+                                <strong>{{ nombrePaciente(plan.paciente_id) }}</strong>
+                                <small>
+                                  Plan #{{ plan.id.toString().padStart(4, '0') }} · Consulta
+                                  #{{ plan.consulta_clinica_id }}
+                                </small>
+                              </span>
+                            </span>
+                            <span class="planes-avance" role="cell">
+                              <span class="planes-avance__texto">
+                                <strong>{{ montoCorto(plan.monto_total) }}</strong>
+                                <small>{{ plan.cuotas_pagadas }}/{{ plan.cantidad_cuotas }} cuotas pagadas</small>
+                              </span>
+                              <span class="planes-progreso" aria-hidden="true">
+                                <span [style.width.%]="avance(plan)"></span>
+                              </span>
+                            </span>
+                            <span class="planes-estado" role="cell">
+                              <span class="planes-pill" [attr.data-estado]="plan.estado">
+                                {{ estadoPlan(plan.estado) }}
+                              </span>
+                              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+                                <path d="m9 6 6 6-6 6"></path>
+                              </svg>
+                            </span>
+                          </button>
+                        }
+                      </div>
+                    }
+
+                    @if (totalPaginas() > 0) {
+                      <footer class="planes-paginacion">
+                        <span>Página {{ paginaVisible() }} de {{ totalPaginas() }}</span>
+                        <div>
+                          <button
+                            type="button"
+                            class="planes-btn planes-btn--icono"
+                            aria-label="Página anterior"
+                            [disabled]="paginaVisible() <= 1"
+                            (click)="cambiarPagina(paginaVisible() - 1)"
+                          >
+                            ‹
+                          </button>
+                          <button
+                            type="button"
+                            class="planes-btn planes-btn--icono"
+                            aria-label="Página siguiente"
+                            [disabled]="paginaVisible() >= totalPaginas()"
+                            (click)="cambiarPagina(paginaVisible() + 1)"
+                          >
+                            ›
+                          </button>
+                        </div>
+                      </footer>
+                    }
+                  </section>
+                }
+
+                @if (pestana() === 'cuotas') {
+                  <section class="planes-card">
+                    <header class="planes-card__cabecera">
+                      <h2>Cronograma del plan seleccionado</h2>
+                      @if (planSeleccionado(); as plan) {
+                        <span class="planes-card__meta">Plan #{{ plan.id.toString().padStart(4, '0') }}</span>
+                      }
+                    </header>
+
+                    @if (cargandoDetalle()) {
+                      <p class="planes-card__vacio">Cargando el cronograma…</p>
+                    } @else if (errorDetalle()) {
+                      <div class="planes-card__vacio planes-card__vacio--error">
+                        <p>{{ errorDetalle() }}</p>
+                        <button type="button" class="planes-btn" (click)="reintentar()">Reintentar</button>
+                      </div>
+                    } @else if (!planSeleccionado()) {
+                      <p class="planes-card__vacio">
+                        Selecciona un plan en la pestaña «Planes de pago» para revisar sus cuotas.
+                      </p>
+                    } @else if (planSeleccionado(); as plan) {
+                      <div class="planes-tabla planes-tabla--cuotas" role="table" aria-label="Cuotas del plan">
+                        <div class="planes-tabla__fila planes-tabla__fila--encabezado" role="row">
+                          <span role="columnheader">Cuota</span>
+                          <span role="columnheader">Vencimiento</span>
+                          <span role="columnheader">Monto</span>
+                          <span role="columnheader">Estado</span>
+                        </div>
+                        @for (cuota of plan.cuotas; track cuota.id) {
+                          <div class="planes-tabla__fila planes-tabla__fila--dato" role="row">
+                            <span class="planes-cuota__numero" role="cell">
+                              <strong>{{ cuota.numero_cuota }} / {{ plan.cantidad_cuotas }}</strong>
+                              <small>
+                                {{ cuota.pagos.length }}
+                                {{ cuota.pagos.length === 1 ? 'pago registrado' : 'pagos registrados' }}
+                              </small>
+                            </span>
+                            <span role="cell">{{ fechaTabla(cuota.fecha_vencimiento) }}</span>
+                            <span role="cell">{{ monto(cuota.monto_programado) }}</span>
+                            <span role="cell">
+                              <span class="planes-pill" [attr.data-estado]="cuota.estado">
+                                {{ estadoCuota(cuota.estado) }}
+                              </span>
+                            </span>
+                          </div>
+                        }
+                      </div>
+
+                      <footer class="planes-pie">
+                        <span>Total {{ monto(plan.monto_total) }}</span>
+                        <span>Pagado {{ monto(plan.monto_pagado) }}</span>
+                        <span>Saldo {{ monto(plan.saldo_pendiente) }}</span>
+                      </footer>
+                    }
+                  </section>
+                }
+
+                @if (pestana() === 'cobros') {
+                  <section class="planes-card">
+                    <header class="planes-card__cabecera">
+                      <h2>Cobros registrados por verificar</h2>
+                      <span class="planes-card__meta">{{ cobrosPendientes().length }}</span>
+                    </header>
+
+                    @if (!planSeleccionado()) {
+                      <p class="planes-card__vacio">
+                        Selecciona un plan para revisar los cobros de sus cuotas.
+                      </p>
+                    } @else if (!cobrosPendientes().length) {
+                      <p class="planes-card__vacio">
+                        Este plan no tiene cobros en estado pendiente de verificación.
+                      </p>
+                    } @else {
+                      <ul class="planes-cobros">
+                        @for (item of cobrosPendientes(); track item.pago.pago_id) {
+                          <li class="planes-cobros__item">
+                            <div>
+                              <strong>Cuota {{ item.cuota.numero_cuota }}</strong>
+                              <small>Vence {{ fechaTabla(item.cuota.fecha_vencimiento) }}</small>
+                            </div>
+                            <div>
+                              <strong>{{ monto(item.pago.monto) }}</strong>
+                              <small>{{ metodo(item.pago.metodo_pago) }}</small>
+                            </div>
+                            <span class="planes-pill" [attr.data-estado]="item.pago.estado">
+                              {{ estadoPago(item.pago.estado) }}
+                            </span>
+                            <button
+                              type="button"
+                              class="planes-btn planes-btn--texto"
+                              (click)="abrirPlan(planSeleccionado()!.id)"
+                            >
+                              Abrir plan
+                            </button>
+                          </li>
+                        }
+                      </ul>
+                    }
+                  </section>
+                }
+              </div>
+
+              <aside class="planes-vista" aria-label="Vista rápida del plan seleccionado">
+                <div class="planes-vista__cabecera">
+                  <span class="planes-vista__etiqueta">Vista rápida</span>
+                  @if (planSeleccionado(); as plan) {
+                    <span class="planes-pill" [attr.data-estado]="plan.estado">
+                      {{ estadoPlan(plan.estado) }}
+                    </span>
+                  }
+                </div>
+
+                @if (cargandoDetalle() && !planSeleccionado()) {
+                  <p class="planes-vista__vacio">Cargando el plan seleccionado…</p>
+                } @else if (errorDetalle()) {
+                  <div class="planes-vista__vacio">
+                    <p>{{ errorDetalle() }}</p>
+                    <button type="button" class="planes-btn" (click)="reintentar()">Reintentar</button>
+                  </div>
+                } @else if (!planSeleccionado()) {
+                  <p class="planes-vista__vacio">
+                    Elige un plan del listado para ver su resumen financiero y el estado de sus
+                    cuotas.
+                  </p>
+                } @else if (planSeleccionado(); as plan) {
+                  <h2 class="planes-vista__titulo">
+                    Plan #{{ plan.id.toString().padStart(4, '0') }}
+                  </h2>
+                  <p class="planes-vista__subtitulo">Resumen financiero del acuerdo</p>
+
+                  <div class="planes-vista__paciente">
+                    <span class="planes-avatar" aria-hidden="true">{{ iniciales(plan.paciente_id) }}</span>
+                    <span class="planes-paciente__datos">
+                      <strong>{{ nombrePaciente(plan.paciente_id) }}</strong>
+                      <small>CI {{ ciPaciente(plan.paciente_id) }} · Consulta #{{ plan.consulta_clinica_id }}</small>
+                    </span>
+                  </div>
+
+                  <div class="planes-vista__saldo">
+                    <div class="planes-vista__saldo-cabecera">
+                      <span>Saldo por cobrar</span>
+                      <span>{{ avance(plan) }}% completado</span>
+                    </div>
+                    <strong>{{ monto(plan.saldo_pendiente) }}</strong>
+                    <div class="planes-progreso planes-progreso--oscuro" aria-hidden="true">
+                      <span [style.width.%]="avance(plan)"></span>
+                    </div>
+                    <small>Pagado: {{ montoCorto(plan.monto_pagado) }}</small>
+                  </div>
+
+                  <div class="planes-vista__siguiente">
+                    <span class="planes-vista__icono" aria-hidden="true">
+                      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <rect x="3" y="5" width="18" height="16" rx="2"></rect>
+                        <path d="M8 3v4M16 3v4M3 11h18"></path>
+                      </svg>
+                    </span>
+                    @if (proximaCuota(); as cuota) {
+                      <div>
+                        <strong>Cuota {{ cuota.numero_cuota }} de {{ plan.cantidad_cuotas }}</strong>
+                        <small>Vence el {{ fechaLarga(cuota.fecha_vencimiento) }}</small>
+                      </div>
+                      <strong class="planes-vista__monto">{{ montoCorto(cuota.monto_programado) }}</strong>
+                    } @else {
+                      <div>
+                        <strong>Sin cuotas exigibles</strong>
+                        <small>El plan no tiene cuotas pendientes ni vencidas.</small>
+                      </div>
+                    }
+                  </div>
+
+                  <dl class="planes-vista__datos">
+                    <div>
+                      <dt>Cuotas pagadas</dt>
+                      <dd>{{ pagadas(plan) }} de {{ plan.cantidad_cuotas }}</dd>
+                    </div>
+                    <div>
+                      <dt>Monto del acuerdo</dt>
+                      <dd>{{ monto(plan.monto_total) }}</dd>
+                    </div>
+                    <div>
+                      <dt>Servicios incluidos</dt>
+                      <dd>
+                        {{ plan.servicios.length }}
+                        {{ plan.servicios.length === 1 ? 'servicio' : 'servicios' }}
+                      </dd>
+                    </div>
+                  </dl>
+
+                  <button
+                    type="button"
+                    class="planes-vista__cta"
+                    [disabled]="!permisos().verCuotas"
+                    (click)="abrirPlan(plan.id)"
+                  >
+                    Ver plan y gestionar cuotas
+                    <span aria-hidden="true">→</span>
+                  </button>
+                }
+              </aside>
+            </div>
+          }
+        }
+      </div>
+    </section>
+  </div>
+</main>
