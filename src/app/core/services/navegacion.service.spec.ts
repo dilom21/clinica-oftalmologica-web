@@ -139,6 +139,23 @@ describe('NavegacionService — funciones del menú', () => {
     expect(servicio.rutaDeFuncion('Confirmar transferencias')).toBeNull();
   });
 
+  it('mapea CU28 a la única ruta de proveedores y conserva el permiso del menú', () => {
+    expect(servicio.rutaDeFuncion('Gestionar proveedores')).toBe('/proveedores');
+    expect(servicio.rutaDeFuncion('Gestionar proveedores generales')).toBeNull();
+
+    const modulo = { id: 4, nombre: 'Inventario y Proveedores', funciones: [] };
+    for (const accion_nombre of ['LECTURA', 'ESCRITURA', 'AMBAS']) {
+      expect(
+        servicio.puedeMostrarFuncion(modulo, {
+          id: 32,
+          nombre: 'Gestionar proveedores',
+          accion_id: 3,
+          accion_nombre,
+        }),
+      ).toBe(true);
+    }
+  });
+
   it('asigna iconografía de pagos a las funciones del CU31', () => {
     expect(servicio.iconoDeModulo('Pagos')).toBe('pagos');
     expect(servicio.iconoDeFuncion('Gestionar pagos')).toBe('pagos');

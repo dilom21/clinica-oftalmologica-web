@@ -189,6 +189,14 @@ export const routes: Routes = [
     canActivate: [authGuard],
   },
   {
+    path: 'proveedores',
+    loadComponent: () =>
+      import(
+        './features/gestion-inventario-proveedores/casos-uso/cu28-gestionar-proveedores/pages/gestion-proveedores/gestion-proveedores'
+      ).then((m) => m.GestionProveedores),
+    canActivate: [authGuard],
+  },
+  {
     path: 'reportes',
     loadComponent: () =>
       import('./features/reportes/pages/reportes/reportes').then((m) => m.Reportes),

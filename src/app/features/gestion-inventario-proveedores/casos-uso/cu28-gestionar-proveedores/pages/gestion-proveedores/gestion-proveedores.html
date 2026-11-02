@@ -1,0 +1,261 @@
+<main class="proveedores-page">
+  <app-sidebar [mobileOpen]="sidebarMovilAbierto()" (mobileClose)="cerrarSidebar()" />
+
+  <section class="proveedores-page__main">
+    <header class="proveedores-page__topbar">
+      <button
+        type="button"
+        class="proveedores-page__hamburger"
+        [attr.aria-expanded]="sidebarMovilAbierto()"
+        (click)="alternarSidebar()"
+        aria-label="Abrir o cerrar menú"
+      >
+        ☰
+      </button>
+    </header>
+
+    <div class="proveedores-page__content">
+      <header class="proveedores-page__hero">
+        <div>
+          <p class="proveedores-page__eyebrow">CU28 · Inventario y Proveedores</p>
+          <h1>Proveedores</h1>
+          <p>Registra y administra los proveedores de insumos y productos de la clínica.</p>
+        </div>
+        @if (estadoPermiso() === 'autorizado' && puedeEscribir()) {
+          <button type="button" class="btn btn--primary" (click)="abrirModalNuevo()">
+            Nuevo proveedor
+          </button>
+        }
+      </header>
+
+      @if (estadoPermiso() === 'verificando') {
+        <div class="estado" role="status">Verificando los permisos del menú…</div>
+      } @else if (estadoPermiso() === 'error') {
+        <div class="estado estado--error" role="alert">
+          <p>No se pudieron verificar tus permisos para CU28.</p>
+          <button type="button" class="btn btn--secondary" (click)="reintentarPermisos()">
+            Reintentar
+          </button>
+        </div>
+      } @else if (estadoPermiso() === 'denegado') {
+        <div class="estado estado--error" role="alert">
+          Tu rol no tiene habilitada la función “Gestionar proveedores”. No se realizó ninguna
+          consulta de proveedores.
+        </div>
+      } @else {
+        @if (!puedeEscribir()) {
+          <p class="estado estado--info" role="status">
+            Acceso de solo lectura. Las acciones de registro, edición y baja no están habilitadas
+            por tu permiso del menú.
+          </p>
+        }
+
+        <div class="toolbar">
+          <div class="tabs" role="tablist" aria-label="Estado de los proveedores">
+            <button
+              type="button"
+              role="tab"
+              class="tabs__item"
+              [class.tabs__item--active]="!verInactivos()"
+              [attr.aria-selected]="!verInactivos()"
+              (click)="cambiarVista(false)"
+            >
+              Activos
+            </button>
+            <button
+              type="button"
+              role="tab"
+              class="tabs__item"
+              [class.tabs__item--active]="verInactivos()"
+              [attr.aria-selected]="verInactivos()"
+              (click)="cambiarVista(true)"
+            >
+              Inactivos
+            </button>
+          </div>
+
+          <form class="busqueda" role="search" (submit)="$event.preventDefault(); buscar(campoBusqueda.value)">
+            <input
+              #campoBusqueda
+              type="search"
+              maxlength="150"
+              placeholder="Buscar por razón social o NIT"
+              aria-label="Buscar por razón social o NIT"
+            />
+            <button type="submit" class="btn btn--secondary">Buscar</button>
+            @if (busqueda()) {
+              <button type="button" class="btn btn--ghost" (click)="limpiarBusqueda(campoBusqueda)">
+                Limpiar
+              </button>
+            }
+          </form>
+        </div>
+
+        @if (error(); as mensaje) {
+          <div class="estado estado--error" role="alert">
+            <span>{{ mensaje }}</span>
+            <button type="button" class="btn btn--secondary" (click)="cargarProveedores()">
+              Reintentar carga
+            </button>
+          </div>
+        }
+        @if (exito(); as mensaje) {
+          <p class="estado estado--success" role="status">{{ mensaje }}</p>
+        }
+
+        @if (cargando()) {
+          <div class="estado" role="status">Cargando proveedores…</div>
+        } @else {
+          <div class="tabla-contenedor">
+            <table>
+              <thead>
+                <tr>
+                  <th scope="col">Razón social</th>
+                  <th scope="col">NIT</th>
+                  <th scope="col">Contacto</th>
+                  <th scope="col">Teléfono</th>
+                  <th scope="col">Correo</th>
+                  <th scope="col">Estado</th>
+                  @if (puedeEscribir()) { <th scope="col">Acciones</th> }
+                </tr>
+              </thead>
+              <tbody>
+                @for (proveedor of proveedores(); track proveedor.id) {
+                  <tr>
+                    <td class="nombre">
+                      {{ proveedor.razon_social }}
+                      @if (proveedor.direccion) {
+                        <span class="secundario">{{ proveedor.direccion }}</span>
+                      }
+                    </td>
+                    <td>{{ proveedor.nit ?? '—' }}</td>
+                    <td>{{ proveedor.contacto ?? '—' }}</td>
+                    <td>{{ proveedor.telefono ?? '—' }}</td>
+                    <td>{{ proveedor.correo ?? '—' }}</td>
+                    <td>
+                      <span class="badge" [class.badge--inactive]="proveedor.estado !== true">
+                        {{ proveedor.estado === true ? 'Activo' : 'Inactivo' }}
+                      </span>
+                    </td>
+                    @if (puedeEscribir()) {
+                      <td class="acciones">
+                        <button
+                          type="button"
+                          class="btn btn--secondary"
+                          [disabled]="guardando()"
+                          (click)="abrirModalEditar(proveedor)"
+                        >
+                          Editar
+                        </button>
+                        @if (proveedor.estado === true) {
+                          <button
+                            type="button"
+                            class="btn btn--danger"
+                            [disabled]="guardando()"
+                            (click)="desactivarProveedor(proveedor)"
+                          >
+                            Dar de baja
+                          </button>
+                        } @else {
+                          <button
+                            type="button"
+                            class="btn btn--secondary"
+                            [disabled]="guardando()"
+                            (click)="reactivarProveedor(proveedor)"
+                          >
+                            Reactivar
+                          </button>
+                        }
+                      </td>
+                    }
+                  </tr>
+                } @empty {
+                  <tr>
+                    <td [attr.colspan]="puedeEscribir() ? 7 : 6" class="vacio">
+                      @if (busqueda()) {
+                        No hay proveedores que coincidan con “{{ busqueda() }}”.
+                      } @else {
+                        {{ verInactivos() ? 'No hay proveedores dados de baja.' : 'No hay proveedores registrados.' }}
+                      }
+                    </td>
+                  </tr>
+                }
+              </tbody>
+            </table>
+          </div>
+
+          @if (pagina() > 0 || hayMas()) {
+            <nav class="paginacion" aria-label="Paginación de proveedores">
+              <button type="button" class="btn btn--secondary" [disabled]="pagina() === 0" (click)="irAPagina(-1)">
+                Anterior
+              </button>
+              <span>Página {{ pagina() + 1 }}</span>
+              <button type="button" class="btn btn--secondary" [disabled]="!hayMas()" (click)="irAPagina(1)">
+                Siguiente
+              </button>
+            </nav>
+          }
+        }
+      }
+    </div>
+  </section>
+
+  @if (sidebarMovilAbierto()) {
+    <button type="button" class="proveedores-page__backdrop" (click)="cerrarSidebar()" aria-label="Cerrar menú"></button>
+  }
+
+  @if (mostrarModal()) {
+    <div class="modal" role="presentation">
+      <section class="modal__card" role="dialog" aria-modal="true" aria-labelledby="proveedor-modal-titulo">
+        <h2 id="proveedor-modal-titulo">
+          {{ proveedorEnEdicion() ? 'Editar proveedor' : 'Nuevo proveedor' }}
+        </h2>
+        <form [formGroup]="form" (ngSubmit)="guardarProveedor()" novalidate>
+          <label>
+            Razón social *
+            <input type="text" formControlName="razon_social" maxlength="150" [class.invalido]="campoInvalido('razon_social')" />
+            @if (campoInvalido('razon_social')) {
+              <small class="error-campo">La razón social es obligatoria (máx. 150 caracteres).</small>
+            }
+          </label>
+          <div class="modal__grid">
+            <label>
+              NIT
+              <input type="text" formControlName="nit" maxlength="30" [class.invalido]="campoInvalido('nit')" />
+            </label>
+            <label>
+              Teléfono
+              <input type="tel" formControlName="telefono" maxlength="20" [class.invalido]="campoInvalido('telefono')" />
+            </label>
+          </div>
+          <label>
+            Correo
+            <input type="email" formControlName="correo" maxlength="100" [class.invalido]="campoInvalido('correo')" />
+            @if (campoInvalido('correo')) {
+              <small class="error-campo">Ingresa un correo válido.</small>
+            }
+          </label>
+          <label>
+            Persona de contacto
+            <input type="text" formControlName="contacto" maxlength="100" />
+          </label>
+          <label>
+            Dirección
+            <textarea formControlName="direccion" rows="2" maxlength="255"></textarea>
+          </label>
+
+          @if (errorModal(); as mensaje) {
+            <p class="estado estado--error" role="alert">{{ mensaje }}</p>
+          }
+
+          <div class="modal__actions">
+            <button type="button" class="btn btn--secondary" [disabled]="guardando()" (click)="cerrarModal()">Cancelar</button>
+            <button type="submit" class="btn btn--primary" [disabled]="guardando()">
+              {{ guardando() ? 'Guardando…' : 'Guardar' }}
+            </button>
+          </div>
+        </form>
+      </section>
+    </div>
+  }
+</main>

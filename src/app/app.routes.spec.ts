@@ -11,6 +11,20 @@ describe('app.routes — CU30', () => {
   });
 });
 
+describe('app.routes — CU28', () => {
+  it('expone una única ruta /proveedores protegida por authGuard', () => {
+    const rutasProveedores = routes.filter((ruta) => ruta.path === 'proveedores');
+    const indice = routes.findIndex((ruta) => ruta.path === 'proveedores');
+    const indiceComodin = routes.findIndex((ruta) => ruta.path === '**');
+
+    expect(rutasProveedores).toHaveLength(1);
+    expect(indice).toBeGreaterThanOrEqual(0);
+    expect(indice).toBeLessThan(indiceComodin);
+    expect(rutasProveedores[0].canActivate).toContain(authGuard);
+    expect(typeof rutasProveedores[0].loadComponent).toBe('function');
+  });
+});
+
 describe('J2 navigation', () => {
   it('keeps public clinical login separate from guarded SaaS companies', () => {
     const login = routes.find((route) => route.path === 'login');

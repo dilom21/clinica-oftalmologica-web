@@ -70,6 +70,7 @@ export class NavegacionService {
     ['gestionar productos, categorías y lotes', '/gestion-inventario-proveedores'],
     ['gestionar productos, categorias y lotes', '/gestion-inventario-proveedores'],
     ['gestionar movimientos de inventario', '/gestion-movimientos-inventario'],
+    ['gestionar proveedores', '/proveedores'],
   ]);
 
   private readonly iconosModulo: ReadonlyArray<{
