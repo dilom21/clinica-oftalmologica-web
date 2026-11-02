@@ -1,0 +1,118 @@
+<main class="layout">
+  <app-sidebar [mobileOpen]="movil()" (mobileClose)="movil.set(false)" />
+  <section class="contenido">
+    <button class="menu" type="button" (click)="movil.set(!movil())" [attr.aria-expanded]="movil()">☰ Menú</button>
+    <header class="cabecera">
+      <div><p class="etiqueta">CU28 · Inventario y proveedores</p><h1>{{ editor() ? (editando() ? 'Editar proveedor' : 'Registrar proveedor') : 'Gestionar proveedores' }}</h1><p>{{ editor() ? 'Completa los datos del proveedor en este panel.' : 'Directorio de proveedores de la clínica activa.' }}</p></div>
+      @if (editor()) {
+        <button type="button" (click)="cerrarEditor()" [disabled]="guardando()">← Volver al listado</button>
+      } @else if (puedeEscribir()) { <button class="primario" type="button" (click)="abrir()" [disabled]="guardando()">+ Nuevo proveedor</button> }
+    </header>
+    @if (menu.estado() === 'error') {
+      <div class="aviso error" role="alert">No se pudieron verificar los permisos. <button type="button" (click)="menu.reintentar()">Reintentar</button></div>
+    } @else if (menu.estado() !== 'listo') {
+      <p class="aviso" role="status">Verificando permisos…</p>
+    } @else if (!puedeLeer() && !puedeEscribir()) {
+      <p class="aviso error" role="alert">Tu rol no tiene permiso para gestionar proveedores.</p>
+    } @else {
+      @if (!puedeEscribir()) { <p class="aviso">Acceso de solo lectura. Puedes buscar y consultar proveedores.</p> }
+      @if (error()) { <p class="aviso error" role="alert">{{ error() }}</p> }
+      @if (exito()) { <p class="aviso exito" role="status">{{ exito() }}</p> }
+      @if (!editor()) {
+      @if (puedeLeer()) {
+        <form class="filtros tarjeta" [formGroup]="filtros" (ngSubmit)="cargar(1)">
+          <label>Buscar por razón social o NIT<input formControlName="buscar" type="search" maxlength="150" placeholder="Escribe una razón social o NIT" /></label>
+          <label>Estado<select formControlName="estado" (change)="cargar(1)"><option value="true">Activos</option><option value="false">Inactivos</option></select></label>
+          <button class="primario" type="submit" [disabled]="guardando()">Buscar</button>
+          <button type="button" [disabled]="guardando()" (click)="cargar()">Actualizar</button>
+        </form>
+        <section class="tarjeta" [attr.aria-busy]="cargando()">
+          @if (cargando()) { <p class="vacio" role="status">Cargando proveedores…</p> }
+          @else {
+            <div class="tabla"><table>
+              <caption>Proveedores {{ filtros.controls.estado.value === 'true' ? 'activos' : 'inactivos' }} · {{ total() }} resultados</caption>
+              <thead><tr><th scope="col">Razón social / NIT</th><th scope="col">Contacto</th><th scope="col">Teléfono / correo</th><th scope="col">Estado</th><th scope="col">Acciones</th></tr></thead>
+              <tbody>
+                @for (p of items(); track p.id) {
+                  <tr>
+                    <td><strong>{{ p.razon_social }}</strong><small>NIT: {{ p.nit || 'Sin registrar' }}</small></td>
+                    <td>{{ p.contacto || '—' }}</td>
+                    <td>{{ p.telefono || '—' }}<small>{{ p.correo || 'Sin correo' }}</small></td>
+                    <td><span class="estado" [class.inactivo]="!p.estado">{{ p.estado === null ? 'Sin definir' : p.estado ? 'Activo' : 'Inactivo' }}</span></td>
+                    <td><div class="acciones">
+                      <button type="button" (click)="ver(p)" [disabled]="guardando()" [attr.aria-expanded]="detalleId() === p.id" [attr.aria-controls]="detalleId() === p.id ? 'detalle-proveedor-' + p.id : null">{{ detalleId() === p.id ? 'Ocultar' : 'Ver' }}</button>
+                      @if (puedeEscribir()) {
+                        <button type="button" (click)="abrir(p)" [disabled]="guardando()">Editar</button>
+                        <button type="button" [class.peligro]="p.estado" (click)="solicitarEstado(p)" [disabled]="guardando()">{{ p.estado ? 'Dar de baja' : 'Reactivar' }}</button>
+                      }
+                    </div></td>
+                  </tr>
+                  @if (detalleId() === p.id) {
+                    <tr class="fila-detalle">
+                      <td colspan="5">
+                        <section class="detalle-expandido" [id]="'detalle-proveedor-' + p.id" [attr.aria-labelledby]="'titulo-detalle-' + p.id" [attr.aria-busy]="consultando()">
+                          <header class="detalle-expandido__cabecera">
+                            <h2 [id]="'titulo-detalle-' + p.id">Detalle de {{ p.razon_social }}</h2>
+                            <button type="button" (click)="cerrarDetalle()">Cerrar detalle</button>
+                          </header>
+                          @if (consultando()) { <p role="status">Consultando proveedor…</p> }
+                          @else if (errorDetalle()) { <p class="aviso error" role="alert">{{ errorDetalle() }}</p> }
+                          @else if (detalle(); as datos) {
+                            <dl class="campos">
+                              @for (campo of campos; track campo.nombre) {
+                                <div><dt>{{ campo.etiqueta }}</dt><dd>{{ datos[campo.nombre] || 'Sin registrar' }}</dd></div>
+                              }
+                            </dl>
+                            <p>Estado: {{ datos.estado === null ? 'Sin definir' : datos.estado ? 'Activo' : 'Inactivo' }}</p>
+                          }
+                        </section>
+                      </td>
+                    </tr>
+                  }
+                } @empty { <tr><td colspan="5" class="vacio">No hay proveedores para estos filtros.</td></tr> }
+              </tbody>
+            </table></div>
+          }
+          <nav class="paginacion" aria-label="Paginación de proveedores">
+            <button type="button" (click)="cargar(pagina() - 1)" [disabled]="pagina() <= 1 || cargando() || guardando()">Anterior</button>
+            <span>Página {{ pagina() }} de {{ paginas() }} · 20 por página</span>
+            <button type="button" (click)="cargar(pagina() + 1)" [disabled]="pagina() >= paginas() || cargando() || guardando()">Siguiente</button>
+          </nav>
+        </section>
+      } @else { <p class="aviso">Tienes permiso de escritura, pero no de consulta. Puedes registrar proveedores.</p> }
+      }
+
+      @if (editor()) {
+        <section class="tarjeta editor panel-registro" aria-labelledby="titulo-editor">
+          <h2 id="titulo-editor">Datos del proveedor</h2>
+          <p>La razón social es obligatoria. Los demás campos son opcionales.</p>
+          @if (errorFormulario()) { <p class="aviso error" role="alert">{{ errorFormulario() }}</p> }
+          <form [formGroup]="form" (ngSubmit)="guardar()">
+            <fieldset [disabled]="guardando()"><legend class="sr-only">Datos del proveedor</legend><div class="campos">
+              @for (campo of campos; track campo.nombre) {
+                <label [for]="campo.nombre">{{ campo.etiqueta }}{{ campo.nombre === 'razon_social' ? ' *' : '' }}
+                  <input [id]="campo.nombre" [type]="campo.tipo" [formControlName]="campo.nombre" [maxlength]="campo.max" [required]="campo.nombre === 'razon_social'" [attr.aria-invalid]="form.controls[campo.nombre].touched && form.controls[campo.nombre].invalid" [attr.aria-describedby]="campo.nombre + '-error'" />
+                  <small [id]="campo.nombre + '-error'" class="validacion">
+                    @if (form.controls[campo.nombre].touched && form.controls[campo.nombre].invalid) { {{ campo.nombre === 'correo' ? 'Introduce un correo válido (máximo 100 caracteres).' : 'Revisa este campo; no debe exceder ' + campo.max + ' caracteres y la razón social no puede estar vacía.' }} }
+                  </small>
+                </label>
+              }
+            </div></fieldset>
+            <div class="acciones panel-registro__acciones"><button type="button" (click)="cerrarEditor()" [disabled]="guardando()">Cancelar</button><button class="primario" type="submit" [disabled]="guardando()">{{ guardando() ? 'Guardando…' : 'Guardar proveedor' }}</button></div>
+          </form>
+        </section>
+      }
+      @if (!editor()) {
+      @if (pendiente(); as p) {
+        <section class="tarjeta confirmacion" aria-labelledby="titulo-confirmacion" aria-live="polite">
+          <h2 id="titulo-confirmacion">{{ p.estado ? 'Confirmar baja' : 'Confirmar reactivación' }}</h2>
+          <p>¿Deseas {{ p.estado ? 'dar de baja a' : 'reactivar a' }} <strong>{{ p.razon_social }}</strong>?</p>
+          <p>El registro y sus compras históricas se conservarán.</p>
+          <div class="acciones"><button type="button" (click)="pendiente.set(null)" [disabled]="guardando()">Cancelar</button><button class="primario" type="button" (click)="confirmarEstado()" [disabled]="guardando()">{{ guardando() ? 'Procesando…' : 'Confirmar' }}</button></div>
+        </section>
+      }
+      }
+    }
+  </section>
+  @if (movil()) { <button class="fondo-menu" type="button" (click)="movil.set(false)" aria-label="Cerrar menú"></button> }
+</main>

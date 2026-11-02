@@ -32,6 +32,7 @@ export class NavegacionService {
     ['gestionar usuarios', '/usuarios'],
     ['gestionar roles y permisos', '/roles'],
     ['gestionar pacientes', '/pacientes'],
+    ['gestionar proveedores', '/proveedores'],
     ['consultar historial clínico', '/historial-clinico'],
     ['registrar consulta clínica', '/registrar-consulta-clinica'],
     ['registrar diagnóstico', '/registrar-diagnostico'],
@@ -70,7 +71,6 @@ export class NavegacionService {
     ['gestionar productos, categorías y lotes', '/gestion-inventario-proveedores'],
     ['gestionar productos, categorias y lotes', '/gestion-inventario-proveedores'],
     ['gestionar movimientos de inventario', '/gestion-movimientos-inventario'],
-    ['gestionar proveedores', '/proveedores'],
   ]);
 
   private readonly iconosModulo: ReadonlyArray<{
