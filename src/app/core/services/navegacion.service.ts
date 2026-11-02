@@ -62,6 +62,9 @@ export class NavegacionService {
     ['gestionar pagos', '/pagos'],
     ['confirmar pagos bancarios', '/pagos/confirmaciones'],
     ['generar reportes', '/reportes'],
+    ['gestionar productos, categorías y lotes', '/gestion-inventario-proveedores'],
+    ['gestionar productos, categorias y lotes', '/gestion-inventario-proveedores'],
+    ['gestionar movimientos de inventario', '/gestion-movimientos-inventario'],
   ]);
 
   private readonly iconosModulo: ReadonlyArray<{

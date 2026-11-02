@@ -179,6 +179,16 @@ export const routes: Routes = [
     canActivate: [authGuard],
   },
   {
+    path: 'gestion-inventario-proveedores',
+    loadComponent: () => import('./features/gestion-inventario-proveedores/casos-uso/cu26-gestionar-productos-categorias-lotes/pages/gestion-catalogo/gestion-catalogo').then((m) => m.GestionCatalogo),
+    canActivate: [authGuard],
+  },
+  {
+    path: 'gestion-movimientos-inventario',
+    loadComponent: () => import('./features/gestion-inventario-proveedores/casos-uso/cu27-gestionar-movimientos-inventario/pages/gestionar-movimientos/gestionar-movimientos').then((m) => m.GestionarMovimientos),
+    canActivate: [authGuard],
+  },
+  {
     path: 'reportes',
     loadComponent: () =>
       import('./features/reportes/pages/reportes/reportes').then((m) => m.Reportes),
