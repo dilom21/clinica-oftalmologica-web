@@ -1,6 +1,16 @@
 import { authGuard } from './core/guards/auth.guard';
 import { routes } from './app.routes';
 
+describe('app.routes — CU30', () => {
+  it('expone inventario y alertas con authGuard antes del comodín', () => {
+    const indice = routes.findIndex(ruta => ruta.path === 'inventario-alertas');
+    expect(indice).toBeGreaterThanOrEqual(0);
+    expect(indice).toBeLessThan(routes.findIndex(ruta => ruta.path === '**'));
+    expect(routes[indice].canActivate).toContain(authGuard);
+    expect(typeof routes[indice].loadComponent).toBe('function');
+  });
+});
+
 describe('J2 navigation', () => {
   it('keeps public clinical login separate from guarded SaaS companies', () => {
     const login = routes.find((route) => route.path === 'login');

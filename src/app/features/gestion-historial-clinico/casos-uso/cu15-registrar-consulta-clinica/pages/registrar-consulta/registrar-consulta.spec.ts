@@ -261,6 +261,9 @@ describe('RegistrarConsulta (CU15)', () => {
     );
     fixture = TestBed.createComponent(RegistrarConsulta);
     fixture.detectChanges();
+    // Cambiar el JWT invalida el menú compartido y dispara una carga legítima
+    // para la nueva sesión antes de volver a cargar los pacientes.
+    httpMock.expectOne((r) => r.url === menuUrl).flush([]);
     httpMock.expectOne((r) => r.url === pacientesUrl).flush([pacienteBase]);
     fixture.detectChanges();
 

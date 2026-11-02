@@ -11,6 +11,8 @@ import {
   EmpresaSesion,
   EstadoEmpresaSesion,
 } from '../../../features/autenticacion-seguridad/Auth/services/auth.service';
+import { PerfilUsuario } from '../../../features/autenticacion-seguridad/Auth/models/auth.models';
+import { MenuModulo } from '../../models/menu.models';
 import { EstadoMenu, MenuService } from '../../services/menu.service';
 import { Sidebar } from './sidebar';
 
@@ -18,7 +20,7 @@ import { Sidebar } from './sidebar';
 class PaginaVacia {}
 
 function menuStub(initialState: EstadoMenu = 'inicial') {
-  const modules = signal<never[]>([]);
+  const modules = signal<MenuModulo[]>([]);
   const state = signal<EstadoMenu>(initialState);
   return {
     modules,
@@ -92,6 +94,147 @@ describe('Sidebar — function route mapping', () => {
     expect(sidebar.rutaDeFuncion('Registrar servicios realizados')).toBe(
       '/registrar-servicios-realizados',
     );
+  });
+});
+
+describe('Sidebar — lectura CU30 e identidad de sesión', () => {
+  const funcionInventario = {
+    id: 30,
+    nombre: 'Consultar inventario y alertas',
+    accion_id: 1,
+    accion_nombre: 'LECTURA',
+  };
+  const moduloInventario: MenuModulo = {
+    id: 4, nombre: 'Inventario y Proveedores', funciones: [funcionInventario],
+  };
+
+  function perfilDe(nombre: string, rolNombre = 'Administrador'): PerfilUsuario {
+    return {
+      usuarioId: 7, rolId: 1, rolNombre, correo: null, nombre,
+      nombreMostrar: nombre, iniciales: nombre.slice(0, 2),
+    };
+  }
+
+  function crearVista(modulos: MenuModulo[], conRevision = true) {
+    const menu = menuStub('listo');
+    menu.modules.set(modulos);
+    const empresa = signal<EmpresaSesion | null>({ codigo: 'A', nombre: 'Empresa A', tenantId: 1 });
+    const estadoEmpresa = signal<EstadoEmpresaSesion>('listo');
+    const revisionSesion = signal(1);
+    const revisionPerfil = signal(1);
+    const perfilActual = signal<PerfilUsuario | null>(perfilDe('Usuario A'));
+    TestBed.configureTestingModule({
+      providers: [
+        provideRouter([]),
+        { provide: MenuService, useValue: menu.provider },
+        {
+          provide: AuthService,
+          useValue: {
+            empresa: empresa.asReadonly(),
+            estadoEmpresa: estadoEmpresa.asReadonly(),
+            revisionSesion: conRevision ? revisionSesion.asReadonly() : undefined,
+            revisionPerfil: conRevision ? revisionPerfil.asReadonly() : undefined,
+            obtenerPerfilActual: () => perfilActual(),
+            inicializarContextoEmpresa: vi.fn(),
+            reintentarContextoEmpresa: vi.fn(),
+            logout: vi.fn(),
+          },
+        },
+      ],
+    });
+    const fixture = TestBed.createComponent(Sidebar);
+    fixture.detectChanges();
+    return { fixture, menu, empresa, revisionSesion, revisionPerfil, perfilActual };
+  }
+
+  it('muestra el enlace CU30 para LECTURA y AMBAS normalizadas', () => {
+    const { fixture, menu } = crearVista([moduloInventario]);
+    for (const accion_nombre of ['LECTURA', 'AMBAS', ' lectura ', ' ambas ']) {
+      menu.modules.set([{
+        ...moduloInventario, funciones: [{ ...funcionInventario, accion_nombre }],
+      }]);
+      fixture.componentInstance.alternarModulo(moduloInventario.id);
+      fixture.detectChanges();
+      expect(fixture.nativeElement.querySelector('[href="/inventario-alertas"]')).toBeTruthy();
+      fixture.componentInstance.alternarModulo(moduloInventario.id);
+    }
+  });
+
+  it('oculta CU30 sin lectura y no deja un módulo vacío ni una opción sin ruta', () => {
+    const { fixture, menu } = crearVista([moduloInventario]);
+    const casos: MenuModulo[] = [
+      { ...moduloInventario, funciones: [{ ...funcionInventario, accion_nombre: 'ESCRITURA' }] },
+      { ...moduloInventario, nombre: 'Otro módulo' },
+      { ...moduloInventario, nombre: 'Inventario y Proveedores ' },
+      ...[
+        'Consultar inventario y alertas (Web)',
+        'consultar inventario y alertas',
+        ' CONSULTAR  INVENTARIO Y ALERTAS ',
+        'Consultar inventario y alertas ',
+      ].map((nombre) => ({ ...moduloInventario, funciones: [{ ...funcionInventario, nombre }] })),
+    ];
+    for (const modulo of casos) {
+      menu.modules.set([modulo]);
+      fixture.detectChanges();
+      expect(fixture.nativeElement.querySelector('[href="/inventario-alertas"]')).toBeNull();
+      expect(fixture.nativeElement.querySelector('.sidebar__submenu-link--sin-ruta')).toBeNull();
+      expect(fixture.nativeElement.querySelector('.sidebar__link--button')).toBeNull();
+      expect(fixture.nativeElement.textContent).not.toContain('Consultar inventario y alertas');
+    }
+  });
+
+  it('conserva otras funciones del mismo módulo y las reglas de otros casos de uso', () => {
+    const { fixture } = crearVista([{
+      ...moduloInventario,
+      funciones: [
+        { ...funcionInventario, accion_nombre: 'ESCRITURA' },
+        { id: 40, nombre: 'Gestionar pacientes', accion_id: 2, accion_nombre: 'ESCRITURA' },
+        { id: 41, nombre: 'Gestionar productos', accion_id: 2, accion_nombre: 'ESCRITURA' },
+      ],
+    }]);
+    fixture.componentInstance.alternarModulo(moduloInventario.id);
+    fixture.detectChanges();
+    expect(fixture.nativeElement.querySelector('[href="/inventario-alertas"]')).toBeNull();
+    expect(fixture.nativeElement.querySelector('[href="/pacientes"]')).toBeTruthy();
+    expect(fixture.nativeElement.querySelector('.sidebar__submenu-link--sin-ruta')?.textContent)
+      .toContain('Gestionar productos');
+    expect(fixture.nativeElement.textContent).not.toContain('Consultar inventario y alertas');
+  });
+
+  it('actualiza el perfil al cambiar el JWT dentro de la misma empresa', () => {
+    const { fixture, perfilActual, revisionSesion } = crearVista([]);
+    expect(fixture.nativeElement.textContent).toContain('Usuario A');
+    perfilActual.set(perfilDe('Usuario B', 'Oftalmólogo'));
+    revisionSesion.update((revision) => revision + 1);
+    fixture.detectChanges();
+    expect(fixture.nativeElement.textContent).not.toContain('Usuario A');
+    expect(fixture.nativeElement.textContent).toContain('Usuario B');
+    expect(fixture.nativeElement.textContent).toContain('Rol: Oftalmólogo');
+
+    perfilActual.set(null);
+    revisionSesion.update((revision) => revision + 1);
+    fixture.detectChanges();
+    expect(fixture.nativeElement.textContent).not.toContain('Usuario B');
+  });
+
+  it('refresca el perfil por empresa con mocks anteriores sin revisionSesion', () => {
+    const { fixture, perfilActual, empresa } = crearVista([], false);
+    perfilActual.set(perfilDe('Usuario B'));
+    empresa.set({ codigo: 'B', nombre: 'Empresa B', tenantId: 2 });
+    fixture.detectChanges();
+    expect(fixture.nativeElement.textContent).not.toContain('Usuario A');
+    expect(fixture.nativeElement.textContent).toContain('Usuario B');
+    expect(fixture.nativeElement.textContent).toContain('Empresa B');
+  });
+
+  it('refresca el correo llegado después del JWT sin reiniciar la sesión', () => {
+    const { fixture, perfilActual, revisionPerfil, revisionSesion } = crearVista([]);
+    perfilActual.set(perfilDe('usuario-b@example.test'));
+    revisionPerfil.update(revision => revision + 1);
+    fixture.detectChanges();
+    expect(revisionSesion()).toBe(1);
+    expect(fixture.nativeElement.textContent).not.toContain('Usuario A');
+    expect(fixture.nativeElement.textContent).toContain('usuario-b@example.test');
   });
 });
 
