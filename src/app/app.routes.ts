@@ -192,7 +192,7 @@ export const routes: Routes = [
     path: 'proveedores',
     loadComponent: () =>
       import(
-        './features/gestion-inventario-proveedores/casos-uso/cu28-gestionar-proveedores/pages/gestion-proveedores/gestion-proveedores'
+        './features/gestion-inventario-proveedores/casos-uso/casos-uso/cu25_gestionar_proveedores/gestion-proveedores'
       ).then((m) => m.GestionProveedores),
     canActivate: [authGuard],
   },

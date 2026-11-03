@@ -1,5 +1,6 @@
 import { authGuard } from './core/guards/auth.guard';
 import { routes } from './app.routes';
+import { GestionProveedores } from './features/gestion-inventario-proveedores/casos-uso/casos-uso/cu25_gestionar_proveedores/gestion-proveedores';
 
 describe('app.routes — CU30', () => {
   it('expone inventario y alertas con authGuard antes del comodín', () => {
@@ -12,7 +13,7 @@ describe('app.routes — CU30', () => {
 });
 
 describe('app.routes — CU28', () => {
-  it('expone una única ruta /proveedores protegida por authGuard', () => {
+  it('carga la implementación Austin en la única ruta /proveedores protegida', async () => {
     const rutasProveedores = routes.filter((ruta) => ruta.path === 'proveedores');
     const indice = routes.findIndex((ruta) => ruta.path === 'proveedores');
     const indiceComodin = routes.findIndex((ruta) => ruta.path === '**');
@@ -22,6 +23,7 @@ describe('app.routes — CU28', () => {
     expect(indice).toBeLessThan(indiceComodin);
     expect(rutasProveedores[0].canActivate).toContain(authGuard);
     expect(typeof rutasProveedores[0].loadComponent).toBe('function');
+    await expect(rutasProveedores[0].loadComponent?.()).resolves.toBe(GestionProveedores);
   });
 });
 
