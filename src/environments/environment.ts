@@ -1,3 +1,3 @@
 ﻿export const environment = {
-  apiUrl: 'https://clinica-oftalmologica-api.onrender.com',
+  apiUrl: 'https://clinica-oftalmologica-api.duckdns.org',
 };
