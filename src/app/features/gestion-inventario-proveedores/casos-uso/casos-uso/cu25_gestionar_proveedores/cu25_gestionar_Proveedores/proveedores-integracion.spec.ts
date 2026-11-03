@@ -1,6 +1,6 @@
-import { routes } from '../../../../../app.routes';
-import { authGuard } from '../../../../../core/guards/auth.guard';
-import { NavegacionService } from '../../../../../core/services/navegacion.service';
+import { routes } from '../../../../../../app.routes';
+import { authGuard } from '../../../../../../core/guards/auth.guard';
+import { NavegacionService } from '../../../../../../core/services/navegacion.service';
 
 describe('CU28: integración de navegación', () => {
   it('conecta el menú con una ruta autenticada anterior al comodín', () => {

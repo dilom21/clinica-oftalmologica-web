@@ -179,10 +179,18 @@ export const routes: Routes = [
     canActivate: [authGuard],
   },
   {
+    path: 'compras',
+    loadComponent: () =>
+      import(
+        './features/gestion-inventario-proveedores/casos-uso/casos-uso/cu26_Registrar_Compra_Proveedor/registrar-compras'
+      ).then((m) => m.RegistrarCompras),
+    canActivate: [authGuard],
+  },
+  {
     path: 'proveedores',
     loadComponent: () =>
       import(
-        './features/gestion-inventario-proveedores/casos-uso/casos-uso/cu25_gestionar_proveedores/gestion-proveedores'
+        './features/gestion-inventario-proveedores/casos-uso/casos-uso/cu25_gestionar_proveedores/cu25_gestionar_Proveedores/gestion-proveedores'
       ).then((m) => m.GestionProveedores),
     canActivate: [authGuard],
   },

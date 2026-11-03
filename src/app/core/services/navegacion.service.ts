@@ -32,6 +32,7 @@ export class NavegacionService {
     ['gestionar roles y permisos', '/roles'],
     ['gestionar pacientes', '/pacientes'],
     ['gestionar proveedores', '/proveedores'],
+    ['registrar compras a proveedor', '/compras'],
     ['consultar historial clínico', '/historial-clinico'],
     ['registrar consulta clínica', '/registrar-consulta-clinica'],
     ['registrar diagnóstico', '/registrar-diagnostico'],

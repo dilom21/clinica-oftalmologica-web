@@ -2,8 +2,8 @@ import { Component, computed, effect, inject, OnDestroy, OnInit, signal, untrack
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { HttpErrorResponse } from '@angular/common/http';
 import { Observable, Subscription } from 'rxjs';
-import { Sidebar } from '../../../../../core/layouts/sidebar/sidebar';
-import { MenuService } from '../../../../../core/services/menu.service';
+import { Sidebar } from '../../../../../../core/layouts/sidebar/sidebar';
+import { MenuService } from '../../../../../../core/services/menu.service';
 import { Proveedor, ProveedorCambios, ProveedorDatos } from './proveedores.models';
 import { ProveedoresService } from './proveedores.service';
 
