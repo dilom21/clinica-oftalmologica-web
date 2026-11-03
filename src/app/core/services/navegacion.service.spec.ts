@@ -156,6 +156,13 @@ describe('NavegacionService — funciones del menú', () => {
     }
   });
 
+  it('mapea CU29 solo desde el nombre canónico del permiso backend', () => {
+    expect(servicio.rutaDeFuncion('Registrar compras a proveedor')).toBe('/compras');
+    expect(servicio.rutaDeFuncion('REGISTRAR COMPRAS A PROVEEDOR')).toBe('/compras');
+    expect(servicio.rutaDeFuncion('Registrar compras a proveedores')).toBeNull();
+    expect(servicio.rutaDeFuncion('Consultar compras a proveedor')).toBeNull();
+  });
+
   it('asigna iconografía de pagos a las funciones del CU31', () => {
     expect(servicio.iconoDeModulo('Pagos')).toBe('pagos');
     expect(servicio.iconoDeFuncion('Gestionar pagos')).toBe('pagos');

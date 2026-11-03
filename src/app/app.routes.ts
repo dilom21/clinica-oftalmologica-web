@@ -266,6 +266,14 @@ export const routes: Routes = [
     canActivate: [authGuard],
   },
   {
+    path: 'compras',
+    loadComponent: () =>
+      import('./features/gestion-inventario-proveedores/casos-uso/cu29-registrar-compras-proveedores/registrar-compras').then(
+        (m) => m.RegistrarCompras,
+      ),
+    canActivate: [authGuard],
+  },
+  {
     path: 'reportes',
     loadComponent: () =>
       import('./features/reportes/pages/reportes/reportes').then((m) => m.Reportes),

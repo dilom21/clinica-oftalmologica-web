@@ -1,0 +1,160 @@
+<main class="layout">
+  <app-sidebar [mobileOpen]="movil()" (mobileClose)="movil.set(false)" />
+  <section class="contenido">
+    <button class="menu-movil" type="button" (click)="movil.set(!movil())" [attr.aria-expanded]="movil()">☰ Menú</button>
+    <header class="cabecera">
+      <div><p class="etiqueta">Inventario y proveedores</p><h1>Compras a proveedores</h1><p>Registra la recepción de productos y consulta las compras de tu clínica.</p></div>
+      <span class="insignia">Control de inventario</span>
+    </header>
+
+    @if (menu.estado() === 'error') {
+      <div class="aviso error" role="alert">No se pudieron verificar los permisos. <button type="button" (click)="menu.reintentar()">Reintentar</button></div>
+    } @else if (menu.estado() !== 'listo') {
+      <p class="aviso" role="status">Verificando permisos…</p>
+    } @else if (!puedeLeer() && !puedeEscribir()) {
+      <p class="aviso error" role="alert">Tu rol no tiene permiso para registrar o consultar compras a proveedores.</p>
+    } @else if (!puedeLeer()) {
+      <p class="aviso" role="alert">Tu rol tiene permiso de escritura. Solicita también lectura para poder seleccionar proveedores, productos y lotes.</p>
+    } @else {
+      <nav class="pestanas" aria-label="Vistas de compras">
+        @if (puedeEscribir()) { <button type="button" [class.activa]="vista() === 'registro'" [attr.aria-current]="vista() === 'registro' ? 'page' : null" (click)="cambiarVista('registro')" [disabled]="guardando()">Registrar compra</button> }
+        <button type="button" [class.activa]="vista() === 'historial'" [attr.aria-current]="vista() === 'historial' ? 'page' : null" (click)="cambiarVista('historial')" [disabled]="guardando()">Historial de compras</button>
+      </nav>
+      @if (!puedeEscribir()) { <p class="aviso">Acceso de solo lectura. Puedes consultar las compras de tu clínica.</p> }
+
+      @if (vista() === 'registro' && puedeEscribir()) {
+        @if (registrado(); as compra) {
+          <section class="aviso exito" role="status"><strong>{{ exito() }}</strong><p>La compra #{{ compra.id }} fue recibida y sus existencias se actualizaron.</p></section>
+          <ng-container *ngTemplateOutlet="ficha; context: { $implicit: compra }" />
+          <div class="acciones final"><button type="button" (click)="cambiarVista('historial')">Consultar historial</button><button class="primario" type="button" (click)="nuevaCompra()">+ Nueva compra</button></div>
+        } @else {
+          <div class="distribucion">
+            <div class="formulario">
+              <section class="tarjeta">
+                <header class="titulo-seccion"><span class="paso" aria-hidden="true">1</span><div><h2>Datos de la compra</h2><p>Selecciona el proveedor que entrega los productos.</p></div></header>
+                <form [formGroup]="cabecera" (ngSubmit)="revisarCompra()">
+                  <fieldset [disabled]="bloqueado()">
+                    <legend class="sr-only">Datos de la compra</legend>
+                    <label for="buscar-proveedor">Buscar proveedor</label>
+                    <div class="buscador"><input id="buscar-proveedor" type="search" [formControl]="busquedaProveedor" maxlength="150" placeholder="Razón social o NIT" (keydown.enter)="$event.preventDefault(); cargarProveedores()" /><button type="button" (click)="cargarProveedores()" [disabled]="cargandoProveedores()">Buscar</button></div>
+                    @if (errorProveedores()) { <p class="aviso error" role="alert">{{ errorProveedores() }} <button type="button" (click)="cargarProveedores()">Reintentar</button></p> }
+                    <label for="proveedor">Proveedor habilitado <span aria-hidden="true">*</span></label>
+                    <select id="proveedor" formControlName="proveedor_id" (change)="seleccionarProveedor()" required [attr.aria-busy]="cargandoProveedores()">
+                      <option value="">{{ cargandoProveedores() ? 'Cargando proveedores…' : 'Selecciona un proveedor' }}</option>
+                      @if (proveedorFueraDePagina(); as p) { <option [value]="p.id">{{ p.razon_social }} · {{ p.nit || 'Sin NIT' }}</option> }
+                      @for (p of proveedores(); track p.id) { <option [value]="p.id">{{ p.razon_social }} · {{ p.nit || 'Sin NIT' }}</option> }
+                    </select>
+                    @if (!cargandoProveedores() && !errorProveedores() && !proveedores().length) { <p class="ayuda">No se encontraron proveedores habilitados para esta búsqueda.</p> }
+                    <div class="paginador compacto"><button type="button" aria-label="Página anterior de proveedores" (click)="cargarProveedores(paginaProveedor() - 1)" [disabled]="paginaProveedor() <= 1 || cargandoProveedores()">←</button><small>{{ totalProveedores() }} proveedores · {{ paginaProveedor() }}/{{ paginas(totalProveedores()) }}</small><button type="button" aria-label="Página siguiente de proveedores" (click)="cargarProveedores(paginaProveedor() + 1)" [disabled]="paginaProveedor() >= paginas(totalProveedores()) || cargandoProveedores()">→</button></div>
+                    <div class="campos dos">
+                      <div><label for="documento">N.º de factura o documento <small>Opcional</small></label><input id="documento" formControlName="numero_documento" maxlength="80" placeholder="Ej. FAC-001" /></div>
+                      <div><label for="moneda">Moneda</label><select id="moneda" formControlName="moneda"><option value="BOB">BOB · Bolivianos</option><option value="USD">USD · Dólares</option><option value="EUR">EUR · Euros</option></select></div>
+                    </div>
+                    <label for="observaciones-compra">Observaciones <small>Opcional</small></label>
+                    <textarea id="observaciones-compra" rows="2" formControlName="observaciones" maxlength="2000" placeholder="Información adicional de la recepción"></textarea>
+                  </fieldset>
+                </form>
+              </section>
+              <section class="tarjeta">
+                <header class="titulo-seccion"><span class="paso" aria-hidden="true">2</span><div><h2>Productos y lotes</h2><p>Agrega cada producto con su cantidad y precio de compra.</p></div></header>
+                <form [formGroup]="linea" (ngSubmit)="agregarLinea()">
+                  <fieldset [disabled]="bloqueado()">
+                    <legend class="sr-only">Agregar producto a la compra</legend>
+                    <label for="buscar-producto">Buscar producto</label>
+                    <div class="buscador"><input id="buscar-producto" type="search" [formControl]="busquedaProducto" maxlength="160" placeholder="Nombre o código del producto" (keydown.enter)="$event.preventDefault(); cargarProductos()" /><button type="button" (click)="cargarProductos()" [disabled]="cargandoProductos()">Buscar</button></div>
+                    @if (errorProductos()) { <p class="aviso error" role="alert">{{ errorProductos() }} <button type="button" (click)="cargarProductos()">Reintentar</button></p> }
+                    <label for="producto">Producto <span aria-hidden="true">*</span></label>
+                    <select id="producto" formControlName="producto_id" (change)="seleccionarProducto()" required [attr.aria-busy]="cargandoProductos()">
+                      <option value="">{{ cargandoProductos() ? 'Cargando productos…' : 'Selecciona un producto' }}</option>
+                      @if (productoFueraDePagina(); as p) { <option [value]="p.id">{{ p.codigo }} · {{ p.nombre }}</option> }
+                      @for (p of productos(); track p.id) { <option [value]="p.id">{{ p.codigo }} · {{ p.nombre }}</option> }
+                    </select>
+                    @if (!cargandoProductos() && !errorProductos() && !productos().length) { <p class="ayuda">No se encontraron productos para esta búsqueda.</p> }
+                    <div class="paginador compacto"><button type="button" aria-label="Página anterior de productos" (click)="cargarProductos(paginaProducto() - 1)" [disabled]="paginaProducto() <= 1 || cargandoProductos()">←</button><small>{{ totalProductos() }} productos · {{ paginaProducto() }}/{{ paginas(totalProductos()) }}</small><button type="button" aria-label="Página siguiente de productos" (click)="cargarProductos(paginaProducto() + 1)" [disabled]="paginaProducto() >= paginas(totalProductos()) || cargandoProductos()">→</button></div>
+                    @if (producto(); as p) {
+                      <div class="zona-lote">
+                        <label for="modo-lote">Lote de recepción</label><select id="modo-lote" formControlName="modo" (change)="cambiarModo()"><option value="existente">Usar un lote existente</option><option value="nuevo">Ingresar número de lote</option></select>
+                        @if (linea.controls.modo.value === 'existente') {
+                          <label for="lote">Lote vigente <span aria-hidden="true">*</span></label>
+                          <select id="lote" formControlName="lote_id" (change)="seleccionarLote()" [attr.aria-busy]="cargandoLotes()">
+                            <option value="">{{ cargandoLotes() ? 'Cargando lotes…' : 'Selecciona un lote' }}</option>
+                            @if (loteFueraDePagina(); as l) { <option [value]="l.id">{{ l.numero_lote }} · {{ l.fecha_vencimiento || 'Sin vencimiento' }}</option> }
+                            @for (l of lotes(); track l.id) { <option [value]="l.id">{{ l.numero_lote }} · {{ l.fecha_vencimiento || 'Sin vencimiento' }}</option> }
+                          </select>
+                          @if (errorLotes()) { <p class="aviso error" role="alert">{{ errorLotes() }} <button type="button" (click)="cargarLotes()">Reintentar</button></p> }
+                          @if (!cargandoLotes() && !errorLotes() && !totalLotes()) { <p class="ayuda">Este producto no tiene lotes vigentes. Elige “Ingresar número de lote” para registrar uno.</p> }
+                          <div class="paginador compacto"><button type="button" aria-label="Página anterior de lotes" (click)="cargarLotes(paginaLote() - 1)" [disabled]="paginaLote() <= 1 || cargandoLotes()">←</button><small>{{ totalLotes() }} lotes · {{ paginaLote() }}/{{ paginas(totalLotes()) }}</small><button type="button" aria-label="Página siguiente de lotes" (click)="cargarLotes(paginaLote() + 1)" [disabled]="paginaLote() >= paginas(totalLotes()) || cargandoLotes()">→</button></div>
+                          @if (lote(); as l) { <p class="ayuda">Fabricación: {{ l.fecha_fabricacion || 'Sin registrar' }} · Vencimiento: {{ l.fecha_vencimiento || 'No aplica' }}. Se conservarán las fechas registradas.</p> }
+                        } @else {
+                          <label for="numero-lote">Número de lote <span aria-hidden="true">*</span></label><input id="numero-lote" formControlName="numero_lote" maxlength="80" placeholder="Número indicado en el producto" />
+                          <div class="campos dos"><div><label for="fabricacion">Fecha de fabricación</label><input id="fabricacion" type="date" formControlName="fecha_fabricacion" [max]="hoy" /></div><div><label for="vencimiento">Fecha de vencimiento</label><input id="vencimiento" type="date" formControlName="fecha_vencimiento" [min]="hoy" /></div></div>
+                          <p class="ayuda">Indica las fechas cuando correspondan. Si el lote ya existe, las fechas deben coincidir con las registradas.</p>
+                        }
+                      </div>
+                    }
+                    <div class="campos dos">
+                      <div><label for="cantidad">Cantidad <span aria-hidden="true">*</span></label><input id="cantidad" type="number" formControlName="cantidad" min="1" max="2147483647" step="1" required [attr.aria-invalid]="linea.controls.cantidad.touched && linea.controls.cantidad.invalid" aria-describedby="cantidad-ayuda" /><small id="cantidad-ayuda" class="ayuda">Unidades enteras mayores a cero{{ producto() ? ' · ' + producto()!.unidad_medida : '' }}.</small></div>
+                      <div><label for="precio">Precio unitario ({{ moneda() }}) <span aria-hidden="true">*</span></label><input id="precio" type="text" inputmode="decimal" formControlName="costo_unitario" placeholder="0.00" required [attr.aria-invalid]="linea.controls.costo_unitario.touched && linea.controls.costo_unitario.invalid" aria-describedby="precio-ayuda" /><small id="precio-ayuda" class="ayuda">Usa punto decimal y hasta 2 decimales. Se admite precio cero.</small></div>
+                    </div>
+                    <label for="observacion-linea">Observaciones del producto <small>Opcional</small></label><input id="observacion-linea" formControlName="observaciones" maxlength="2000" />
+                    @if (errorLinea()) { <p class="aviso error" role="alert">{{ errorLinea() }}</p> }
+                    <div class="acciones final"><button class="secundario" type="submit" [disabled]="!producto() || lineas().length >= 200">+ Agregar a la compra</button></div>
+                  </fieldset>
+                </form>
+              </section>
+            </div>
+            <aside class="tarjeta resumen" aria-labelledby="resumen-titulo">
+              <p class="etiqueta">Revisión</p><h2 id="resumen-titulo">Resumen de compra</h2>
+              <dl><div><dt>Proveedor</dt><dd>{{ proveedor()?.razon_social || 'Sin seleccionar' }}</dd></div><div><dt>Detalles agregados</dt><dd>{{ lineas().length }} / 200</dd></div></dl>
+              <div class="total"><span>Total de la compra</span><strong>{{ dinero(totalCentavos()) }}</strong></div>
+              <p class="ayuda">Al confirmar se registrará la recepción y se actualizarán las existencias de los lotes seleccionados.</p>
+              <button class="primario ancho" type="button" (click)="revisarCompra()" [disabled]="bloqueado() || !lineas().length || !proveedor()">Revisar y confirmar</button>
+            </aside>
+          </div>
+          <section class="tarjeta sin-relleno" aria-labelledby="detalles-titulo">
+            <header class="encabezado-tabla"><h2 id="detalles-titulo">Detalle de la compra</h2><span>{{ lineas().length }} productos / lotes</span></header>
+            <div class="tabla"><table><caption class="sr-only">Productos que se recibirán en esta compra</caption><thead><tr><th scope="col">Producto</th><th scope="col">Lote / vencimiento</th><th scope="col" class="numero">Cantidad</th><th scope="col" class="numero">Precio unitario</th><th scope="col" class="numero">Subtotal</th><th scope="col">Acción</th></tr></thead><tbody>
+              @for (l of lineas(); track l.clave) { <tr><td><strong>{{ l.producto.nombre }}</strong><small>{{ l.producto.codigo }} · {{ l.producto.unidad_medida }}</small>@if (l.datos.observaciones) { <small>{{ l.datos.observaciones }}</small> }</td><td>{{ l.numeroLote }}<small>{{ l.vencimiento || 'Sin vencimiento' }}</small></td><td class="numero">{{ l.datos.cantidad }}</td><td class="numero">{{ dineroServidor(l.datos.costo_unitario, moneda()) }}</td><td class="numero"><strong>{{ dinero(subtotal(l)) }}</strong></td><td><button class="peligro" type="button" (click)="quitarLinea(l.clave)" [disabled]="bloqueado()" [attr.aria-label]="'Quitar ' + l.producto.nombre + ', lote ' + l.numeroLote">Quitar</button></td></tr> }
+              @empty { <tr><td colspan="6" class="vacio"><strong>La compra aún no tiene productos</strong><p>Selecciona un producto, indica su lote, cantidad y precio, y agrégalo a la compra.</p></td></tr> }
+            </tbody></table></div>
+          </section>
+          @if (error()) { <p class="aviso error" role="alert">{{ error() }}</p> }
+          @if (confirmando()) {
+            <section #confirmacion tabindex="-1" class="tarjeta confirmacion" aria-labelledby="confirmar-titulo" aria-live="polite">
+              <h2 id="confirmar-titulo">Confirmar recepción de compra</h2><p>Se registrarán <strong>{{ lineas().length }} detalles</strong> de <strong>{{ proveedor()?.razon_social }}</strong> por un total de <strong>{{ dinero(totalCentavos()) }}</strong>.</p>
+              <p>Comprueba los productos y sus lotes antes de continuar.</p>
+              <div class="acciones final"><button type="button" (click)="confirmando.set(false)" [disabled]="guardando()">Volver a editar</button><button class="primario" type="button" (click)="confirmarCompra()" [disabled]="guardando()">{{ guardando() ? 'Registrando compra…' : 'Confirmar compra' }}</button></div>
+            </section>
+          }
+        }
+      } @else {
+        <section class="tarjeta sin-relleno" [attr.aria-busy]="cargandoHistorial()">
+          <header class="encabezado-tabla"><div><h2>Historial de compras</h2><p>{{ totalHistorial() }} compras registradas</p></div><button type="button" (click)="cargarHistorial(paginaHistorial())" [disabled]="cargandoHistorial()">Actualizar</button></header>
+          @if (errorHistorial()) { <p class="aviso error" role="alert">{{ errorHistorial() }} <button type="button" (click)="cargarHistorial()">Reintentar</button></p> }
+          @else if (cargandoHistorial()) { <p class="vacio" role="status">Cargando compras…</p> }
+          @else {
+            <div class="tabla"><table><caption class="sr-only">Compras de la clínica activa, más recientes primero</caption><thead><tr><th scope="col">Compra / fecha</th><th scope="col">Proveedor</th><th scope="col">Documento</th><th scope="col">Estado</th><th scope="col" class="numero">Total</th><th scope="col">Acción</th></tr></thead><tbody>
+              @for (c of historial(); track c.id) { <tr><td><strong>#{{ c.id }}</strong><small>{{ c.fecha_compra | date:'dd/MM/yyyy HH:mm':'-0400' }}</small></td><td>{{ c.proveedor_razon_social }}</td><td>{{ c.numero_documento || 'Sin documento' }}</td><td><span class="estado" [class.neutro]="c.estado !== 'RECIBIDA'">{{ c.estado }}</span></td><td class="numero">{{ dineroServidor(c.total, c.moneda) }}</td><td><button type="button" (click)="verCompra(c.id)" [attr.aria-label]="'Ver detalle de compra ' + c.id">Ver detalle</button></td></tr> }
+              @empty { <tr><td colspan="6" class="vacio"><strong>Aún no hay compras registradas</strong><p>Las compras recibidas aparecerán aquí.</p></td></tr> }
+            </tbody></table></div>
+          }
+          <nav class="paginador" aria-label="Paginación del historial"><button type="button" (click)="cargarHistorial(paginaHistorial() - 1)" [disabled]="paginaHistorial() <= 1 || cargandoHistorial()">Anterior</button><span>Página {{ paginaHistorial() }} de {{ paginas(totalHistorial()) }}</span><button type="button" (click)="cargarHistorial(paginaHistorial() + 1)" [disabled]="paginaHistorial() >= paginas(totalHistorial()) || cargandoHistorial()">Siguiente</button></nav>
+        </section>
+        @if (cargandoDetalle()) { <p class="aviso" role="status">Consultando detalle de la compra…</p> }
+        @if (errorDetalle()) { <p class="aviso error" role="alert">{{ errorDetalle() }}</p> }
+        @if (detalle(); as compra) { <div class="acciones final"><button type="button" (click)="cerrarDetalle()">Cerrar detalle</button></div><ng-container *ngTemplateOutlet="ficha; context: { $implicit: compra }" /> }
+      }
+    }
+
+    <ng-template #ficha let-compra>
+      <section #fichaDetalle tabindex="-1" class="tarjeta sin-relleno" aria-label="Detalle de compra registrada">
+        <header class="encabezado-tabla"><div><p class="etiqueta">Compra #{{ compra.id }}</p><h2>{{ compra.proveedor_razon_social }}</h2><p>{{ compra.fecha_compra | date:'dd/MM/yyyy HH:mm':'-0400' }} · Documento: {{ compra.numero_documento || 'Sin documento' }}</p></div><span class="estado" [class.neutro]="compra.estado !== 'RECIBIDA'">{{ compra.estado }}</span></header>
+        <div class="tabla"><table><caption class="sr-only">Detalles de la compra registrada</caption><thead><tr><th scope="col">Producto</th><th scope="col">Lote / vencimiento</th><th scope="col" class="numero">Cantidad</th><th scope="col" class="numero">Precio unitario</th><th scope="col" class="numero">Subtotal</th></tr></thead><tbody>
+          @for (d of compra.detalles; track d.id) { <tr><td>{{ d.producto_nombre }}@if (d.observaciones) { <small>{{ d.observaciones }}</small> }</td><td>{{ d.numero_lote }}<small>{{ d.fecha_vencimiento || 'Sin vencimiento' }}</small></td><td class="numero">{{ d.cantidad }}</td><td class="numero">{{ dineroServidor(d.costo_unitario, compra.moneda) }}</td><td class="numero">{{ dineroServidor(d.subtotal, compra.moneda) }}</td></tr> }
+        </tbody></table></div>
+        <footer class="pie-compra">@if (compra.observaciones) { <p>{{ compra.observaciones }}</p> }<strong>Total: {{ dineroServidor(compra.total, compra.moneda) }}</strong></footer>
+      </section>
+    </ng-template>
+  </section>
+  @if (movil()) { <button class="fondo-menu" type="button" (click)="movil.set(false)" aria-label="Cerrar menú"></button> }
+</main>

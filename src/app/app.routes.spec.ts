@@ -1,6 +1,7 @@
 import { authGuard } from './core/guards/auth.guard';
 import { routes } from './app.routes';
 import { GestionProveedores } from './features/gestion-inventario-proveedores/casos-uso/casos-uso/cu25_gestionar_proveedores/gestion-proveedores';
+import { RegistrarCompras } from './features/gestion-inventario-proveedores/casos-uso/cu29-registrar-compras-proveedores/registrar-compras';
 
 describe('app.routes — CU30', () => {
   it('expone inventario y alertas con authGuard antes del comodín', () => {
@@ -24,6 +25,19 @@ describe('app.routes — CU28', () => {
     expect(rutasProveedores[0].canActivate).toContain(authGuard);
     expect(typeof rutasProveedores[0].loadComponent).toBe('function');
     await expect(rutasProveedores[0].loadComponent?.()).resolves.toBe(GestionProveedores);
+  });
+});
+
+describe('app.routes — CU29', () => {
+  it('carga compras una sola vez, protegida y antes del comodín', async () => {
+    const rutasCompras = routes.filter((ruta) => ruta.path === 'compras');
+    const indice = routes.findIndex((ruta) => ruta.path === 'compras');
+
+    expect(rutasCompras).toHaveLength(1);
+    expect(indice).toBeGreaterThanOrEqual(0);
+    expect(indice).toBeLessThan(routes.findIndex((ruta) => ruta.path === '**'));
+    expect(rutasCompras[0].canActivate).toContain(authGuard);
+    await expect(rutasCompras[0].loadComponent?.()).resolves.toBe(RegistrarCompras);
   });
 });
 
