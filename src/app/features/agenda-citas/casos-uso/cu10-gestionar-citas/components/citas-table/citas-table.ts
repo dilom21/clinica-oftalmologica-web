@@ -45,6 +45,7 @@ export class CitasTable implements OnDestroy {
   readonly confirmar = output<CitaMedica>();
   readonly cambiarEstado = output<CitaMedica>();
   readonly cancelar = output<CitaMedica>();
+  readonly constancia = output<CitaMedica>();
 
   private readonly elementRef = inject(ElementRef);
 
@@ -76,6 +77,10 @@ export class CitasTable implements OnDestroy {
 
   esConfirmable(cita: CitaMedica): boolean {
     return cita.estado === 'PROGRAMADA';
+  }
+
+  tieneConstancia(cita: CitaMedica): boolean {
+    return cita.estado === 'ATENDIDA';
   }
 
   esMenuAbierta(cita: CitaMedica): boolean {
@@ -246,5 +251,10 @@ export class CitasTable implements OnDestroy {
   cancelarCita(cita: CitaMedica): void {
     this.cerrarMenu();
     this.cancelar.emit(cita);
+  }
+
+  descargarConstancia(cita: CitaMedica): void {
+    this.cerrarMenu();
+    this.constancia.emit(cita);
   }
 }

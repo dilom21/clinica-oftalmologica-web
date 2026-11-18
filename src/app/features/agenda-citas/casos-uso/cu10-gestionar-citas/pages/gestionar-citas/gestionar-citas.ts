@@ -308,6 +308,24 @@ export class GestionarCitas implements OnInit {
     this.cambiarEstadoDesdeServidor(cita, 'CONFIRMADA', 'Cita confirmada correctamente.');
   }
 
+  /** CU37: descarga la constancia en PDF de una cita ATENDIDA. */
+  descargarConstancia(cita: CitaMedica): void {
+    this.citasService.descargarConstancia(cita.id).subscribe({
+      next: ({ blob, nombre }) => {
+        const url = URL.createObjectURL(blob);
+        const enlace = document.createElement('a');
+        enlace.href = url;
+        enlace.download = nombre;
+        enlace.click();
+        URL.revokeObjectURL(url);
+        this.mostrarExito('Constancia descargada correctamente.');
+      },
+      error: (err: unknown) => {
+        this.mostrarError(this.extraerError(err, 'No se pudo emitir la constancia de la cita.'));
+      },
+    });
+  }
+
   private cambiarEstadoDesdeServidor(
     cita: CitaMedica,
     estado: string,

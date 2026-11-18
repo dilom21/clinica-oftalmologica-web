@@ -26,6 +26,7 @@ export class CitaDetailModal {
   readonly reprogramar = output<CitaMedica>();
   readonly cambiarEstado = output<CitaMedica>();
   readonly cancelar = output<CitaMedica>();
+  readonly constancia = output<CitaMedica>();
 
   @HostListener('document:keydown.escape')
   onEscape(): void {

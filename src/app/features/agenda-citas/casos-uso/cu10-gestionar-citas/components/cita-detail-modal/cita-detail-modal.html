@@ -82,6 +82,15 @@
         </dl>
 
         <div class="cita-detail-modal__acciones">
+          @if (cita.estado === 'ATENDIDA') {
+            <button
+              type="button"
+              class="cita-detail-modal__btn"
+              (click)="constancia.emit(cita)"
+            >
+              Descargar constancia
+            </button>
+          }
           @if (!esEstadoTerminal(cita)) {
             <button
               type="button"
