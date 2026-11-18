@@ -32,13 +32,12 @@ for authorization.
 
 ## Historical implementation
 
-The Quisbert implementation remains preserved in the repository at:
-
-`features/gestion-inventario-proveedores/casos-uso/cu28-gestionar-proveedores/pages/gestion-proveedores/gestion-proveedores`
-
-It is retained as integration history only. It has no active route, navigation
-link, or active-flow import. Its files and historical tests have not been
-deleted.
+The earlier Quisbert implementation (`casos-uso/cu28-gestionar-proveedores`) was
+removed from the repository because it was not wired to any route and its
+service did not match the current backend contract (`items`, `buscar`,
+`pagina`, `confirmar`). The active implementation is the one described above,
+under `casos-uso/casos-uso/cu25_gestionar_proveedores`. The earlier version
+remains available in git history before the commit that removed it.
 
 ## Static integration audit
 
