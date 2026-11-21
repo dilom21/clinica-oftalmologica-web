@@ -264,6 +264,17 @@ export class NavegacionService {
     return !this.estaOcultaEnWeb(funcion.nombre);
   }
 
+  /** CU34 is a derived web capability, not a persisted backend function. */
+  puedeConsultarEstadoCuenta(modulos: ReadonlyArray<MenuModulo> | null | undefined): boolean {
+    if (!Array.isArray(modulos)) return false;
+    const funciones = modulos.flatMap((modulo) => Array.isArray(modulo?.funciones) ? modulo.funciones : []);
+    const lectura = (nombre: string) => funciones.some((funcion) =>
+      this.normalizarNombre(funcion?.nombre ?? '') === nombre &&
+      ['LECTURA', 'AMBAS'].includes((funcion?.accion_nombre ?? '').trim().toUpperCase()),
+    );
+    return lectura('gestionar pagos') && lectura('gestionar planes de pago') && lectura('gestionar cuotas');
+  }
+
   /** Indica si una función debe ocultarse en la navegación web. */
   estaOcultaEnWeb(nombre: string): boolean {
     const valor = (nombre ?? '').trim();

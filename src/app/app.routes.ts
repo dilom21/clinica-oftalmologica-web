@@ -245,6 +245,10 @@ export const routes: Routes = [
           ).then((m) => m.GestionPagos),
       },
       {
+        path: 'estado-cuenta',
+        loadComponent: () => import('./features/gestion-pagos/casos-uso/cu34-consultar-pagos-saldos/pages/consultar-estado-cuenta/consultar-estado-cuenta').then(m => m.ConsultarEstadoCuenta),
+      },
+      {
         path: 'planes',
         loadComponent: () =>
           import(

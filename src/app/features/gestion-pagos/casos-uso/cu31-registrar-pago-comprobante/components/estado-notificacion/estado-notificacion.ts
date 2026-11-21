@@ -59,6 +59,7 @@ export class EstadoNotificacion {
   readonly estadoPago = input<EstadoPago>('PENDIENTE');
   readonly notificacionInicial = input<NotificacionPago | null>(null);
   readonly puedeReintentar = input(false);
+  readonly compacto = input(false);
 
   protected readonly notificacion = signal<NotificacionPago | null>(null);
   protected readonly cargando = signal(false);

@@ -39,10 +39,44 @@ interface VistaDetalle {
   errorConfirmacion(): string | null;
   exito(): string | null;
   descargarComprobante(): void;
+  confirmarPago(): void;
+  abrirConfirmacion(): void;
+  puedeConfirmar(): boolean;
+  soloLectura(): boolean;
   descargando(): boolean;
 }
 
 const PERMISOS: PermisosPagos = { ver: true, registrar: true, confirmar: true };
+
+describe('CU34 — variante consultiva compacta del detalle reutilizado', () => {
+  it('conserva la presentación operativa de CU31 por defecto', () => {
+    TestBed.configureTestingModule({ imports: [DetallePago], providers: [
+      { provide: PagosAdministrativosService, useValue: { confirmarPago: vi.fn() } },
+      { provide: ComprobantePagoService, useValue: { descargar: vi.fn() } },
+    ] });
+    const fixture = TestBed.createComponent(DetallePago);
+    fixture.componentRef.setInput('pago', pago()); fixture.componentRef.setInput('permisos', PERMISOS); fixture.detectChanges();
+    expect(fixture.nativeElement.querySelector('.detalle--compacto')).toBeNull();
+    expect(fixture.nativeElement.textContent).toContain('Confirmar pago');
+    expect(fixture.nativeElement.textContent).toContain('Paciente');
+    expect(fixture.nativeElement.textContent).toContain('Servicios cobrados');
+  });
+
+  it('renderiza la variante compacta en solo lectura y no permite confirmar desde el código ni la interfaz', () => {
+    const confirmarPago = vi.fn();
+    TestBed.configureTestingModule({ imports: [DetallePago], providers: [
+      { provide: PagosAdministrativosService, useValue: { confirmarPago } },
+      { provide: ComprobantePagoService, useValue: { descargar: vi.fn() } },
+    ] });
+    const fixture = TestBed.createComponent(DetallePago);
+    fixture.componentRef.setInput('pago', pago()); fixture.componentRef.setInput('permisos', PERMISOS); fixture.componentRef.setInput('soloLectura', true); fixture.componentRef.setInput('compacto', true); fixture.detectChanges();
+    expect(fixture.nativeElement.querySelector('.detalle--compacto')).not.toBeNull();
+    expect(fixture.nativeElement.textContent).toContain('Fecha de registro');
+    expect(fixture.nativeElement.textContent).not.toContain('Confirmar pago');
+    expect(fixture.nativeElement.textContent).not.toContain('Descargar comprobante');
+    (fixture.componentInstance as unknown as VistaDetalle).confirmarPago(); expect(confirmarPago).not.toHaveBeenCalled();
+  });
+});
 
 describe('CU31 — detalle, confirmación y comprobante', () => {
   let fixture: ComponentFixture<DetallePago>;
@@ -53,6 +87,7 @@ describe('CU31 — detalle, confirmación y comprobante', () => {
   async function configurar(
     datos: PagoAdministrativo,
     permisos: PermisosPagos = PERMISOS,
+    soloLectura = false,
   ): Promise<void> {
     TestBed.resetTestingModule();
     api = { confirmarPago: vi.fn(() => of(pago({ estado: 'APROBADO' }))) };
@@ -74,6 +109,7 @@ describe('CU31 — detalle, confirmación y comprobante', () => {
     fixture.componentRef.setInput('pago', datos);
     fixture.componentRef.setInput('nombrePaciente', 'Ana Quispe');
     fixture.componentRef.setInput('permisos', permisos);
+    fixture.componentRef.setInput('soloLectura', soloLectura);
     vista = fixture.componentInstance as unknown as VistaDetalle;
     fixture.detectChanges();
   }
@@ -136,5 +172,20 @@ describe('CU31 — detalle, confirmación y comprobante', () => {
     await configurar(pago({ estado: 'PENDIENTE' }));
     vista.descargarComprobante();
     expect(comprobantes.descargar).not.toHaveBeenCalled();
+  });
+
+  it('la modalidad de solo lectura bloquea confirmación y conserva la descarga permitida', async () => {
+    await configurar(pago(), PERMISOS, true);
+    expect(vista.soloLectura()).toBe(true);
+    expect(vista.puedeConfirmar()).toBe(false);
+    vista.abrirConfirmacion();
+    vista.confirmarPago();
+    expect(vista.dialogoAbierto()).toBe(false);
+    expect(api.confirmarPago).not.toHaveBeenCalled();
+
+    await configurar(pago({ estado: 'APROBADO' }), PERMISOS, true);
+    vista.descargarComprobante();
+    expect(comprobantes.descargar).toHaveBeenCalledWith(1024);
+    expect(api.confirmarPago).not.toHaveBeenCalled();
   });
 });

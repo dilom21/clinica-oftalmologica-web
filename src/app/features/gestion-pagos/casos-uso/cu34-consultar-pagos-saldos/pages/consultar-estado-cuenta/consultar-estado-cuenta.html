@@ -1,0 +1,873 @@
+<div class="cu34-shell">
+  <app-sidebar
+    [mobileOpen]="sidebarMovilAbierto()"
+    (mobileClose)="cerrarSidebar()"
+    [mostrarEmpresaMovil]="false"
+  />
+  <main class="cu34-main">
+    <p class="breadcrumb">
+      <app-icono-cuenta nombre="inicio" /><span aria-hidden="true">›</span> Pagos
+      <span aria-hidden="true">/</span> Consulta administrativa
+    </p>
+    <header class="cu34-header">
+      <button
+        class="cu34-menu btn btn-light"
+        type="button"
+        aria-label="Abrir navegación"
+        (click)="alternarSidebar()"
+      >
+        <app-icono-cuenta nombre="menu" />
+      </button>
+      <span class="title-icon"><app-icono-cuenta nombre="saldo" /></span>
+      <div>
+        <h1>Consultar pagos y saldos</h1>
+        <p>Consulta el estado financiero de un paciente y sus obligaciones.</p>
+      </div>
+      <button
+        class="btn refresh"
+        type="button"
+        (click)="actualizar()"
+        [disabled]="!paciente() || cargando() || !puedeConsultar()"
+      >
+        <app-icono-cuenta nombre="actualizar" />Actualizar
+      </button>
+    </header>
+    @if (permiso() === 'verificando') {
+      <section class="mensaje" role="status">Verificando acceso a la consulta…</section>
+    } @else if (permiso() === 'error') {
+      <section class="mensaje error" role="alert">
+        No se pudo verificar tu acceso.
+        <button class="btn" (click)="reintentarMenu()">Reintentar</button>
+      </section>
+    } @else if (permiso() === 'denegado') {
+      <section class="mensaje error" role="alert">
+        <h2>Acceso no disponible</h2>
+        <p>
+          Necesitas una sesión administrativa de clínica y permisos de consulta sobre pagos, planes
+          de pago y cuotas.
+        </p>
+      </section>
+    } @else {
+      <section class="patient-card card" aria-labelledby="buscar-titulo">
+        <div class="search-area">
+          <label id="buscar-titulo" for="paciente-search">Buscar paciente</label>
+          <div class="search-wrap">
+            <app-icono-cuenta nombre="buscar" />
+            <input
+              id="paciente-search"
+              type="search"
+              autocomplete="off"
+              placeholder="Escribe al menos dos caracteres de nombre, apellido o CI…"
+              [value]="termino()"
+              (input)="buscar($any($event.target).value)"
+              (focus)="mostrarResultados.set(true)"
+              (keydown.escape)="mostrarResultados.set(false)"
+              [disabled]="cargandoPacientes()"
+              aria-controls="cu34-resultados"
+              [attr.aria-expanded]="mostrarResultados() && termino().trim().length >= 2"
+            />
+            @if (mostrarResultados() && termino().trim().length >= 2) {
+              <ul id="cu34-resultados" class="resultados" aria-label="Pacientes coincidentes">
+                @for (p of sugerencias(); track p.id) {
+                  <li>
+                    <button type="button" (click)="seleccionar(p)">
+                      <span class="avatar small-avatar">{{ iniciales(p) }}</span
+                      ><span
+                        ><strong>{{ nombrePaciente(p) }}</strong
+                        ><small
+                          >CI {{ p.ci || 'No registrado' }} ·
+                          {{ p.telefono || 'Sin teléfono' }}</small
+                        ></span
+                      >
+                    </button>
+                  </li>
+                } @empty {
+                  <li class="empty">No se encontraron pacientes coincidentes.</li>
+                }
+              </ul>
+            }
+          </div>
+        </div>
+        @if (paciente(); as seleccionado) {
+          <div class="patient-identity">
+            <span class="avatar" aria-hidden="true">{{ iniciales(seleccionado) }}</span>
+            <div>
+              <strong>{{ nombrePaciente(seleccionado) }}</strong
+              ><span class="patient-contact"
+                >CI: {{ seleccionado.ci || 'No registrado' }}
+                <span>Teléfono: {{ seleccionado.telefono || 'No registrado' }}</span></span
+              >
+            </div>
+          </div>
+          <button class="btn btn-light change-patient" (click)="cambiarPaciente()">
+            <app-icono-cuenta nombre="transferencia" />Cambiar paciente
+          </button>
+        } @else {
+          <p class="patient-hint">Selecciona un paciente para consultar sus pagos y saldos.</p>
+        }
+      </section>
+      @if (cargandoPacientes()) {
+        <p class="mensaje" role="status">Cargando pacientes…</p>
+      }
+      @if (errorPacientes(); as patientError) {
+        <p class="mensaje error" role="alert">
+          {{ patientError }}
+          <button class="btn" (click)="reintentarPacientes()">Reintentar búsqueda</button>
+        </p>
+      }
+      @if (error(); as err) {
+        <section class="mensaje error" role="alert">
+          {{ err }} <button class="btn" (click)="cargarCuenta()">Reintentar consulta</button>
+        </section>
+      }
+      @if (cargando()) {
+        <section class="mensaje" role="status">Consultando el estado de cuenta…</section>
+      }
+      @if (cuenta(); as c) {
+        <nav class="tabs" role="tablist" aria-label="Secciones del estado de cuenta">
+          @for (tab of pestanas; track tab.id; let i = $index) {
+            <button
+              type="button"
+              role="tab"
+              [id]="'tab-' + tab.id"
+              [attr.aria-controls]="'panel-' + tab.id"
+              [attr.aria-selected]="pestana() === tab.id"
+              [tabIndex]="pestana() === tab.id ? 0 : -1"
+              [class.active]="pestana() === tab.id"
+              (click)="seleccionarPestana(tab.id)"
+              (keydown)="navegarPestana($event, i)"
+            >
+              <app-icono-cuenta [nombre]="tab.icono" />{{ tab.nombre }}
+            </button>
+          }
+        </nav>
+        <section
+          class="tab-panel"
+          role="tabpanel"
+          [id]="'panel-' + pestana()"
+          [attr.aria-labelledby]="'tab-' + pestana()"
+          tabindex="0"
+        >
+          @switch (pestana()) {
+            @case ('resumen') {
+              <app-indicadores-cuenta [resumen]="c.resumen" />
+              <div class="overview-grid">
+                <app-composicion-saldo [resumen]="c.resumen" />
+                <section class="card pending-preview">
+                  <header class="section-title">
+                    <app-icono-cuenta nombre="planes" />
+                    <div>
+                      <h2>Pagos pendientes de confirmación o conciliación</h2>
+                      <p>Solo los pagos aplicados reducen el saldo.</p>
+                    </div>
+                  </header>
+                  <ng-container *ngTemplateOutlet="listaPendientes; context: { $implicit: true }" />
+                  @if (c.pagos_pendientes_confirmacion.length) {
+                    <button class="text-button" (click)="seleccionarPestana('pendientes')">
+                      Ver todos<app-icono-cuenta nombre="flecha" />
+                    </button>
+                  }
+                </section>
+              </div>
+              <section class="card section services-preview">
+                <header class="section-title">
+                  <app-icono-cuenta nombre="servicios" />
+                  <div>
+                    <h2>Servicios realizados</h2>
+                    <p>Últimos servicios registrados para el paciente.</p>
+                  </div>
+                  <button class="btn btn-light" (click)="seleccionarPestana('servicios')">
+                    Ver todos<app-icono-cuenta nombre="flecha" />
+                  </button>
+                </header>
+                <ng-container *ngTemplateOutlet="tablaServicios; context: { $implicit: true }" />
+              </section>
+            }
+            @case ('servicios') {
+              <div class="workspace-grid">
+                <section class="card section">
+                  <header class="section-title">
+                    <span class="section-icon"><app-icono-cuenta nombre="servicios" /></span>
+                    <div>
+                      <h2>Servicios realizados</h2>
+                      <p>Servicios del paciente, sus pagos y saldo.</p>
+                    </div>
+                  </header>
+                  <div class="local-filters">
+                    <label
+                      ><app-icono-cuenta nombre="filtro" /><span class="sr-only"
+                        >Filtrar servicios</span
+                      ><select
+                        aria-label="Filtrar servicios"
+                        [value]="filtroServicios()"
+                        (change)="filtrarServicios($event)"
+                      >
+                        <option value="todos">Todos los servicios</option>
+                        <option value="financiados">Financiados</option>
+                        <option value="no-financiados">No financiados</option>
+                        <option value="con-saldo">Con saldo pendiente</option>
+                        <option value="sin-saldo">Sin saldo pendiente</option>
+                      </select></label
+                    >
+                    <label
+                      ><app-icono-cuenta nombre="calendario" /><span class="sr-only"
+                        >Ordenar servicios</span
+                      ><select
+                        aria-label="Ordenar servicios"
+                        [value]="ordenServicios()"
+                        (change)="ordenarListado($event)"
+                      >
+                        <option value="reciente">Más reciente</option>
+                        <option value="antigua">Más antigua</option>
+                      </select></label
+                    >
+                  </div>
+                  <ng-container *ngTemplateOutlet="tablaServicios; context: { $implicit: false }" />
+                  <footer class="results-count">
+                    Mostrando {{ serviciosFiltrados().length }} de {{ c.servicios.length }}
+                    {{ c.servicios.length === 1 ? 'servicio' : 'servicios' }}
+                  </footer>
+                </section>
+                <aside class="side-stack" aria-label="Resumen de servicios">
+                  <section class="card section">
+                    <header class="section-title">
+                      <app-icono-cuenta nombre="planes" />
+                      <h2>Resumen rápido</h2>
+                    </header>
+                    <div class="quick-stats">
+                      <div>
+                        <app-icono-cuenta nombre="servicios" /><span>Total de servicios</span
+                        ><strong>{{ c.servicios.length }}</strong>
+                      </div>
+                      <div class="success">
+                        <app-icono-cuenta nombre="tarjeta" /><span>Pagos aplicados</span
+                        ><strong>{{
+                          monto(c.resumen.total_pagos_aprobados_aplicados, c.resumen.moneda)
+                        }}</strong>
+                      </div>
+                      <div>
+                        <app-icono-cuenta nombre="saldo" /><span>Saldo pendiente</span
+                        ><strong>{{
+                          monto(c.resumen.saldo_total_pendiente, c.resumen.moneda)
+                        }}</strong>
+                      </div>
+                    </div>
+                  </section>
+                  <section class="card section">
+                    <header class="section-title">
+                      <app-icono-cuenta nombre="planes" />
+                      <h2>Planes asociados</h2>
+                      <button class="btn btn-light" (click)="seleccionarPestana('planes')">
+                        Ver todos<app-icono-cuenta nombre="flecha" />
+                      </button>
+                    </header>
+                    @for (plan of c.planes_pago.slice(0, 3); track plan.id) {
+                      <button class="associated-plan" (click)="verPlan(plan.id)">
+                        <app-icono-cuenta nombre="planes" /><span
+                          ><strong>Plan #{{ plan.id }}</strong
+                          ><small
+                            >{{ plan.cuotas.length }}
+                            {{ plan.cuotas.length === 1 ? 'cuota' : 'cuotas' }} ·
+                            {{ monto(plan.monto_total, plan.moneda) }}</small
+                          ><small>Saldo {{ monto(plan.saldo_pendiente, plan.moneda) }}</small></span
+                        ><span [class]="'badge ' + claseEstado(plan.estado)">{{ plan.estado }}</span
+                        ><app-icono-cuenta nombre="flecha" />
+                      </button>
+                    } @empty {
+                      <p class="empty">No hay planes de pago asociados.</p>
+                    }
+                  </section>
+                  <section class="card section">
+                    <header class="section-title">
+                      <app-icono-cuenta nombre="alerta" />
+                      <h2>Pendientes</h2>
+                    </header>
+                    <div class="pending-stats">
+                      <div>
+                        <span>Importe de cuotas vencidas</span
+                        ><strong>{{
+                          monto(c.resumen.importe_cuotas_vencidas, c.resumen.moneda)
+                        }}</strong>
+                      </div>
+                      <div>
+                        <span>Cuotas pendientes</span
+                        ><strong>{{ c.resumen.cantidad_cuotas_pendientes }}</strong>
+                      </div>
+                    </div>
+                    <p class="footnote">Las cuotas vencidas ya están contempladas en el saldo.</p>
+                  </section>
+                </aside>
+              </div>
+            }
+            @case ('planes') {
+              <div class="plans-grid">
+                <section class="card section">
+                  <header class="section-title">
+                    <app-icono-cuenta nombre="planes" />
+                    <div>
+                      <h2>Planes de pago</h2>
+                      <p>
+                        {{ c.planes_pago.length }}
+                        {{ c.planes_pago.length === 1 ? 'plan asociado' : 'planes asociados' }}
+                      </p>
+                    </div>
+                  </header>
+                  <div class="plan-list">
+                    @for (plan of c.planes_pago; track plan.id) {
+                      <button
+                        class="plan-option"
+                        [class.selected]="planSeleccionadoId() === plan.id"
+                        [attr.aria-pressed]="planSeleccionadoId() === plan.id"
+                        (click)="planSeleccionadoId.set(plan.id)"
+                      >
+                        <div>
+                          <span class="section-icon"><app-icono-cuenta nombre="planes" /></span
+                          ><strong>Plan #{{ plan.id }}</strong
+                          ><span [class]="'badge ' + claseEstado(plan.estado)">{{
+                            plan.estado
+                          }}</span>
+                        </div>
+                        <dl>
+                          <div>
+                            <dt>Importe total</dt>
+                            <dd>{{ monto(plan.monto_total, plan.moneda) }}</dd>
+                          </div>
+                          <div>
+                            <dt>Saldo pendiente</dt>
+                            <dd>{{ monto(plan.saldo_pendiente, plan.moneda) }}</dd>
+                          </div>
+                        </dl>
+                        <small
+                          >{{ cuotasPagadas(plan) }} de {{ plan.cuotas.length }} cuotas
+                          pagadas</small
+                        ><progress
+                          [value]="cuotasPagadas(plan)"
+                          [max]="plan.cuotas.length || 1"
+                          aria-label="Progreso por cantidad de cuotas pagadas"
+                        ></progress>
+                      </button>
+                    } @empty {
+                      <div class="empty-state">
+                        <app-icono-cuenta nombre="planes" />
+                        <h3>No hay planes de pago asociados.</h3>
+                        <p>Los planes del paciente aparecerán aquí.</p>
+                      </div>
+                    }
+                  </div>
+                </section>
+                <section class="card section plan-detail" aria-label="Detalle del plan">
+                  @if (planSeleccionado(); as plan) {
+                    <header class="section-title">
+                      <app-icono-cuenta nombre="calendario" />
+                      <div>
+                        <h2>Cuotas del Plan #{{ plan.id }}</h2>
+                        <p>Cronograma de vencimientos · Solo consulta</p>
+                      </div>
+                      <span [class]="'badge ' + claseEstado(plan.estado)">{{ plan.estado }}</span>
+                    </header>
+                    <div class="plan-totals">
+                      <div>
+                        <span>Importe total</span
+                        ><strong>{{ monto(plan.monto_total, plan.moneda) }}</strong>
+                      </div>
+                      <div>
+                        <span>Saldo pendiente</span
+                        ><strong>{{ monto(plan.saldo_pendiente, plan.moneda) }}</strong>
+                      </div>
+                      <div>
+                        <span>Cuotas pagadas</span
+                        ><strong>{{ cuotasPagadas(plan) }} / {{ plan.cuotas.length }}</strong>
+                      </div>
+                    </div>
+                    <div class="table-wrap">
+                      <table>
+                        <thead>
+                          <tr>
+                            <th>Cuota</th>
+                            <th>Vencimiento</th>
+                            <th class="money">Monto programado</th>
+                            <th>Estado</th>
+                          </tr>
+                        </thead>
+                        <tbody>
+                          @for (q of plan.cuotas; track q.id) {
+                            <tr>
+                              <td>Cuota {{ q.numero_cuota }}</td>
+                              <td>{{ fecha(q.fecha_vencimiento) }}</td>
+                              <td class="money">{{ monto(q.monto_programado, plan.moneda) }}</td>
+                              <td>
+                                <span [class]="'badge ' + claseEstado(q.estado)">{{
+                                  q.estado
+                                }}</span>
+                              </td>
+                            </tr>
+                          } @empty {
+                            <tr>
+                              <td colspan="4" class="empty">Este plan no tiene cuotas.</td>
+                            </tr>
+                          }
+                        </tbody>
+                      </table>
+                    </div>
+                    <p class="footnote">
+                      El progreso representa cuotas pagadas, no el porcentaje monetario del plan.
+                    </p>
+                  } @else {
+                    <div class="empty-state">
+                      <app-icono-cuenta nombre="calendario" />
+                      <h3>Selecciona un plan</h3>
+                      <p>Consulta sus importes y cronograma de cuotas en este panel.</p>
+                    </div>
+                  }
+                </section>
+              </div>
+            }
+            @case ('historial') {
+              <app-indicadores-cuenta [resumen]="c.resumen" />
+              <section class="card section history-card">
+                <header class="section-title">
+                  <span class="section-icon"><app-icono-cuenta nombre="tarjeta" /></span>
+                  <div>
+                    <h2>Historial de pagos</h2>
+                    <p>Transacciones del paciente seleccionado.</p>
+                  </div>
+                </header>
+                <form
+                  class="history-filters"
+                  (submit)="$event.preventDefault(); aplicarFiltrosHistorial()"
+                >
+                  <div>
+                    <label for="cu34-desde">Fecha desde</label
+                    ><input
+                      id="cu34-desde"
+                      type="date"
+                      [value]="filtroDesde()"
+                      (change)="actualizarFiltro($event, 'desde')"
+                    />
+                  </div>
+                  <div>
+                    <label for="cu34-hasta">Fecha hasta</label
+                    ><input
+                      id="cu34-hasta"
+                      type="date"
+                      [value]="filtroHasta()"
+                      (change)="actualizarFiltro($event, 'hasta')"
+                    />
+                  </div>
+                  <div>
+                    <label for="cu34-metodo">Método de pago</label
+                    ><select
+                      id="cu34-metodo"
+                      [value]="filtroMetodo()"
+                      (change)="actualizarFiltro($event, 'metodo')"
+                    >
+                      <option value="">Todos los métodos</option>
+                      @for (metodo of metodosPago; track metodo) {
+                        <option [value]="metodo">{{ metodoPago(metodo) }}</option>
+                      }
+                    </select>
+                  </div>
+                  <div>
+                    <label for="cu34-estado">Estado</label
+                    ><select
+                      id="cu34-estado"
+                      [value]="filtroEstado()"
+                      (change)="actualizarFiltro($event, 'estado')"
+                    >
+                      <option value="">Todos los estados</option>
+                      @for (estado of estadosPago; track estado) {
+                        <option [value]="estado">{{ estadoPago(estado) }}</option>
+                      }
+                    </select>
+                  </div>
+                  <button class="btn" type="submit" [disabled]="cargandoHistorial()">
+                    <app-icono-cuenta nombre="filtro" />Aplicar filtros</button
+                  ><button
+                    class="btn btn-light"
+                    type="button"
+                    [disabled]="cargandoHistorial()"
+                    (click)="limpiarFiltrosHistorial()"
+                  >
+                    <app-icono-cuenta nombre="actualizar" />Limpiar
+                  </button>
+                </form>
+                @if (errorFiltros(); as filterError) {
+                  <p class="mensaje error" role="alert">{{ filterError }}</p>
+                }
+                @if (historialError(); as msg) {
+                  <p class="mensaje error" role="alert">
+                    {{ msg }} <button class="btn" (click)="retryHistorial()">Reintentar</button>
+                  </p>
+                }
+                <div class="workspace-grid history-grid">
+                  <div class="history-list" [attr.aria-busy]="cargandoHistorial()">
+                    @if (cargandoHistorial()) {
+                      <div class="empty-state" role="status">
+                        <app-icono-cuenta nombre="actualizar" />
+                        <p>Cargando historial…</p>
+                      </div>
+                    } @else {
+                      <div class="table-wrap">
+                        <table>
+                          <thead>
+                            <tr>
+                              <th>Referencia / fecha</th>
+                              <th>Método de pago</th>
+                              <th class="money">Importe</th>
+                              <th>Estado</th>
+                            </tr>
+                          </thead>
+                          <tbody>
+                            @for (p of pagos(); track p.id) {
+                              <tr
+                                class="selectable"
+                                [class.selected]="pagoSeleccionado()?.id === p.id"
+                                (click)="pagoSeleccionado.set(p)"
+                              >
+                                <td>
+                                  <button
+                                    class="row-select"
+                                    [attr.aria-pressed]="pagoSeleccionado()?.id === p.id"
+                                    (click)="$event.stopPropagation(); pagoSeleccionado.set(p)"
+                                  >
+                                    <span class="selection-dot" aria-hidden="true"></span
+                                    ><span
+                                      ><strong>{{ referencia(p.id) }}</strong
+                                      ><small>{{
+                                        fecha(p.fecha_hora_pago || p.fecha_creacion)
+                                      }}</small></span
+                                    ><span class="sr-only">Consultar pago</span>
+                                  </button>
+                                </td>
+                                <td>
+                                  <span class="method"
+                                    ><app-icono-cuenta [nombre]="iconoMetodo(p.metodo_pago)" />{{
+                                      metodoPago(p.metodo_pago)
+                                    }}</span
+                                  >
+                                </td>
+                                <td class="money">
+                                  <strong>{{ monto(p.monto, p.moneda) }}</strong>
+                                </td>
+                                <td>
+                                  <span [class]="'badge ' + claseEstado(p.estado)">{{
+                                    estadoPago(p.estado)
+                                  }}</span>
+                                </td>
+                              </tr>
+                            } @empty {
+                              <tr>
+                                <td colspan="4" class="empty">
+                                  {{
+                                    historialError()
+                                      ? 'El historial no está disponible. Reintenta la consulta.'
+                                      : totalPagos() === 0 &&
+                                          (filtroDesde() ||
+                                            filtroHasta() ||
+                                            filtroMetodo() ||
+                                            filtroEstado())
+                                        ? 'No hay pagos que coincidan con los filtros.'
+                                        : 'No hay pagos registrados para este paciente.'
+                                  }}
+                                </td>
+                              </tr>
+                            }
+                          </tbody>
+                        </table>
+                      </div>
+                      <nav class="pagination" aria-label="Paginación de pagos">
+                        <span
+                          >{{ totalPagos() }} {{ totalPagos() === 1 ? 'pago' : 'pagos' }} · Página
+                          {{ paginaHistorial() }} de {{ totalPaginas() || 1 }}</span
+                        ><button
+                          class="btn btn-light"
+                          [disabled]="paginaHistorial() <= 1"
+                          (click)="cambiarPagina(-1)"
+                          aria-label="Página anterior"
+                        >
+                          ‹</button
+                        ><button class="btn page-current" disabled>{{ paginaHistorial() }}</button
+                        ><button
+                          class="btn btn-light"
+                          [disabled]="paginaHistorial() >= totalPaginas()"
+                          (click)="cambiarPagina(1)"
+                          aria-label="Página siguiente"
+                        >
+                          ›</button
+                        ><select
+                          aria-label="Pagos por página"
+                          [value]="tamanoHistorial()"
+                          (change)="cambiarTamanoHistorial($event)"
+                        >
+                          <option value="5">5 por página</option>
+                          <option value="10">10 por página</option>
+                          <option value="20">20 por página</option>
+                        </select>
+                      </nav>
+                    }
+                  </div>
+                  <aside class="payment-panel" aria-label="Detalle de la transacción seleccionada">
+                    @if (pagoSeleccionado(); as pago) {
+                      @for (detalle of [pago]; track detalle.id) {
+                        <app-detalle-pago
+                          [pago]="detalle"
+                          [nombrePaciente]="nombrePaciente(paciente()!)"
+                          [permisos]="permisosPagos()"
+                          [soloLectura]="true"
+                          [compacto]="true"
+                        />
+                      }
+                    } @else {
+                      <div class="empty-state card">
+                        <app-icono-cuenta nombre="documento" />
+                        <h3>Detalle del pago</h3>
+                        <p>Selecciona una transacción para consultar sus datos y comprobante.</p>
+                      </div>
+                    }
+                  </aside>
+                </div>
+              </section>
+            }
+            @case ('pendientes') {
+              <section class="card section">
+                <header class="section-title">
+                  <span class="section-icon warning-icon"
+                    ><app-icono-cuenta nombre="pendientes"
+                  /></span>
+                  <div>
+                    <h2>Pagos pendientes de confirmación o conciliación</h2>
+                    <p>
+                      Consulta su estado de aplicación. No hay acciones financieras disponibles.
+                    </p>
+                  </div>
+                </header>
+                <ng-container *ngTemplateOutlet="listaPendientes; context: { $implicit: false }" />
+              </section>
+            }
+          }
+        </section>
+
+        <ng-template #tablaServicios let-preview>
+          <div class="table-wrap">
+            <table class="services-table">
+              <thead>
+                <tr>
+                  <th>Servicio</th>
+                  <th>Fecha</th>
+                  <th class="money">Importe</th>
+                  <th class="money">Pagado</th>
+                  <th class="money">Saldo</th>
+                  <th>Financiamiento</th>
+                </tr>
+              </thead>
+              <tbody>
+                @for (
+                  s of preview ? serviciosRecientes() : serviciosFiltrados();
+                  track s.servicio_realizado_id
+                ) {
+                  <tr
+                    [class.selectable]="!preview"
+                    [class.selected]="
+                      !preview && servicioSeleccionado() === s.servicio_realizado_id
+                    "
+                    (click)="!preview && alternarServicio(s.servicio_realizado_id)"
+                  >
+                    <td>
+                      @if (preview) {
+                        <strong>{{ s.servicio }}</strong>
+                      } @else {
+                        <button
+                          class="row-select"
+                          [attr.aria-expanded]="servicioSeleccionado() === s.servicio_realizado_id"
+                          [attr.aria-controls]="'servicio-detalle-' + s.servicio_realizado_id"
+                          (click)="
+                            $event.stopPropagation(); alternarServicio(s.servicio_realizado_id)
+                          "
+                        >
+                          <span class="selection-dot" aria-hidden="true"></span
+                          ><span class="service-symbol"
+                            ><app-icono-cuenta nombre="servicios" /></span
+                          ><strong>{{ s.servicio }}</strong>
+                        </button>
+                      }
+                    </td>
+                    <td>{{ fecha(s.fecha_realizacion) }}</td>
+                    <td class="money">{{ monto(s.precio_aplicado, c.resumen.moneda) }}</td>
+                    <td class="money">{{ monto(s.monto_pagado_aplicado, c.resumen.moneda) }}</td>
+                    <td class="money">{{ monto(s.saldo_pendiente, c.resumen.moneda) }}</td>
+                    <td>
+                      <span class="badge" [class.badge-blue]="s.financiado">{{
+                        s.financiado ? 'Financiado' : 'No financiado'
+                      }}</span>
+                    </td>
+                  </tr>
+                  @if (!preview && servicioSeleccionado() === s.servicio_realizado_id) {
+                    <tr class="expanded-row">
+                      <td colspan="6">
+                        <section
+                          class="service-detail"
+                          [id]="'servicio-detalle-' + s.servicio_realizado_id"
+                          aria-label="Detalle del servicio"
+                        >
+                          <header>
+                            <app-icono-cuenta nombre="documento" />
+                            <h3>Detalle del servicio</h3>
+                            <button
+                              class="text-button"
+                              (click)="alternarServicio(s.servicio_realizado_id)"
+                              aria-label="Contraer detalle del servicio"
+                            >
+                              Contraer ↑
+                            </button>
+                          </header>
+                          <div class="service-detail-grid">
+                            <dl>
+                              <div>
+                                <dt>Servicio</dt>
+                                <dd>{{ s.servicio }}</dd>
+                              </div>
+                              <div>
+                                <dt>Fecha de realización</dt>
+                                <dd>{{ fecha(s.fecha_realizacion) }}</dd>
+                              </div>
+                              <div>
+                                <dt>Importe total</dt>
+                                <dd>{{ monto(s.precio_aplicado, c.resumen.moneda) }}</dd>
+                              </div>
+                            </dl>
+                            <dl>
+                              <div>
+                                <dt>Pagado</dt>
+                                <dd>{{ monto(s.monto_pagado_aplicado, c.resumen.moneda) }}</dd>
+                              </div>
+                              <div>
+                                <dt>Saldo pendiente</dt>
+                                <dd>{{ monto(s.saldo_pendiente, c.resumen.moneda) }}</dd>
+                              </div>
+                              <div>
+                                <dt>Financiamiento</dt>
+                                <dd>
+                                  <span class="badge" [class.badge-blue]="s.financiado">{{
+                                    s.financiado ? 'Financiado' : 'No financiado'
+                                  }}</span>
+                                </dd>
+                              </div>
+                              @if (s.plan_pago_id !== null) {
+                                <div>
+                                  <dt>Plan asociado</dt>
+                                  <dd>
+                                    <button class="text-button" (click)="verPlan(s.plan_pago_id)">
+                                      Plan #{{ s.plan_pago_id }}<app-icono-cuenta nombre="flecha" />
+                                    </button>
+                                  </dd>
+                                </div>
+                              }
+                            </dl>
+                          </div>
+                        </section>
+                      </td>
+                    </tr>
+                  }
+                } @empty {
+                  <tr>
+                    <td colspan="6" class="empty">
+                      {{
+                        !preview && c.servicios.length
+                          ? 'No hay servicios que coincidan con el filtro.'
+                          : 'No hay servicios registrados para este paciente.'
+                      }}
+                    </td>
+                  </tr>
+                }
+              </tbody>
+            </table>
+          </div>
+        </ng-template>
+        <ng-template #listaPendientes let-preview>
+          <div [class.pending-list]="!preview">
+            @for (
+              p of preview
+                ? c.pagos_pendientes_confirmacion.slice(0, 2)
+                : c.pagos_pendientes_confirmacion;
+              track p.pago_id
+            ) {
+              <article class="pending">
+                <header>
+                  <app-icono-cuenta [nombre]="p.estado === 'PENDIENTE' ? 'pendientes' : 'alerta'" />
+                  <div>
+                    <strong>Pago #{{ p.pago_id }}</strong
+                    ><span>{{
+                      p.estado === 'PENDIENTE'
+                        ? 'Pendiente de confirmación'
+                        : p.requiere_reconciliacion
+                          ? 'Aprobado · requiere reconciliación'
+                          : 'Aprobado · pendiente de aplicación'
+                    }}</span>
+                  </div>
+                  <strong class="pending-amount">{{ monto(p.monto, p.moneda) }}</strong>
+                </header>
+                @if (!preview) {
+                  <dl class="pending-data">
+                    <div>
+                      <dt>Estado</dt>
+                      <dd>{{ p.estado }}</dd>
+                    </div>
+                    <div>
+                      <dt>Pasarela</dt>
+                      <dd>{{ p.pasarela || 'No registrada' }}</dd>
+                    </div>
+                    <div>
+                      <dt>Aplicado a la obligación</dt>
+                      <dd>
+                        {{
+                          p.aplicado_a_obligacion === null
+                            ? 'No informado'
+                            : p.aplicado_a_obligacion
+                              ? 'Sí'
+                              : 'No'
+                        }}
+                      </dd>
+                    </div>
+                    <div>
+                      <dt>Requiere conciliación</dt>
+                      <dd>{{ p.requiere_reconciliacion ? 'Sí' : 'No' }}</dd>
+                    </div>
+                  </dl>
+                  <p>
+                    {{
+                      p.estado === 'PENDIENTE'
+                        ? 'El pago aún no fue confirmado y no se descontó de la obligación.'
+                        : p.requiere_reconciliacion
+                          ? 'El pago fue aprobado, pero requiere reconciliación antes de aplicarse.'
+                          : p.aplicado_a_obligacion === false
+                            ? 'El pago aprobado todavía no se aplicó a una obligación.'
+                            : 'Consulta su condición de aplicación en los datos del pago.'
+                    }}
+                  </p>
+                }
+              </article>
+            } @empty {
+              <div class="empty-state pending-empty">
+                <span class="empty-illustration"
+                  ><app-icono-cuenta nombre="vacio" /><span class="empty-check"
+                    ><app-icono-cuenta nombre="check" /></span
+                ></span>
+                <h3>No hay pagos pendientes</h3>
+                <p>No se reportan pagos por confirmar o conciliar en esta consulta.</p>
+              </div>
+            }
+          </div>
+        </ng-template>
+      } @else if (!paciente()) {
+        <section class="initial-state">
+          <span class="title-icon"><app-icono-cuenta nombre="saldo" /></span>
+          <h2>El estado de cuenta, en un solo lugar</h2>
+          <p>Selecciona un paciente para ver su resumen financiero, servicios, planes y pagos.</p>
+          <span class="read-only-label"
+            ><app-icono-cuenta nombre="check" />Consulta de solo lectura</span
+          >
+        </section>
+      }
+    }
+  </main>
+</div>

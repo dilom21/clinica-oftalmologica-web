@@ -1,3 +1,26 @@
+@if (compacto() && soloLectura()) {
+  <section class="detalle detalle--compacto" aria-labelledby="detalle-pago-titulo">
+    <header class="detalle__head"><div class="detalle__titulo"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M5 3h9l5 5v13H5V3ZM14 3v6h5M8 13h8M8 17h6" /></svg><div><h2 id="detalle-pago-titulo">Detalle del pago</h2><p>{{ referencia(pago().id) }}</p></div></div><span [class]="'detalle__badge ' + claseEstado()">{{ estado(pago().estado) }}</span></header>
+    <div class="detalle__body">
+      <div class="detalle__principal"><span>{{ metodo(pago().metodo_pago) }}</span><strong>{{ monto(pago().monto, pago().moneda) }}</strong></div>
+      <dl class="detalle__datos">
+        <div><dt>Fecha de registro</dt><dd>{{ fechaHora(pago().fecha_creacion) }}</dd></div>
+        <div><dt>Fecha del pago</dt><dd>{{ pago().fecha_hora_pago ? fechaHora(pago().fecha_hora_pago) : 'No registrada' }}</dd></div>
+        @if (pago().referencia_bancaria) { <div><dt>Referencia bancaria</dt><dd>{{ pago().referencia_bancaria }}</dd></div> }
+        <div><dt>Consulta</dt><dd>#{{ pago().consulta_clinica_id }}</dd></div>
+        <div><dt>Servicios cobrados</dt><dd>@for (id of pago().servicio_realizado_ids; track id; let ultimo = $last) { #{{ id }}{{ ultimo ? '' : ', ' }} } @empty { Sin servicios informados }</dd></div>
+        <div><dt>Comprobante</dt><dd>{{ comprobanteDisponible(pago()) ? 'Disponible para descargar' : 'No disponible para este estado' }}</dd></div>
+        @if (pago().observaciones) { <div class="detalle__observaciones"><dt>Observaciones</dt><dd>{{ pago().observaciones }}</dd></div> }
+      </dl>
+      @if (pendienteConfirmacion()) { <p class="detalle__aviso">Pendiente de confirmación autorizada. Consulta de solo lectura.</p> }
+      @if (pago().estado === 'APROBADO') {
+        <app-estado-notificacion [pagoId]="pago().id" [estadoPago]="pago().estado" [notificacionInicial]="pago().notificacion" [puedeReintentar]="false" [compacto]="true" />
+      } @else { <p class="detalle__ayuda">El comprobante por correo está pendiente de aprobación del pago.</p> }
+      @if (comprobanteDisponible(pago()) && permisos().ver) { <button type="button" class="detalle__btn detalle__btn--secundario" [disabled]="descargando()" (click)="descargarComprobante()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M12 3v12m-5-5 5 5 5-5M4 16v5h16v-5" /></svg>{{ descargando() ? 'Descargando…' : 'Descargar comprobante' }}</button> }
+      @if (errorDescarga(); as mensaje) { <p class="detalle__alerta" role="alert">{{ mensaje }}</p> }
+    </div>
+  </section>
+} @else {
 <section class="detalle" aria-labelledby="detalle-pago-titulo">
   <header class="detalle__head">
     <div class="detalle__titulo">
@@ -78,7 +101,9 @@
               : 'Esta transferencia está pendiente de confirmación autorizada.'
           }}
         </p>
-        @if (puedeConfirmar()) {
+        @if (soloLectura()) {
+          <p class="detalle__aviso">Consulta de solo lectura. La confirmación se gestiona desde el flujo autorizado.</p>
+        } @else if (puedeConfirmar()) {
           <button type="button" class="detalle__btn detalle__btn--primario" (click)="abrirConfirmacion()">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
               <path d="m4 12 5 5L20 6"></path>
@@ -93,10 +118,10 @@
       </div>
     }
 
-    @if (errorConfirmacion(); as mensaje) {
+    @if (!soloLectura() && errorConfirmacion(); as mensaje) {
       <p class="detalle__alerta" role="alert">{{ mensaje }}</p>
     }
-    @if (exito(); as mensaje) {
+    @if (!soloLectura() && exito(); as mensaje) {
       <p class="detalle__exito" role="status">{{ mensaje }}</p>
     }
 
@@ -124,7 +149,7 @@
         [pagoId]="pago().id"
         [estadoPago]="pago().estado"
         [notificacionInicial]="pago().notificacion"
-        [puedeReintentar]="permisos().registrar"
+          [puedeReintentar]="!soloLectura() && permisos().registrar"
       />
     } @else {
       <div class="detalle__correo">
@@ -134,7 +159,7 @@
     }
   </div>
 
-  @if (dialogoAbierto()) {
+  @if (!soloLectura() && dialogoAbierto()) {
     <app-confirmar-pago-dialog
       [pago]="pago()"
       [nombrePaciente]="nombrePaciente()"
@@ -145,3 +170,4 @@
     />
   }
 </section>
+}

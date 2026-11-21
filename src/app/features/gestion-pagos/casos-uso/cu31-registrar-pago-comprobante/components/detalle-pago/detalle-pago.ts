@@ -48,6 +48,10 @@ export class DetallePago {
     registrar: false,
     confirmar: false,
   });
+  /** Hides all operational controls when embedded in a read-only consultation. */
+  readonly soloLectura = input(false);
+  /** Variante de presentación optativa; CU31 conserva su diseño por defecto. */
+  readonly compacto = input(false);
 
   readonly pagoActualizado = output<PagoAdministrativo>();
   readonly recargar = output<void>();
@@ -71,7 +75,7 @@ export class DetallePago {
   );
 
   protected readonly puedeConfirmar = computed(
-    () => this.permisos().confirmar && this.pendienteConfirmacion(),
+    () => !this.soloLectura() && this.permisos().confirmar && this.pendienteConfirmacion(),
   );
 
   private readonly api = inject(PagosAdministrativosService);

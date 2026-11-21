@@ -115,7 +115,7 @@ describe('Sidebar — lectura CU30 e identidad de sesión', () => {
     };
   }
 
-  function crearVista(modulos: MenuModulo[], conRevision = true) {
+  function crearVista(modulos: MenuModulo[], conRevision = true, tenantCode: string | null = 'TENANT_A') {
     const menu = menuStub('listo');
     menu.modules.set(modulos);
     const empresa = signal<EmpresaSesion | null>({ codigo: 'A', nombre: 'Empresa A', tenantId: 1 });
@@ -134,6 +134,7 @@ describe('Sidebar — lectura CU30 e identidad de sesión', () => {
             estadoEmpresa: estadoEmpresa.asReadonly(),
             revisionSesion: conRevision ? revisionSesion.asReadonly() : undefined,
             revisionPerfil: conRevision ? revisionPerfil.asReadonly() : undefined,
+            tenantCode: () => tenantCode,
             obtenerPerfilActual: () => perfilActual(),
             inicializarContextoEmpresa: vi.fn(),
             reintentarContextoEmpresa: vi.fn(),
@@ -215,6 +216,66 @@ describe('Sidebar — lectura CU30 e identidad de sesión', () => {
     revisionSesion.update((revision) => revision + 1);
     fixture.detectChanges();
     expect(fixture.nativeElement.textContent).not.toContain('Usuario B');
+  });
+
+  it('muestra CU34 sólo con lectura de pagos, planes y cuotas y tenant válido', () => {
+    const funciones = [
+      { id: 31, nombre: 'Gestionar pagos', accion_id: 1, accion_nombre: 'LECTURA' },
+      { id: 40, nombre: 'Gestionar planes de pago', accion_id: 3, accion_nombre: 'AMBAS' },
+      { id: 41, nombre: 'Gestionar cuotas', accion_id: 1, accion_nombre: ' lectura ' },
+    ];
+    const moduloPagos: MenuModulo = { id: 9, nombre: 'Pagos', funciones };
+    const { fixture, menu } = crearVista([moduloPagos]);
+    fixture.componentInstance.alternarModulo(9); fixture.detectChanges();
+    expect(fixture.nativeElement.querySelector('[href="/pagos/estado-cuenta"]')?.textContent).toContain('Consultar pagos y saldos');
+
+    for (const missing of ['Gestionar pagos', 'Gestionar planes de pago', 'Gestionar cuotas']) {
+      menu.modules.set([{ ...moduloPagos, funciones: funciones.filter(f => f.nombre !== missing) }]);
+      fixture.detectChanges();
+      expect(fixture.nativeElement.querySelector('[href="/pagos/estado-cuenta"]')).toBeNull();
+    }
+    menu.modules.set([{ ...moduloPagos, funciones: funciones.map(f => ({ ...f, accion_nombre: 'ESCRITURA' })) }]); fixture.detectChanges();
+    expect(fixture.nativeElement.querySelector('[href="/pagos/estado-cuenta"]')).toBeNull();
+  });
+
+  it('oculta el acceso CU34 en sesión sin tenant', () => {
+    const funciones = [
+      { id: 31, nombre: 'Gestionar pagos', accion_id: 1, accion_nombre: 'LECTURA' },
+      { id: 40, nombre: 'Gestionar planes de pago', accion_id: 1, accion_nombre: 'LECTURA' },
+      { id: 41, nombre: 'Gestionar cuotas', accion_id: 1, accion_nombre: 'LECTURA' },
+    ];
+    const { fixture } = crearVista([{ id: 9, nombre: 'Pagos', funciones }], true, null);
+    fixture.componentInstance.alternarModulo(9); fixture.detectChanges();
+    expect(fixture.nativeElement.querySelector('[href="/pagos/estado-cuenta"]')).toBeNull();
+  });
+
+  it('marca CU34 activo en la ruta dedicada', async () => {
+    const funciones = [
+      { id: 31, nombre: 'Gestionar pagos', accion_id: 1, accion_nombre: 'LECTURA' },
+      { id: 40, nombre: 'Gestionar planes de pago', accion_id: 1, accion_nombre: 'LECTURA' },
+      { id: 41, nombre: 'Gestionar cuotas', accion_id: 1, accion_nombre: 'LECTURA' },
+    ];
+    const { fixture, menu } = crearVista([{ id: 9, nombre: 'Pagos', funciones }]);
+    menu.modules.set([{ id: 9, nombre: 'Pagos', funciones }]);
+    fixture.componentInstance.alternarModulo(9); fixture.detectChanges();
+    const router = TestBed.inject(Router);
+    router.resetConfig([{ path: 'pagos/estado-cuenta', component: PaginaVacia }]);
+    await router.navigateByUrl('/pagos/estado-cuenta'); fixture.detectChanges();
+    await fixture.whenStable(); fixture.detectChanges();
+    expect(fixture.nativeElement.querySelector('[href="/pagos/estado-cuenta"]')?.classList.contains('sidebar__submenu-item--active')).toBe(true);
+    const gestionar = fixture.nativeElement.querySelector('[href="/pagos"]') as HTMLElement;
+    expect(gestionar.classList.contains('sidebar__submenu-item--active')).toBe(false);
+    expect(gestionar.closest('li')?.classList.contains('sidebar__submenu-item--active')).toBe(false);
+    expect(fixture.nativeElement.querySelectorAll('.sidebar__submenu a.sidebar__submenu-item--active').length).toBe(1);
+    expect(fixture.nativeElement.querySelector('.sidebar__item--open')).not.toBeNull();
+  });
+
+  it('permite ocultar sólo la tarjeta flotante móvil sin quitar el cambio de empresa del menú', () => {
+    const { fixture } = crearVista([]);
+    expect(fixture.nativeElement.querySelector('.sidebar__mobile-company')).not.toBeNull();
+    fixture.componentRef.setInput('mostrarEmpresaMovil', false); fixture.detectChanges();
+    expect(fixture.nativeElement.querySelector('.sidebar__mobile-company')).toBeNull();
+    expect(fixture.nativeElement.querySelector('.sidebar__switch')).not.toBeNull();
   });
 
   it('refresca el perfil por empresa con mocks anteriores sin revisionSesion', () => {

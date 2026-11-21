@@ -288,6 +288,7 @@
                       class="sidebar__submenu-link"
                       [routerLink]="ruta"
                       routerLinkActive="sidebar__submenu-item--active"
+                      [routerLinkActiveOptions]="{ exact: esRutaEstadoCuenta() }"
                       [title]="funcion.nombre"
                       (click)="seleccionarFuncion(modulo.id, funcion.id)"
                     >
@@ -307,6 +308,14 @@
                       <span class="sidebar__submenu-label">{{ funcion.nombre }}</span>
                     </span>
                   }
+                </li>
+              }
+              @if (mostrarEstadoCuenta() && modulo.nombre.trim().toLowerCase() === 'pagos') {
+                <li class="sidebar__submenu-item" [class.sidebar__submenu-item--active]="esRutaEstadoCuenta()">
+                  <a class="sidebar__submenu-link" routerLink="/pagos/estado-cuenta" routerLinkActive="sidebar__submenu-item--active" [title]="'Consultar pagos y saldos'" (click)="seleccionarEstadoCuenta(modulo.id)">
+                    <span class="sidebar__submenu-icono"><svg class="sidebar__svg"><use href="#icono-pagos"></use></svg></span>
+                    <span class="sidebar__submenu-label">Consultar pagos y saldos</span>
+                  </a>
                 </li>
               }
             </ul>
@@ -383,8 +392,10 @@
     </div>
   </footer>
 </aside>
+@if (mostrarEmpresaMovil()) {
 <div class="sidebar__mobile-company">
   <span>Empresa actual: {{ companyName() }}</span>
   <button type="button" (click)="cambiarEmpresa()">Cambiar empresa</button>
 </div>
+}
 

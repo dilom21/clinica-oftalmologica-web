@@ -38,6 +38,8 @@ import { ThemeService } from '../../services/theme.service';
 export class Sidebar implements OnInit {
   readonly mobileOpen = input(false);
   readonly mobileClose = output<void>();
+  /** Las páginas densas pueden mantener la empresa sólo dentro del drawer. */
+  readonly mostrarEmpresaMovil = input(true);
 
   private readonly menuService = inject(MenuService);
   private readonly navegacion = inject(NavegacionService);
@@ -48,6 +50,11 @@ export class Sidebar implements OnInit {
 
   protected readonly cargandoMenu = this.menuService.cargando;
   protected readonly menuError = this.menuService.error;
+  protected readonly mostrarEstadoCuenta = computed(() => {
+    this.authService.revisionSesion?.();
+    const tenant = typeof this.authService.tenantCode === 'function' && !!this.authService.tenantCode();
+    return tenant && this.menuService.estado() === 'listo' && this.navegacion.puedeConsultarEstadoCuenta(this.menuService.modulos());
+  });
   protected readonly perfil = signal<PerfilUsuario | null>(null);
   protected readonly esOscuro = this.themeService.esOscuro;
   protected readonly openModuleId = signal<number | null>(null);
@@ -161,6 +168,17 @@ export class Sidebar implements OnInit {
     this.cerrarSiMovil();
   }
 
+  seleccionarEstadoCuenta(moduloId: number): void {
+    this.selectedModuleId.set(moduloId);
+    this.selectedFuncionId.set(null);
+    this.openModuleId.set(moduloId);
+    this.cerrarSiMovil();
+  }
+
+  esRutaEstadoCuenta(): boolean {
+    return this.normalizarUrl(this.router.url) === '/pagos/estado-cuenta';
+  }
+
   navegarInicio(): void {
     this.selectedModuleId.set(null);
     this.selectedFuncionId.set(null);
@@ -199,6 +217,15 @@ export class Sidebar implements OnInit {
    */
   private sincronizarConRuta(url: string): void {
     const rutaActiva = this.normalizarUrl(url);
+
+    // CU34 es un acceso derivado, no una subpantalla de Gestionar pagos.
+    if (rutaActiva === '/pagos/estado-cuenta') {
+      const pagos = this.modulos().find(modulo => modulo.nombre.trim().toLowerCase() === 'pagos');
+      this.selectedModuleId.set(pagos?.id ?? null);
+      this.selectedFuncionId.set(null);
+      if (pagos) this.openModuleId.set(pagos.id);
+      return;
+    }
 
     if (rutaActiva === '' || rutaActiva === '/' || rutaActiva.startsWith('/inicio')) {
       this.selectedModuleId.set(null);

@@ -1,8 +1,8 @@
-<section class="notificacion" aria-labelledby="notificacion-titulo">
+<section class="notificacion" [class.notificacion--compacta]="compacto()" aria-labelledby="notificacion-titulo">
   <header class="notificacion__head">
     <div>
       <h4 id="notificacion-titulo">Comprobante por correo</h4>
-      <p>Estado informado por el backend (Resend).</p>
+      @if (!compacto()) { <p>Estado informado por el backend (Resend).</p> }
     </div>
     @if (notificacion(); as actual) {
       <span
@@ -42,7 +42,7 @@
       </div>
     }
 
-    <dl class="notificacion__datos">
+    <ng-template #datosEnvio><dl class="notificacion__datos">
       <div>
         <dt>Intentos de envío</dt>
         <dd>{{ actual.intentos }}</dd>
@@ -55,7 +55,9 @@
         <dt>Entregado</dt>
         <dd>{{ fechaOpcional(actual.fecha_entregado) }}</dd>
       </div>
-    </dl>
+    </dl></ng-template>
+    @if (compacto()) { <details class="notificacion__detalles"><summary>Detalles del envío</summary><ng-container *ngTemplateOutlet="datosEnvio" /></details> }
+    @else { <ng-container *ngTemplateOutlet="datosEnvio" /> }
 
     @if (errorVisible(); as codigo) {
       <p class="notificacion__detalle-error">

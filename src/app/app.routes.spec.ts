@@ -116,6 +116,7 @@ describe('app.routes — CU31', () => {
       '',
       'historial',
       'confirmaciones',
+      'estado-cuenta',
       'planes',
       'planes/nuevo',
       'planes/:id',

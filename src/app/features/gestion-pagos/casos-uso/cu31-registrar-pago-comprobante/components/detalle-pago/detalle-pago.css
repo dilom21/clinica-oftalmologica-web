@@ -272,6 +272,20 @@
   font-weight: 600;
 }
 
+.detalle--compacto { border-radius: 10px; }
+.detalle--compacto .detalle__head { padding: 10px; }
+.detalle--compacto .detalle__titulo h2 { font-size: .9rem; }
+.detalle--compacto .detalle__body { padding: 10px; gap: 8px; }
+.detalle--compacto .detalle__principal { padding: 9px; }
+.detalle--compacto .detalle__principal strong { font-size: 1.15rem; }
+.detalle--compacto .detalle__datos { gap: 0; }
+.detalle--compacto .detalle__datos > div { font-size: .7rem; padding: 3px 0; }
+.detalle--compacto .detalle__datos dt { flex-shrink: 0; }
+.detalle--compacto .detalle__servicios h3 { font-size: .73rem; }
+.detalle--compacto .detalle__servicios li { font-size: .65rem; }
+.detalle--compacto .detalle__ayuda { font-size: .65rem; }
+.detalle--compacto .detalle__btn--secundario { width: 100%; color: #fff; background: linear-gradient(160deg, #087fbd, #00549a); border-color: transparent; }
+
 @media (max-width: 480px) {
   .detalle__principal {
     flex-direction: column;
