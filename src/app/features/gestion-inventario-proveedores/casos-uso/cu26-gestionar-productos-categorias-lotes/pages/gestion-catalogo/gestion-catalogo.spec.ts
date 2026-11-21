@@ -1,8 +1,16 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
+import { Component, input, output } from '@angular/core';
+import { Sidebar } from '../../../../../../core/layouts/sidebar/sidebar';
 import { of } from 'rxjs';
 import { GestionCatalogo } from './gestion-catalogo';
 import { CatalogoService } from '../../services/catalogo.service';
 import { vi } from 'vitest';
+
+@Component({ selector: 'app-sidebar', standalone: true, template: '' })
+class SidebarMock {
+  readonly mobileOpen = input(false);
+  readonly mobileClose = output<void>();
+}
 
 describe('GestionCatalogo', () => {
   let fixture: ComponentFixture<GestionCatalogo>;
@@ -15,8 +23,28 @@ describe('GestionCatalogo', () => {
     api.listarProductos.mockReturnValue(of([]));
     api.listarLotes.mockReturnValue(of([]));
     TestBed.configureTestingModule({ imports: [GestionCatalogo], providers: [{ provide: CatalogoService, useValue: api }] });
+    TestBed.overrideComponent(GestionCatalogo, {
+      remove: { imports: [Sidebar] },
+      add: { imports: [SidebarMock] },
+    });
     fixture = TestBed.createComponent(GestionCatalogo);
     component = fixture.componentInstance;
+  });
+
+  it('conserva el sidebar compartido y permite cerrar el menú móvil', () => {
+    fixture.detectChanges();
+    expect(fixture.nativeElement.querySelector('app-sidebar')).not.toBeNull();
+
+    const abrir = fixture.nativeElement.querySelector('[aria-label="Abrir menú"]') as HTMLButtonElement;
+    abrir.click();
+    fixture.detectChanges();
+    expect(component.sidebarMovilAbierto()).toBe(true);
+
+    const cerrar = fixture.nativeElement.querySelector('[aria-label="Cerrar menú"]') as HTMLButtonElement;
+    expect(cerrar).not.toBeNull();
+    cerrar.click();
+    fixture.detectChanges();
+    expect(component.sidebarMovilAbierto()).toBe(false);
   });
 
   it('limits category names to 100 characters', () => {

@@ -1,4 +1,5 @@
 import { Component, computed, inject, signal } from '@angular/core';
+import { Sidebar } from '../../../../../../core/layouts/sidebar/sidebar';
 import { CommonModule } from '@angular/common';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { Observable } from 'rxjs';
@@ -6,8 +7,9 @@ import { CatalogoService } from '../../services/catalogo.service';
 import { CategoriaRespuesta, LoteRespuesta, ProductoRespuesta } from '../../models/catalogo.models';
 
 type Tab = 'categorias' | 'productos' | 'lotes';
-@Component({ selector: 'app-gestion-catalogo', standalone: true, imports: [CommonModule, ReactiveFormsModule], templateUrl: './gestion-catalogo.html', styleUrl: './gestion-catalogo.css' })
+@Component({ selector: 'app-gestion-catalogo', standalone: true, imports: [CommonModule, ReactiveFormsModule, Sidebar], templateUrl: './gestion-catalogo.html', styleUrl: './gestion-catalogo.css' })
 export class GestionCatalogo {
+  readonly sidebarMovilAbierto = signal(false);
   private readonly api = inject(CatalogoService); private readonly fb = inject(FormBuilder);
   readonly tab = signal<Tab>('categorias'); readonly incluirInactivos = signal(false); readonly buscar = signal(''); readonly cargando = signal(false); readonly guardando = signal(false); readonly cambiandoEstado = signal(false); readonly error = signal<string | null>(null); readonly exito = signal<string | null>(null); readonly modal = signal(false); readonly detalle = signal<string | null>(null); readonly editando = signal<CategoriaRespuesta | ProductoRespuesta | LoteRespuesta | null>(null);
   readonly categorias = signal<CategoriaRespuesta[]>([]); readonly productos = signal<ProductoRespuesta[]>([]); readonly lotes = signal<LoteRespuesta[]>([]); readonly filtroCategoria = signal<number | undefined>(undefined); readonly filtroProducto = signal<number | undefined>(undefined);
