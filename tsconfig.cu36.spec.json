@@ -1,0 +1,9 @@
+{
+  "extends": "./tsconfig.spec.json",
+  "include": [
+    "src/**/*.d.ts",
+    "src/app/features/gestion-pagos/casos-uso/cu36-anulaciones-devoluciones-conciliaciones/**/*.spec.ts",
+    "src/app/features/gestion-pagos/casos-uso/cu31-registrar-pago-comprobante/**/*.spec.ts",
+    "src/app/app.routes.spec.ts"
+  ]
+}

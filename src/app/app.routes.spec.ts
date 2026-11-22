@@ -116,6 +116,7 @@ describe('app.routes — CU31', () => {
       '',
       'historial',
       'confirmaciones',
+      'conciliaciones',
       'planes',
       'planes/nuevo',
       'planes/:id',
@@ -128,6 +129,9 @@ describe('app.routes — CU31', () => {
     for (const hijo of hijos) {
       expect(typeof hijo.loadComponent).toBe('function');
     }
+    const conciliaciones = hijos.find((hijo) => hijo.path === 'conciliaciones');
+    expect(conciliaciones?.canActivate).toContain(authGuard);
+    expect(typeof conciliaciones?.loadComponent).toBe('function');
   });
 });
 

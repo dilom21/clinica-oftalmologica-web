@@ -1,0 +1,24 @@
+:host { display: block; }
+.conciliaciones-page { min-height: 100vh; background: var(--color-background-soft); color: var(--color-text); }
+.conciliaciones-page__body { display: flex; min-width: 0; min-height: 100vh; }
+.conciliaciones-page__main { flex: 1 1 auto; min-width: 0; }
+.conciliaciones-page__topbar { display: none; }
+.conciliaciones-page__content { max-width: 90rem; margin: 0 auto; padding: 2rem; }
+.conciliaciones-hero { padding: 1.5rem; margin-bottom: 1rem; background: var(--color-surface); border: 1px solid var(--color-border); border-radius: var(--radius-lg); box-shadow: var(--shadow-xs); }
+.conciliaciones-hero h1 { margin: .25rem 0 .45rem; font-size: clamp(1.55rem, 3vw, 2.1rem); }
+.conciliaciones-hero p:last-child { max-width: 55rem; line-height: 1.55; }
+.conciliaciones-eyebrow { color: var(--color-primary); font-size: .72rem; font-weight: 800; letter-spacing: .09em; text-transform: uppercase; }
+.conciliaciones-aviso { padding: .9rem 1rem; margin-bottom: 1rem; background: var(--color-surface); border: 1px solid var(--color-border); border-radius: var(--radius-sm); }
+.conciliaciones-aviso--error { color: var(--color-danger-text); background: var(--color-danger-bg); border-color: var(--color-danger-border); }
+.conciliaciones-aviso--resultado { color: var(--color-info-text); background: var(--color-info-bg); border-color: var(--color-info-border); }
+.conciliaciones-card { overflow: hidden; background: var(--color-surface); border: 1px solid var(--color-border); border-radius: var(--radius-lg); box-shadow: var(--shadow-xs); }
+.conciliaciones-card__cabecera { display: flex; align-items: center; justify-content: space-between; gap: 1rem; padding: 1rem 1.2rem; border-bottom: 1px solid var(--color-border); }
+.conciliaciones-card__cabecera h2 { margin-bottom: .2rem; font-size: 1.05rem; }.conciliaciones-card__cabecera p { color: var(--color-text-soft); font-size: .82rem; }
+.conciliaciones-vacio { padding: 2.5rem 1rem; text-align: center; }.conciliaciones-tabla-wrap { overflow-x: auto; }
+table { width: 100%; border-collapse: collapse; font-size: .82rem; } caption { padding: .75rem 1rem; text-align: left; color: var(--color-text-soft); }
+th, td { padding: .75rem; border-top: 1px solid var(--color-border-soft); text-align: left; vertical-align: middle; overflow-wrap: anywhere; } th { color: var(--color-heading); background: var(--color-surface-muted); white-space: nowrap; }
+.conciliaciones-btn { min-height: 2.4rem; padding: .5rem .85rem; color: var(--color-heading); background: var(--color-surface); border: 1px solid var(--color-border); border-radius: var(--radius-sm); font: inherit; font-weight: 700; cursor: pointer; }
+.conciliaciones-btn--primario { color: var(--color-white); background: var(--color-primary); border-color: var(--color-primary); }.conciliaciones-btn:disabled { cursor: not-allowed; opacity: .6; }
+.conciliaciones-btn:focus-visible { outline: 3px solid color-mix(in srgb, var(--color-primary) 45%, transparent); outline-offset: 2px; }
+@media (max-width: 820px) { .conciliaciones-page__topbar { display: flex; padding: .5rem 1rem; background: var(--color-surface); border-bottom: 1px solid var(--color-border); }.conciliaciones-page__content { padding: 1rem; } }
+@media (max-width: 560px) { .conciliaciones-card__cabecera { align-items: stretch; flex-direction: column; } }

@@ -245,6 +245,14 @@ export const routes: Routes = [
           ).then((m) => m.GestionPagos),
       },
       {
+        path: 'conciliaciones',
+        canActivate: [authGuard],
+        loadComponent: () =>
+          import(
+            './features/gestion-pagos/casos-uso/cu36-anulaciones-devoluciones-conciliaciones/pages/conciliaciones/conciliaciones'
+          ).then((m) => m.Conciliaciones),
+      },
+      {
         path: 'planes',
         loadComponent: () =>
           import(

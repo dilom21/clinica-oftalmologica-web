@@ -49,6 +49,18 @@
           {{ pago().fecha_hora_pago ? fechaHora(pago().fecha_hora_pago) : 'Pendiente de confirmación' }}
         </dd>
       </div>
+      @if (pago().importe_vigente !== null && pago().importe_vigente !== undefined) {
+        <div>
+          <dt>Importe vigente</dt>
+          <dd>{{ monto(pago().importe_vigente ?? '', pago().moneda) }}</dd>
+        </div>
+      }
+      @if (pago().importe_reembolsado !== null && pago().importe_reembolsado !== undefined) {
+        <div>
+          <dt>Reembolsado</dt>
+          <dd>{{ monto(pago().importe_reembolsado ?? '', pago().moneda) }}</dd>
+        </div>
+      }
       @if (pago().observaciones) {
         <div class="detalle__observaciones">
           <dt>Observaciones</dt>
@@ -56,6 +68,14 @@
         </div>
       }
     </dl>
+
+    @if (pago().ajustes_pendientes === true) {
+      <p class="detalle__pendiente" role="status">
+        <strong>Este pago tiene un ajuste pendiente.</strong> Una operación de dinero espera la
+        confirmación del proveedor o una conciliación manual; hasta entonces el servidor bloquea
+        nuevas operaciones sobre el pago.
+      </p>
+    }
 
     <div class="detalle__servicios">
       <h3>Servicios cobrados</h3>
@@ -93,11 +113,53 @@
       </div>
     }
 
+    @if (puedeOperar()) {
+      <div class="detalle__operaciones" role="group" aria-label="Operaciones sobre el pago">
+        @if (puedeAnular(pago())) {
+          <button
+            type="button"
+            class="detalle__btn detalle__btn--secundario"
+            [disabled]="procesandoAjuste()"
+            (click)="abrirAnulacion()"
+          >
+            Anular pago
+          </button>
+        }
+        @if (puedeCorregir(pago())) {
+          <button
+            type="button"
+            class="detalle__btn detalle__btn--secundario"
+            [disabled]="procesandoAjuste()"
+            (click)="abrirCorreccion()"
+          >
+            Corregir importe
+          </button>
+        }
+        @if (puedeReembolsar(pago())) {
+          <button
+            type="button"
+            class="detalle__btn detalle__btn--secundario"
+            [disabled]="procesandoAjuste()"
+            (click)="abrirReembolso()"
+          >
+            Registrar devolución
+          </button>
+        }
+      </div>
+    }
+
     @if (errorConfirmacion(); as mensaje) {
       <p class="detalle__alerta" role="alert">{{ mensaje }}</p>
     }
     @if (exito(); as mensaje) {
       <p class="detalle__exito" role="status">{{ mensaje }}</p>
+    }
+
+    @if (mensajeResultado(); as mensaje) {
+      <p [class]="'detalle__resultado ' + claseResultado()" role="status">{{ mensaje }}</p>
+    }
+    @if (errorOperacion(); as mensaje) {
+      <p class="detalle__alerta" role="alert">{{ mensaje }}</p>
     }
 
     @if (comprobanteDisponible(pago()) && permisos().ver) {
@@ -117,6 +179,14 @@
     }
     @if (errorDescarga(); as mensaje) {
       <p class="detalle__alerta" role="alert">{{ mensaje }}</p>
+    }
+
+    @if (permisos().ver) {
+      <app-historial-ajustes
+        [pagoId]="pago().id"
+        [puedeConciliar]="permisos().registrar"
+        (conciliar)="abrirConciliacion($event)"
+      />
     }
 
     @if (pago().estado === 'APROBADO') {
@@ -143,5 +213,50 @@
       (confirmar)="confirmarPago()"
       (cancelar)="cerrarConfirmacion()"
     />
+  }
+
+  @if (dialogoAnular()) {
+    <app-dialogo-anular-pago
+      [pago]="pago()"
+      [nombrePaciente]="nombrePaciente()"
+      [procesando]="procesandoAjuste()"
+      [error]="errorOperacion()"
+      (confirmar)="anularPago($event)"
+      (cancelar)="cerrarAnulacion()"
+    />
+  }
+
+  @if (dialogoCorregir()) {
+    <app-dialogo-corregir-pago
+      [pago]="pago()"
+      [nombrePaciente]="nombrePaciente()"
+      [procesando]="procesandoAjuste()"
+      [error]="errorOperacion()"
+      (confirmar)="corregirPago($event)"
+      (cancelar)="cerrarCorreccion()"
+    />
+  }
+
+  @if (dialogoReembolso()) {
+    <app-dialogo-reembolso-pago
+      [pago]="pago()"
+      [nombrePaciente]="nombrePaciente()"
+      [procesando]="procesandoAjuste()"
+      [error]="errorOperacion()"
+      (confirmar)="reembolsarPago($event)"
+      (cancelar)="cerrarReembolso()"
+    />
+  }
+
+  @if (dialogoConciliar()) {
+    @if (ajusteSeleccionado(); as ajuste) {
+      <app-dialogo-conciliar-ajuste
+        [ajuste]="ajuste"
+        [procesando]="procesandoAjuste()"
+        [error]="errorOperacion()"
+        (confirmar)="conciliarAjuste($event)"
+        (cancelar)="cerrarConciliacion()"
+      />
+    }
   }
 </section>

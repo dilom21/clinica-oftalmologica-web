@@ -133,6 +133,19 @@
                 Confirmaciones pendientes
               </button>
             }
+            @if (permisos().registrar) {
+              <button
+                type="button"
+                class="pagos-tabs__item"
+                (click)="irAConciliaciones()"
+              >
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+                  <path d="M4 7h16M4 12h16M4 17h10"></path>
+                  <circle cx="18" cy="17" r="2"></circle>
+                </svg>
+                Conciliaciones
+              </button>
+            }
           </nav>
 
           @if (errorPacientes(); as mensaje) {

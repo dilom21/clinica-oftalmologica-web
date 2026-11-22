@@ -1,0 +1,30 @@
+<section class="ai-layout" aria-labelledby="ai-title">
+  <div><p class="eyebrow">IA PREDICTIVA RESPONSABLE</p><h2 id="ai-title">Demanda y estado del modelo</h2><p>Información agregada para planificación. No genera decisiones automáticas sobre citas.</p></div>
+  <section class="panel" aria-labelledby="forecast-title">
+    <div class="heading"><div><h3 id="forecast-title">Pronóstico semanal de citas creadas</h3><p>No representa ocupación, asistencia ni capacidad de agenda.</p></div><form class="forecast-filters" (ngSubmit)="consultarPronostico()"><label>Horizonte<select name="horizonte" [(ngModel)]="horizonte">@for (week of [4,5,6,7,8,9,10,11,12]; track week) { <option [ngValue]="week">{{ week }} semanas</option> }</select></label><label>Fecha de corte opcional<input name="fechaCorte" type="date" [(ngModel)]="fechaCorte" /></label><button type="submit" [disabled]="cargandoPronostico()">Actualizar</button></form></div>
+    @if (errorPronostico(); as message) { <p class="error" role="alert">{{ message }} <button type="button" (click)="consultarPronostico()">Reintentar</button></p> }
+    @if (cargandoPronostico()) { <p class="state" role="status">Evaluando disponibilidad del pronóstico…</p> }
+    @if (pronostico(); as data) {
+      <div class="forecast-status" [attr.data-state]="data.estado"><strong>{{ estadoTexto(data.estado) }}</strong><span>{{ data.version_modelo }} · {{ data.zona_horaria }}</span></div>
+      <div class="history-summary"><div><span>Cobertura histórica</span><strong>{{ data.rango_historico_inicio || '—' }} – {{ data.rango_historico_fin || '—' }}</strong></div><div><span>Semanas válidas</span><strong>{{ data.calidad_historica.semanas_ok + data.calidad_historica.semanas_zero }}</strong></div><div><span>Semanas no utilizables</span><strong>{{ data.calidad_historica.semanas_suppressed + data.calidad_historica.semanas_partial + data.calidad_historica.semanas_not_covered }}</strong></div></div>
+      @if (data.estado === 'READY') {
+        <div class="metrics"><div><span>Método</span><strong>{{ data.metodo }}</strong></div><div><span>MAE</span><strong>{{ data.metricas?.mae | number:'1.0-2' }}</strong></div><div><span>RMSE</span><strong>{{ data.metricas?.rmse | number:'1.0-2' }}</strong></div><div><span>Observaciones</span><strong>{{ data.metricas?.observaciones }}</strong></div></div>
+        <div class="forecast-chart" role="img" [attr.aria-label]="'Pronóstico de citas creadas para ' + data.horizonte_semanas + ' semanas con intervalos empíricos'">@for (point of data.pronosticos; track point.inicio_semana) { <div class="forecast-column"><span>{{ point.valor_pronosticado | number:'1.0-1' }}</span><div class="track"><i class="interval" [style.height.%]="altura(point.limite_superior)" [style.--lower.%]="altura(point.limite_inferior)"></i><b [style.height.%]="altura(point.valor_pronosticado)"></b></div><small>{{ point.inicio_semana.slice(5) }}</small></div> }</div>
+        <p class="legend"><span class="projected"></span> Proyección <span class="range"></span> intervalo empírico</p>
+        <div class="table-wrap"><table><thead><tr><th>Semana</th><th>Proyección</th><th>Intervalo empírico</th></tr></thead><tbody>@for (point of data.pronosticos; track point.inicio_semana) { <tr><td>{{ point.inicio_semana }} – {{ point.fin_semana }}</td><td>{{ point.valor_pronosticado | number:'1.0-2' }}</td><td>{{ point.limite_inferior | number:'1.0-2' }} – {{ point.limite_superior | number:'1.0-2' }}</td></tr> }</tbody></table></div>
+      }
+      <p class="note">{{ data.intervalo || 'El backend no publicó una proyección para el estado actual.' }}</p>
+      @if (data.advertencias.length) { <ul class="warnings">@for (warning of data.advertencias; track warning) { <li>{{ warning }}</li> }</ul> }
+    }
+  </section>
+  <section class="panel" aria-labelledby="ml-title">
+    <div class="heading"><div><h3 id="ml-title">ML de inasistencias</h3><p>Estado informativo del pipeline; no hay predicción individual habilitada.</p></div></div>
+    @if (errorMl(); as message) { <p class="error" role="alert">{{ message }} <button type="button" (click)="consultarMl()">Reintentar</button></p> }
+    @if (cargandoMl()) { <p class="state" role="status">Consultando estado del modelo…</p> }
+    @if (ml(); as data) {
+      <div class="blocked"><strong>{{ data.estado }}</strong><span>{{ data.calidad }}</span><small>Q09 entrenamiento: {{ data.q09_entrenamiento }}</small></div>
+      <div class="ml-grid"><div><h4>Razones del bloqueo</h4><ul>@for (reason of data.razones_bloqueo; track reason) { <li>{{ reason }}</li> }</ul></div><div><h4>Variables permitidas</h4><div class="chips">@for (variable of data.variables_permitidas; track variable) { <span>{{ nombreVariable(variable) }}</span> }</div><h4>Variables excluidas</h4><div class="chips excluded">@for (variable of data.variables_excluidas; track variable) { <span>{{ nombreVariable(variable) }}</span> }</div></div></div>
+      <div class="warnings"><strong>Advertencias del modelo</strong><ul>@for (warning of data.advertencias; track warning) { <li>{{ warning }}</li> }</ul></div>
+    }
+  </section>
+</section>

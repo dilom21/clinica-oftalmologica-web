@@ -1,0 +1,335 @@
+<div class="reembolso" (click)="cerrarAlFondo($event)">
+  <section
+    class="reembolso__dialogo"
+    role="dialog"
+    aria-modal="true"
+    aria-labelledby="reembolso-pago-titulo"
+    aria-describedby="reembolso-pago-descripcion"
+    [attr.aria-busy]="procesando()"
+  >
+    <h2 id="reembolso-pago-titulo">
+      Registrar devolución del pago {{ referenciaVisible(pago().id) }}
+    </h2>
+    <p id="reembolso-pago-descripcion">
+      La devolución registra una salida de dinero en el libro de ajustes. Si el pago se cobró por
+      la pasarela, el reembolso puede quedar pendiente del proveedor y tardar en confirmarse.
+    </p>
+
+    <dl class="reembolso__datos">
+      <div>
+        <dt>Referencia</dt>
+        <dd>{{ referenciaVisible(pago().id) }}</dd>
+      </div>
+      <div>
+        <dt>Paciente</dt>
+        <dd>{{ nombrePaciente() }}</dd>
+      </div>
+      <div>
+        <dt>Importe vigente</dt>
+        <dd class="reembolso__monto">{{ textoMonto(importeVigente()) }}</dd>
+      </div>
+      <div>
+        <dt>Saldo por devolver</dt>
+        <dd>{{ textoMonto(pago().importe_vigente ?? null) }}</dd>
+      </div>
+      <div>
+        <dt>Estado actual</dt>
+        <dd>{{ etiquetaEstado(pago().estado) }}</dd>
+      </div>
+    </dl>
+
+    <p class="reembolso__aviso">
+      <strong>La devolución no se puede deshacer.</strong> Queda registrada en el libro de ajustes
+      y sólo se corrige con otro ajuste autorizado.
+    </p>
+
+    <form [formGroup]="formulario" (ngSubmit)="enviar()" novalidate>
+      <div class="reembolso__fila">
+        <label class="reembolso__campo" for="reembolso-importe">
+          <span>Importe a devolver (en positivo)</span>
+          <input
+            id="reembolso-importe"
+            type="text"
+            inputmode="decimal"
+            formControlName="montoADevolver"
+            autocomplete="off"
+            (input)="alCambiarImporte($any($event.target).value)"
+            [attr.aria-invalid]="errorImporte() !== null"
+            [attr.aria-describedby]="descripcionImporte()"
+            placeholder="40.00"
+          />
+          <small id="reembolso-importe-ayuda">
+            Escribe el monto en positivo; el sistema lo registra con signo negativo.
+            @if (pago().importe_vigente) {
+              El saldo vigente es {{ textoMonto(pago().importe_vigente ?? null) }}.
+            } @else {
+              El servidor no informa el saldo vigente: el límite lo valida el servidor.
+            }
+          </small>
+        </label>
+        <label class="reembolso__campo reembolso__campo--moneda" for="reembolso-moneda">
+          <span>Moneda</span>
+          <input
+            id="reembolso-moneda"
+            type="text"
+            formControlName="moneda"
+            autocomplete="off"
+            maxlength="3"
+            [attr.aria-invalid]="errorMoneda() !== null"
+            [attr.aria-describedby]="
+              errorMoneda()
+                ? 'reembolso-moneda-error reembolso-moneda-ayuda'
+                : 'reembolso-moneda-ayuda'
+            "
+          />
+          <small id="reembolso-moneda-ayuda">Tres letras mayúsculas.</small>
+        </label>
+      </div>
+      @if (errorImporte(); as mensaje) {
+        <p class="reembolso__campo-error" id="reembolso-importe-error" role="alert">{{ mensaje }}</p>
+      }
+      @if (errorSaldo(); as mensaje) {
+        <p class="reembolso__campo-error" id="reembolso-saldo-error" role="alert">{{ mensaje }}</p>
+      }
+      @if (errorMoneda(); as mensaje) {
+        <p class="reembolso__campo-error" id="reembolso-moneda-error" role="alert">{{ mensaje }}</p>
+      }
+
+      <dl class="reembolso__conversion">
+        <div>
+          <dt>Se registrará como</dt>
+          <dd>{{ textoMonto(importeNegativo()) }}</dd>
+        </div>
+        @if (saldoRestante(); as restante) {
+          <div>
+            <dt>Saldo después de la devolución</dt>
+            <dd>{{ textoMonto(restante) }}</dd>
+          </div>
+        }
+      </dl>
+
+      <label class="reembolso__campo" for="reembolso-motivo">
+        <span>Motivo de la devolución</span>
+        <textarea
+          id="reembolso-motivo"
+          formControlName="motivo"
+          rows="2"
+          [attr.maxlength]="motivoMaximo"
+          [attr.aria-invalid]="errorMotivo() !== null"
+          [attr.aria-describedby]="
+            errorMotivo()
+              ? 'reembolso-motivo-error reembolso-motivo-ayuda'
+              : 'reembolso-motivo-ayuda'
+          "
+          placeholder="Ej. el paciente canceló el tratamiento antes de la atención"
+        ></textarea>
+        <small id="reembolso-motivo-ayuda">
+          Entre {{ motivoMinimo }} y {{ motivoMaximo }} caracteres. Queda en el libro de ajustes.
+        </small>
+      </label>
+      @if (errorMotivo(); as mensaje) {
+        <p class="reembolso__campo-error" id="reembolso-motivo-error" role="alert">{{ mensaje }}</p>
+      }
+
+      <label class="reembolso__campo" for="reembolso-naturaleza">
+        <span>Naturaleza del ajuste</span>
+        <select
+          id="reembolso-naturaleza"
+          formControlName="naturaleza"
+          [attr.aria-invalid]="errorNaturaleza() !== null"
+          [attr.aria-describedby]="
+            errorNaturaleza()
+              ? 'reembolso-naturaleza-error reembolso-naturaleza-ayuda'
+              : 'reembolso-naturaleza-ayuda'
+          "
+        >
+          <option value="">Selecciona la naturaleza</option>
+          @for (naturaleza of naturalezas; track naturaleza) {
+            <option [value]="naturaleza">{{ etiquetaNaturaleza(naturaleza) }}</option>
+          }
+        </select>
+        <small id="reembolso-naturaleza-ayuda">
+          Clasifica el motivo para la conciliación; no cambia el importe.
+        </small>
+      </label>
+      @if (errorNaturaleza(); as mensaje) {
+        <p class="reembolso__campo-error" id="reembolso-naturaleza-error" role="alert">{{ mensaje }}</p>
+      }
+
+      <div class="reembolso__fila">
+        <label class="reembolso__campo" for="reembolso-evidencia">
+          <span>Evidencia</span>
+          <textarea
+            id="reembolso-evidencia"
+            formControlName="evidencia"
+            rows="2"
+            [attr.maxlength]="evidenciaMaxima"
+            [attr.aria-invalid]="errorEvidencia() !== null"
+            [attr.aria-describedby]="
+              errorEvidencia()
+                ? 'reembolso-evidencia-error reembolso-evidencia-ayuda'
+                : 'reembolso-evidencia-ayuda'
+            "
+            placeholder="Ej. comprobante de la transferencia de vuelta al paciente"
+          ></textarea>
+          <small id="reembolso-evidencia-ayuda">
+            Opcional. Si la completas, debe tener de {{ evidenciaMinima }} a
+            {{ evidenciaMaxima }} caracteres.
+          </small>
+        </label>
+        <label class="reembolso__campo" for="reembolso-referencia">
+          <span>Referencia de la devolución</span>
+          <input
+            id="reembolso-referencia"
+            type="text"
+            formControlName="referencia_devolucion"
+            autocomplete="off"
+            [attr.maxlength]="referenciaMaxima"
+            [attr.aria-invalid]="errorReferencia() !== null"
+            [attr.aria-describedby]="
+              errorReferencia()
+                ? 'reembolso-referencia-error reembolso-referencia-ayuda'
+                : 'reembolso-referencia-ayuda'
+            "
+            placeholder="Ej. TRX-DEV-4471"
+          />
+          <small id="reembolso-referencia-ayuda">
+            Opcional. Si la completas, debe tener de {{ referenciaMinima }} a
+            {{ referenciaMaxima }} caracteres.
+          </small>
+        </label>
+      </div>
+      @if (errorEvidencia(); as mensaje) {
+        <p class="reembolso__campo-error" id="reembolso-evidencia-error" role="alert">{{ mensaje }}</p>
+      }
+      @if (errorReferencia(); as mensaje) {
+        <p class="reembolso__campo-error" id="reembolso-referencia-error" role="alert">{{ mensaje }}</p>
+      }
+      <p class="reembolso__nota">
+        En una devolución manual, el backend exige evidencia o referencia y puede responder 409
+        si faltan ambas. Para un reembolso Stripe no las exige. Como el pago no informa la
+        pasarela, estos campos son opcionales aquí y el servidor decide la regla aplicable.
+      </p>
+
+      <fieldset class="reembolso__dist">
+        <legend>Distribución por servicio</legend>
+        <p class="reembolso__dist-pista">
+          La devolución se registra en negativo: cada fila lleva un monto negativo y la suma debe
+          ser exactamente el importe.
+        </p>
+
+        <div formArrayName="distribucion">
+          @for (fila of distribucion.controls; track $index; let i = $index) {
+            <div class="reembolso__dist-fila" [formGroupName]="i">
+              <label class="reembolso__dist-campo">
+                <span>Servicio</span>
+                <select formControlName="servicio_realizado_id">
+                  @for (id of serviciosElegibles(); track id) {
+                    <option [ngValue]="id">Servicio #{{ id }}</option>
+                  }
+                </select>
+              </label>
+              <label class="reembolso__dist-campo">
+                <span>Monto (negativo)</span>
+                <input
+                  type="text"
+                  inputmode="decimal"
+                  formControlName="monto"
+                  autocomplete="off"
+                  [attr.aria-invalid]="errorFila(i) !== null"
+                  (input)="marcarEdicionManual()"
+                />
+              </label>
+              <button
+                type="button"
+                class="reembolso__dist-quitar"
+                [disabled]="procesando() || distribucion.length <= 1"
+                (click)="quitarFila(i)"
+              >
+                Quitar
+              </button>
+              @if (errorFila(i); as mensaje) {
+                <p class="reembolso__campo-error" role="alert">{{ mensaje }}</p>
+              }
+            </div>
+          }
+        </div>
+
+        <div class="reembolso__dist-acciones">
+          <button
+            type="button"
+            class="reembolso__btn reembolso__btn--secundario"
+            [disabled]="procesando() || !puedeAgregarFila()"
+            (click)="agregarFila()"
+          >
+            Agregar servicio
+          </button>
+          <button
+            type="button"
+            class="reembolso__btn reembolso__btn--secundario"
+            [disabled]="procesando()"
+            (click)="distribuirTodoEnElPrimero()"
+          >
+            Distribuir todo en el primer servicio
+          </button>
+        </div>
+
+        <dl class="reembolso__dist-resumen">
+          <div>
+            <dt>Importe a distribuir</dt>
+            <dd>{{ textoMonto(importeNegativo()) }}</dd>
+          </div>
+          <div>
+            <dt>Distribuido</dt>
+            <dd>{{ textoMonto(distribuido()) }}</dd>
+          </div>
+          <div>
+            <dt>Diferencia</dt>
+            <dd [class.reembolso__diferencia--cero]="diferenciaCero()">
+              {{ textoMonto(diferencia()) }}
+            </dd>
+          </div>
+        </dl>
+
+        @if (erroresDistribucion().length > 0) {
+          <ul class="reembolso__dist-errores">
+            @for (mensaje of erroresDistribucion(); track mensaje) {
+              <li role="alert">{{ mensaje }}</li>
+            }
+          </ul>
+        }
+      </fieldset>
+
+      <p class="reembolso__nota">
+        Si el pago se cobró con la pasarela, el servidor puede responder que el reembolso queda
+        pendiente del proveedor o en estado desconocido. Mientras no figure confirmado en el libro
+        de ajustes, no le confirmes al paciente que el dinero ya volvió: debe conciliarse.
+      </p>
+
+      @if (procesando()) {
+        <p class="reembolso__estado" role="status">
+          Enviando la devolución al servidor. No cierres esta ventana ni reenvíes el formulario.
+        </p>
+      }
+
+      @if (error(); as mensaje) {
+        <p class="reembolso__error" role="alert">{{ mensaje }}</p>
+      }
+
+      <div class="reembolso__acciones">
+        <button
+          #botonCancelar
+          type="button"
+          class="reembolso__btn reembolso__btn--secundario"
+          [disabled]="procesando()"
+          (click)="cerrar()"
+        >
+          Cancelar
+        </button>
+        <button type="submit" class="reembolso__btn reembolso__btn--peligro" [disabled]="!puedeEnviar()">
+          {{ procesando() ? 'Registrando…' : 'Registrar devolución' }}
+        </button>
+      </div>
+    </form>
+  </section>
+</div>

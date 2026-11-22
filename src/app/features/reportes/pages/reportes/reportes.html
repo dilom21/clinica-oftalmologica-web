@@ -14,7 +14,17 @@
             <button class="reportes-button reportes-button--voice" type="button" aria-label="Crear reporte por voz" title="Crear reporte por voz" (click)="abrirVoz()">🎙 Consultar por voz</button>
          </section>
 
-        @if (cargandoCatalogo()) {
+         <nav class="reportes-areas" aria-label="Áreas de reportes">
+           <button type="button" [class.active]="area() === 'clasicos'" [attr.aria-current]="area() === 'clasicos' ? 'page' : null" (click)="area.set('clasicos')">Reportes clásicos</button>
+           <button type="button" [class.active]="area() === 'progresivos'" [attr.aria-current]="area() === 'progresivos' ? 'page' : null" (click)="area.set('progresivos')">Dashboard progresivo</button>
+           <button type="button" [class.active]="area() === 'ia'" [attr.aria-current]="area() === 'ia' ? 'page' : null" (click)="area.set('ia')">IA predictiva y ML</button>
+         </nav>
+
+        @if (area() === 'progresivos') {
+          <app-dashboard-progresivo />
+        } @else if (area() === 'ia') {
+          <app-panel-ia-predictiva />
+        } @else if (cargandoCatalogo()) {
           <p class="reportes-state" role="status">Cargando catálogo de reportes...</p>
         } @else {
            <div class="reportes-tabs" role="tablist" aria-label="Tipo de reporte">

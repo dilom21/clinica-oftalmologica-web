@@ -26,7 +26,7 @@ type EstadoPermiso = 'verificando' | 'autorizado' | 'denegado' | 'error';
  * (módulo, funciones, acciones o menú) en lugar de dejar el área vacía.
  */
 export type MotivoSinAcceso =
-  'menu-error' | 'menu-invalido' | 'sin-modulo' | 'sin-funciones' | 'sin-acciones';
+  'menu-error' | 'menu-invalido' | 'sin-tenant' | 'sin-modulo' | 'sin-funciones' | 'sin-acciones';
 
 const SIN_PERMISOS: PermisosPagos = {
   ver: false,
@@ -85,6 +85,8 @@ export class GestionPagos implements OnInit {
         return 'No se pudo verificar el menú de seguridad';
       case 'menu-invalido':
         return 'El menú de seguridad llegó en un formato no válido';
+      case 'sin-tenant':
+        return 'La sesión no tiene una empresa asociada';
       case 'sin-modulo':
         return 'El módulo «Pagos» no está disponible en esta sesión';
       case 'sin-funciones':
@@ -102,6 +104,8 @@ export class GestionPagos implements OnInit {
         return 'El servicio de menú no respondió, así que no se pudo comprobar el acceso. Vuelve a intentarlo; no se consultó ninguna operación administrativa.';
       case 'menu-invalido':
         return 'El menú recibido no es una lista de módulos con funciones. Vuelve a intentarlo; no se consultó ninguna operación administrativa.';
+      case 'sin-tenant':
+        return 'Tu sesión no tiene una empresa (tenant) asociada. Inicia sesión con tu empresa para verificar los permisos de pagos; no se consultó ninguna operación administrativa.';
       case 'sin-modulo':
         return this.sinEmpresaTenant
           ? 'Tu sesión no tiene una empresa (tenant) asociada, por lo que el menú proviene de un acceso anterior y no incluye las funciones del CU31. Inicia sesión con tu empresa para habilitarlas.'
@@ -139,6 +143,10 @@ export class GestionPagos implements OnInit {
       // Un menú con formato inesperado antes rompía el render y dejaba la
       // página en blanco: ahora se informa y se ofrece reintentar.
       this.bloquear('menu-invalido');
+      return;
+    }
+    if (this.sinEmpresaTenant) {
+      this.bloquear('sin-tenant');
       return;
     }
 
@@ -199,6 +207,14 @@ export class GestionPagos implements OnInit {
       return;
     }
     void this.router.navigate([RUTA_POR_VISTA[vista]]);
+  }
+
+  /** CU36 es una página independiente; no altera la vista activa del contenedor CU31. */
+  protected irAConciliaciones(): void {
+    if (!this.permisos().registrar) {
+      return;
+    }
+    void this.router.navigate(['/pagos/conciliaciones']);
   }
 
   protected reintentarMenu(): void {

@@ -1,5 +1,6 @@
 import { HttpClient, HttpResponse } from '@angular/common/http';
 import { Injectable, inject } from '@angular/core';
+import { HttpParams } from '@angular/common/http';
 import { Observable, map } from 'rxjs';
 import { environment } from '../../../../environments/environment';
 import {
@@ -7,6 +8,11 @@ import {
   ReporteEmailDinamicoPayload, ReporteEmailEstaticoPayload,
   normalizeCatalog, normalizePreview,
 } from '../models/reportes.models';
+import {
+  CatalogoProgresivo, EstadoModeloInasistencia, FiltrosProgresivos,
+  FormatoProgresivo, PronosticoDemanda, RespuestaComparacion, RespuestaKpis,
+  RespuestaSerie,
+} from '../models/analitica.models';
 
 @Injectable({ providedIn: 'root' })
 export class ReportesService {
@@ -15,6 +21,29 @@ export class ReportesService {
 
   obtenerCatalogo(): Observable<ReporteCatalogo> {
     return this.http.get<unknown>(`${this.baseUrl}/catalogo`).pipe(map(normalizeCatalog));
+  }
+  obtenerCatalogoProgresivo(): Observable<CatalogoProgresivo> {
+    return this.http.get<CatalogoProgresivo>(`${this.baseUrl}/progresivos/catalogo`);
+  }
+  obtenerKpis(filtros: FiltrosProgresivos): Observable<RespuestaKpis> {
+    return this.http.get<RespuestaKpis>(`${this.baseUrl}/progresivos/kpis`, { params: this.progressiveParams(filtros) });
+  }
+  obtenerSerie(indicador: string, filtros: FiltrosProgresivos): Observable<RespuestaSerie> {
+    return this.http.get<RespuestaSerie>(`${this.baseUrl}/progresivos/series/${encodeURIComponent(indicador)}`, { params: this.progressiveParams(filtros) });
+  }
+  obtenerComparacion(indicador: string, filtros: FiltrosProgresivos): Observable<RespuestaComparacion> {
+    return this.http.get<RespuestaComparacion>(`${this.baseUrl}/progresivos/comparaciones/${encodeURIComponent(indicador)}`, { params: this.progressiveParams(filtros) });
+  }
+  exportarProgresivo(formato: FormatoProgresivo, indicador: string, filtros: FiltrosProgresivos): Observable<HttpResponse<Blob>> {
+    return this.http.post(`${this.baseUrl}/progresivos/exportar/${formato}`, { ...filtros, indicador }, { observe: 'response', responseType: 'blob' });
+  }
+  obtenerPronosticoDemanda(horizonte: number, fechaCorte?: string): Observable<PronosticoDemanda> {
+    let params = new HttpParams().set('horizonte', String(horizonte));
+    if (fechaCorte) params = params.set('fecha_corte', fechaCorte);
+    return this.http.get<PronosticoDemanda>(`${environment.apiUrl}/ia-predictiva/demanda/semanal`, { params });
+  }
+  obtenerEstadoInasistencia(): Observable<EstadoModeloInasistencia> {
+    return this.http.get<EstadoModeloInasistencia>(`${environment.apiUrl}/ia-predictiva/inasistencia/estado`);
   }
   interpretarReporte(texto: string): Observable<ReporteInterpretacionIa> {
     return this.http.post<ReporteInterpretacionIa>(`${environment.apiUrl}/ia/reportes/interpretar`, { texto });
@@ -53,6 +82,15 @@ export class ReportesService {
 
   private validLimit(limit: number | undefined): number {
     return typeof limit === 'number' && Number.isInteger(limit) && limit >= 1 && limit <= 200 ? limit : 50;
+  }
+
+  private progressiveParams(filtros: FiltrosProgresivos): HttpParams {
+    let params = new HttpParams()
+      .set('fecha_desde', filtros.fecha_desde)
+      .set('fecha_hasta', filtros.fecha_hasta)
+      .set('granularidad', filtros.granularidad);
+    if (filtros.estado) params = params.set('estado', filtros.estado);
+    return params;
   }
 
   static filename(response: HttpResponse<Blob>, formato: ReporteFormato): string {

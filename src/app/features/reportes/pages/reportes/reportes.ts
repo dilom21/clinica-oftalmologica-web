@@ -13,17 +13,20 @@ import {
 } from '../../models/reportes.models';
 import { ReportesService } from '../../services/reportes.service';
 import { VoiceRecognitionService } from '../../../../shared/services/voice-recognition.service';
+import { DashboardProgresivo } from '../../components/dashboard-progresivo/dashboard-progresivo';
+import { PanelIaPredictiva } from '../../components/panel-ia-predictiva/panel-ia-predictiva';
 
 interface FiltroEdicion extends ReporteFiltro { valueText: string; valueText2: string; }
 interface OrdenEdicion extends ReporteOrden { }
 
 @Component({
   selector: 'app-reportes',
-  imports: [CommonModule, FormsModule, Sidebar],
+  imports: [CommonModule, FormsModule, Sidebar, DashboardProgresivo, PanelIaPredictiva],
   templateUrl: './reportes.html',
   styleUrl: './reportes.css',
 })
 export class Reportes implements OnInit, OnDestroy {
+  protected readonly area = signal<'clasicos' | 'progresivos' | 'ia'>('clasicos');
   protected readonly sidebarMovilAbierto = signal(false);
   protected readonly modo = signal<'estatico' | 'dinamico'>('estatico');
   protected readonly catalogo = signal<ReporteCatalogo>({ datasets: [], staticReports: [] });

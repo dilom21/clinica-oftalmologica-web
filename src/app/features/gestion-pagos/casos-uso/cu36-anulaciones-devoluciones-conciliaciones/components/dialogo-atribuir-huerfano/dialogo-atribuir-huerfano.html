@@ -1,0 +1,91 @@
+<div class="atribuir" (click)="cerrarAlFondo($event)">
+  <section class="atribuir__dialogo" role="dialog" aria-modal="true"
+    aria-labelledby="atribuir-huerfano-titulo" aria-describedby="atribuir-huerfano-descripcion"
+    [attr.aria-busy]="procesando()">
+    <h2 id="atribuir-huerfano-titulo">Atribuir el reembolso {{ huerfano().refund_id }}</h2>
+    <p id="atribuir-huerfano-descripcion">
+      Esta acción adjunta un reembolso existente a un pago mediante sus servicios. No crea ni vuelve a ejecutar un reembolso.
+    </p>
+
+    <dl class="atribuir__datos">
+      <div><dt>Reembolso</dt><dd>{{ huerfano().refund_id }}</dd></div>
+      <div><dt>Payment intent</dt><dd>{{ huerfano().payment_intent_id || '—' }}</dd></div>
+      <div><dt>Estado del proveedor</dt><dd>{{ huerfano().status }}</dd></div>
+      <div><dt>Importe</dt><dd>{{ importeVisible() }} · {{ huerfano().currency }}</dd></div>
+      <div><dt>Evento Stripe</dt><dd>{{ huerfano().stripe_event_id }}</dd></div>
+      <div><dt>Recibido</dt><dd>{{ fecha(huerfano().creado_en) }}</dd></div>
+    </dl>
+
+    <form [formGroup]="formulario" (ngSubmit)="enviar()" novalidate>
+      <label class="atribuir__campo" for="atribuir-motivo">
+        <span>Motivo</span>
+        <textarea id="atribuir-motivo" formControlName="motivo" rows="3" [attr.maxlength]="motivoMaximo"></textarea>
+      </label>
+      @if (errorMotivo(); as mensaje) { <p class="atribuir__campo-error" role="alert">{{ mensaje }}</p> }
+
+      <label class="atribuir__campo" for="atribuir-naturaleza">
+        <span>Naturaleza del ajuste</span>
+        <select id="atribuir-naturaleza" formControlName="naturaleza">
+          <option value="">Selecciona la naturaleza</option>
+          @for (naturaleza of naturalezas; track naturaleza) {
+            <option [value]="naturaleza">{{ etiquetaNaturaleza(naturaleza) }}</option>
+          }
+        </select>
+      </label>
+      @if (errorNaturaleza(); as mensaje) { <p class="atribuir__campo-error" role="alert">{{ mensaje }}</p> }
+
+      <label class="atribuir__campo" for="atribuir-evidencia">
+        <span>Evidencia (obligatoria)</span>
+        <textarea id="atribuir-evidencia" formControlName="evidencia" rows="3" [attr.maxlength]="evidenciaMaxima"></textarea>
+        <small>Entre 5 y 2000 caracteres que permitan auditar la atribución.</small>
+      </label>
+      @if (errorEvidencia(); as mensaje) { <p class="atribuir__campo-error" role="alert">{{ mensaje }}</p> }
+
+      <fieldset formArrayName="distribucion" class="atribuir__distribucion">
+        <legend>Distribución por servicios realizados</legend>
+        <p>Todos los montos deben ser negativos y sumar exactamente el reembolso.</p>
+        @for (fila of distribucion.controls; track fila; let indice = $index) {
+          <div class="atribuir__fila" [formGroupName]="indice">
+            <label>Servicio realizado ID
+              <input [id]="'atribuir-servicio-' + indice" type="number" min="1" step="1"
+                formControlName="servicio_realizado_id"
+                [attr.aria-invalid]="servicioInvalido(indice) ? 'true' : null"
+                [attr.aria-describedby]="servicioInvalido(indice) ? 'atribuir-distribucion-errores' : null" />
+            </label>
+            <label>Monto
+              <input [id]="'atribuir-monto-' + indice" type="text" inputmode="decimal"
+                formControlName="monto" placeholder="-10.10"
+                [attr.aria-invalid]="montoInvalido(indice) ? 'true' : null"
+                [attr.aria-describedby]="montoInvalido(indice) ? 'atribuir-distribucion-errores' : null" />
+            </label>
+            <button type="button" (click)="quitarFila(indice)" [disabled]="procesando() || distribucion.length === 1"
+              [attr.aria-label]="'Quitar servicio de la fila ' + (indice + 1)">Quitar</button>
+          </div>
+        }
+        <button type="button" class="atribuir__btn atribuir__btn--secundario" (click)="agregarFila()"
+          [disabled]="procesando() || distribucion.length >= 50">Agregar servicio</button>
+      </fieldset>
+
+      <dl class="atribuir__totales" aria-live="polite">
+        <div><dt>Objetivo</dt><dd>{{ importeVisible() }}</dd></div>
+        <div><dt>Asignado</dt><dd>{{ asignadoVisible() }}</dd></div>
+        <div><dt>Restante</dt><dd>{{ restanteVisible() }}</dd></div>
+      </dl>
+      @if (erroresDistribucion().length) {
+        <ul id="atribuir-distribucion-errores" class="atribuir__errores" role="alert">
+          @for (mensaje of erroresDistribucion(); track mensaje) { <li>{{ mensaje }}</li> }
+        </ul>
+      }
+
+      @if (procesando()) { <p class="atribuir__estado" role="status">Atribuyendo el reembolso. No cierres esta ventana.</p> }
+      @if (error(); as mensaje) { <p class="atribuir__error" role="alert">{{ mensaje }}</p> }
+
+      <div class="atribuir__acciones">
+        <button #botonCancelar type="button" class="atribuir__btn atribuir__btn--secundario" [disabled]="procesando()" (click)="cerrar()">Cancelar</button>
+        <button type="submit" class="atribuir__btn atribuir__btn--primario" [disabled]="!puedeEnviar()">
+          {{ procesando() ? 'Atribuyendo…' : 'Atribuir reembolso' }}
+        </button>
+      </div>
+    </form>
+  </section>
+</div>

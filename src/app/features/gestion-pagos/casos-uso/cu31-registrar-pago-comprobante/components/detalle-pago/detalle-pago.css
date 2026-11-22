@@ -73,6 +73,13 @@
   border-color: var(--color-danger-border);
 }
 
+/* Dinero devuelto: distinto del tono negativo de «Anulado». */
+.detalle__badge--reembolsado {
+  color: var(--color-info-text);
+  background: var(--color-info-bg);
+  border-color: var(--color-info-border);
+}
+
 .detalle__badge--neutro {
   color: var(--color-neutral-text);
   background: var(--color-neutral-bg);
@@ -200,6 +207,26 @@
   font-size: 0.76rem !important;
 }
 
+.detalle__pendiente {
+  padding: 0.6rem 0.7rem;
+  color: var(--color-warning-text);
+  background: var(--color-warning-bg);
+  border: 1px solid var(--color-warning-border);
+  border-radius: var(--radius-sm);
+  font-size: 0.78rem;
+  line-height: 1.45;
+}
+
+.detalle__operaciones {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  padding: 0.7rem;
+  background: var(--color-surface-muted);
+  border: 1px solid var(--color-border-soft);
+  border-radius: var(--radius-sm);
+}
+
 .detalle__correo {
   padding: 0.7rem 0.8rem;
   background: var(--color-surface-muted);
@@ -270,6 +297,34 @@
   border-radius: var(--radius-sm);
   font-size: 0.78rem;
   font-weight: 600;
+}
+
+/* Resultado de una operación del CU36: sólo «CONFIRMADO» usa el tono de éxito. */
+.detalle__resultado {
+  padding: 0.55rem 0.7rem;
+  border-radius: var(--radius-sm);
+  border: 1px solid transparent;
+  font-size: 0.78rem;
+  line-height: 1.45;
+  font-weight: 600;
+}
+
+.detalle__resultado--exito {
+  color: var(--color-success-text);
+  background: var(--color-success-bg);
+  border-color: var(--color-success-border);
+}
+
+.detalle__resultado--aviso {
+  color: var(--color-warning-text);
+  background: var(--color-warning-bg);
+  border-color: var(--color-warning-border);
+}
+
+.detalle__resultado--error {
+  color: var(--color-danger-text);
+  background: var(--color-danger-bg);
+  border-color: var(--color-danger-border);
 }
 
 @media (max-width: 480px) {
