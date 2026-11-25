@@ -1,18 +1,31 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
-import { signal } from '@angular/core';
+import { Component, input, output, signal } from '@angular/core';
 import { of, throwError } from 'rxjs';
 import { vi } from 'vitest';
+import { Sidebar } from '../../../../../../core/layouts/sidebar/sidebar';
+import { AuthService } from '../../../../../autenticacion-seguridad/Auth/services/auth.service';
 import { CatalogoService } from '../../../cu26-gestionar-productos-categorias-lotes/services/catalogo.service';
 import { MovimientosService } from '../../services/movimientos.service';
 import { GestionarMovimientos } from './gestionar-movimientos';
+
+@Component({ selector: 'app-sidebar', standalone: true, template: '' })
+class SidebarMock {
+  readonly mobileOpen = input(false);
+  readonly mobileClose = output<void>();
+}
 
 describe('GestionarMovimientos', () => {
   let fixture: ComponentFixture<GestionarMovimientos>;
   let component: GestionarMovimientos;
   let catalogo: any;
   let movimientos: any;
+  let auth: any;
 
   beforeEach(() => {
+    auth = {
+      empresa: signal<{ codigo: string; nombre: string; tenantId: number } | null>(null),
+      inicializarContextoEmpresa: vi.fn(),
+    };
     catalogo = {
       listarProductos: vi.fn(() => of([{ id: 1, categoria_id: 1, codigo: 'P-1', nombre: 'Producto', estado: true }])),
       listarLotes: vi.fn(() => of([{ id: 2, producto_id: 1, numero_lote: 'L-1', estado: true }])),
@@ -27,12 +40,42 @@ describe('GestionarMovimientos', () => {
       providers: [
         { provide: CatalogoService, useValue: catalogo },
         { provide: MovimientosService, useValue: movimientos },
-        { provide: 'AuthService', useValue: { empresa: signal(null) } },
+        { provide: AuthService, useValue: auth },
       ],
     });
-    // AuthService es opcional para mantener la prueba aislada del contexto de sesión.
+    // El sidebar real tiene sus propias dependencias: se aisla aquí sin alterar CU27.
+    TestBed.overrideComponent(GestionarMovimientos, {
+      remove: { imports: [Sidebar] },
+      add: { imports: [SidebarMock] },
+    });
+    // Mock de la clase real para aislar los tests del HTTP y del contexto de sesión.
     fixture = TestBed.createComponent(GestionarMovimientos);
     component = fixture.componentInstance;
+  });
+
+  it('initializes the company on direct navigation and loads catalogue when tenant resolves', () => {
+    expect(auth.inicializarContextoEmpresa).toHaveBeenCalledOnce();
+    fixture.detectChanges();
+    expect(catalogo.listarProductos).not.toHaveBeenCalled();
+
+    auth.empresa.set({ codigo: 'CLINICA-TEST', nombre: 'Clinica de prueba', tenantId: 7 });
+    fixture.detectChanges();
+
+    expect(catalogo.listarProductos).toHaveBeenCalledWith(undefined, false);
+    expect(catalogo.listarLotes).toHaveBeenCalledWith(undefined, false);
+    expect(component.productos()).toHaveLength(1);
+    expect(component.lotes()).toHaveLength(1);
+    expect(component.cargandoCatalogo()).toBe(false);
+  });
+
+  it('renders the shared navigation and toggles the mobile menu', () => {
+    fixture.detectChanges();
+    expect(fixture.nativeElement.querySelector('app-sidebar')).not.toBeNull();
+    const boton = fixture.nativeElement.querySelector('[aria-label="Abrir menú"]') as HTMLButtonElement;
+    boton.click();
+    fixture.detectChanges();
+    expect(component.sidebarMovilAbierto()).toBe(true);
+    expect(fixture.nativeElement.querySelector('[aria-label="Cerrar menú"]')).not.toBeNull();
   });
 
   it('offers only the five manual registration types', () => {

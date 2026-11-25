@@ -93,4 +93,43 @@ describe('ReportesService', () => {
     expect(request.request.body).toEqual({ destinatario: 'destino@example.com', formato: 'html', asunto: 'Reporte', mensaje: '', filtros: [], limit: 50 });
     request.flush({ ok: true });
   });
+
+  it('consumes progressive KPIs with exact filters and no tenant identifiers', () => {
+    service.obtenerKpis({ fecha_desde: '2026-01-01', fecha_hasta: '2026-01-31', granularidad: 'semana', estado: 'ATENDIDA' }).subscribe();
+    const request = http.expectOne((item) => item.url === `${environment.apiUrl}/reportes/progresivos/kpis`);
+    expect(request.request.method).toBe('GET');
+    expect(request.request.params.keys().sort()).toEqual(['estado', 'fecha_desde', 'fecha_hasta', 'granularidad']);
+    expect(request.request.params.get('estado')).toBe('ATENDIDA');
+    expect(request.request.params.has('tenant_id')).toBe(false);
+    expect(request.request.params.has('empresa_id')).toBe(false);
+    request.flush({ fecha_desde: '2026-01-01', fecha_hasta: '2026-01-31', zona_horaria: 'America/La_Paz', indicadores: [], distribucion_estados: [], advertencias: [] });
+  });
+
+  it('gets series and comparisons with an encoded indicator', () => {
+    const filters = { fecha_desde: '2026-01-01', fecha_hasta: '2026-01-31', granularidad: 'dia' as const };
+    service.obtenerSerie('citas creadas', filters).subscribe();
+    http.expectOne((item) => item.url === `${environment.apiUrl}/reportes/progresivos/series/citas%20creadas`).flush({ indicador: 'citas_creadas', etiqueta: 'Citas creadas', granularidad: 'dia', fecha_desde: filters.fecha_desde, fecha_hasta: filters.fecha_hasta, zona_horaria: 'America/La_Paz', puntos: [], advertencias: [] });
+    service.obtenerComparacion('citas_creadas', filters).subscribe();
+    http.expectOne((item) => item.url === `${environment.apiUrl}/reportes/progresivos/comparaciones/citas_creadas`).flush({ indicador: 'citas_creadas', actual: { valor: null, estado_dato: 'SUPPRESSED' }, anterior: { valor: 0, estado_dato: 'ZERO' }, variacion_absoluta: null, variacion_porcentual: null, periodo_actual: ['2026-01-01', '2026-01-31'], periodo_anterior: ['2025-12-01', '2025-12-31'], advertencias: [] });
+  });
+
+  it('exports progressive data with the selected filters as a blob', () => {
+    service.exportarProgresivo('pdf', 'citas_creadas', { fecha_desde: '2026-01-01', fecha_hasta: '2026-01-31', granularidad: 'mes' }).subscribe();
+    const request = http.expectOne(`${environment.apiUrl}/reportes/progresivos/exportar/pdf`);
+    expect(request.request.method).toBe('POST');
+    expect(request.request.responseType).toBe('blob');
+    expect(request.request.body).toEqual({ fecha_desde: '2026-01-01', fecha_hasta: '2026-01-31', granularidad: 'mes', indicador: 'citas_creadas' });
+    request.flush(new Blob(['pdf']));
+  });
+
+  it('requests demand forecast and ML status without patient or tenant fields', () => {
+    service.obtenerPronosticoDemanda(8, '2026-03-02').subscribe();
+    const forecast = http.expectOne((item) => item.url === `${environment.apiUrl}/ia-predictiva/demanda/semanal`);
+    expect(forecast.request.params.keys().sort()).toEqual(['fecha_corte', 'horizonte']);
+    forecast.flush({ estado: 'INSUFFICIENT_HISTORY', objetivo: 'CITAS_CREADAS', zona_horaria: 'America/La_Paz', fecha_corte: '2026-03-02T00:00:00Z', horizonte_semanas: 8, metodo: null, version_modelo: 'v1', rango_historico_inicio: null, rango_historico_fin: null, calidad_historica: { semanas_ok: 0, semanas_zero: 0, semanas_suppressed: 0, semanas_partial: 0, semanas_not_covered: 0 }, metricas: null, metricas_baseline: null, comparacion_metodos: [], pronosticos: [], intervalo: null, advertencias: [] });
+    service.obtenerEstadoInasistencia().subscribe();
+    const ml = http.expectOne(`${environment.apiUrl}/ia-predictiva/inasistencia/estado`);
+    expect(ml.request.params.keys()).toEqual([]);
+    ml.flush({ estado: 'TRAINING_DISABLED', fuente: 'CITA_ESTADO_Y_BITACORA', calidad: 'BLOQUEADO_POR_DATOS', version_regla: 'v1', q09_entrenamiento: 'PROHIBIDO', modelo_habilitado: false, prediccion_habilitada: false, algoritmos_disponibles: [], variables_permitidas: [], variables_excluidas: [], razones_bloqueo: [], advertencias: [] });
+  });
 });

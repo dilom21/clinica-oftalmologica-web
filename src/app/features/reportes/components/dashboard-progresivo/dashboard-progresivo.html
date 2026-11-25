@@ -1,0 +1,29 @@
+<section class="analytics" aria-labelledby="analytics-title">
+  <div class="section-heading"><div><p class="eyebrow">REPORTES PROGRESIVOS</p><h2 id="analytics-title">Indicadores y cobertura</h2><p>Datos agregados del período; los valores protegidos nunca se convierten en cero.</p></div></div>
+  <form class="filters" (ngSubmit)="consultar()">
+    <label>Desde<input type="date" name="desde" [(ngModel)]="fechaDesde" required /></label>
+    <label>Hasta<input type="date" name="hasta" [(ngModel)]="fechaHasta" required /></label>
+    <label>Granularidad<select name="granularidad" [(ngModel)]="granularidad"><option value="dia">Diaria</option><option value="semana">Semanal</option><option value="mes">Mensual</option></select></label>
+    <label>Estado<select name="estado" [(ngModel)]="estado"><option value="">Todos</option><option value="PROGRAMADA">Programada</option><option value="CONFIRMADA">Confirmada</option><option value="EN_ESPERA">En espera</option><option value="ATENDIDA">Atendida</option><option value="CANCELADA">Cancelada</option><option value="NO_ASISTIO">No asistió</option></select></label>
+    <button class="primary" type="submit" [disabled]="cargando()">{{ cargando() ? 'Consultando…' : 'Aplicar filtros' }}</button>
+  </form>
+  @if (error(); as message) { <p class="error" role="alert">{{ message }} <button type="button" (click)="consultar()">Reintentar</button></p> }
+  @if (cargando()) { <p class="state" role="status">Cargando indicadores autorizados…</p> }
+  @if (kpis(); as data) {
+    <div class="kpi-grid" aria-label="Indicadores principales">@for (kpi of data.indicadores; track kpi.indicador) {
+      <article class="kpi" [attr.data-state]="kpi.estado_dato"><span>{{ kpi.etiqueta }}</span><strong>{{ valorVisible(kpi.valor, kpi.estado_dato) }}</strong><small>{{ estadoLabel(kpi.estado_dato) }} @if (kpi.calificador) { · {{ kpi.calificador }} }</small></article>
+    }</div>
+    <div class="warnings" role="note"><strong>Cobertura y privacidad</strong><ul>@for (warning of data.advertencias; track warning) { <li>{{ warning }}</li> }</ul></div>
+  }
+  <section class="panel">
+    <div class="panel-heading"><div><p class="eyebrow">SERIE TEMPORAL</p><h3>Histórico por indicador</h3></div><label>Indicador<select [ngModel]="indicador" (ngModelChange)="cambiarIndicador($event)" name="indicador">@for (item of catalogo(); track item.key) { @if (disponible(item)) { <option [value]="item.key">{{ item.etiqueta }}</option> } }</select></label></div>
+    @if (serie(); as data) {
+      <div class="chart" role="img" [attr.aria-label]="'Serie ' + data.etiqueta + ' con ' + data.puntos.length + ' períodos'">@for (point of data.puntos; track point.periodo_inicio) { <div class="bar-column"><span class="bar-value">{{ point.valor === null ? '—' : point.valor }}</span><div class="bar-track"><span class="bar" [class.missing]="point.valor === null" [style.height.%]="altura(point.valor)"></span></div><small>{{ point.periodo_inicio.slice(5) }}</small></div> } @empty { <p>No hay períodos para mostrar.</p> }</div>
+      <div class="table-wrap"><table><thead><tr><th>Período</th><th>Valor</th><th>Cobertura</th></tr></thead><tbody>@for (point of data.puntos; track point.periodo_inicio) { <tr><td>{{ point.periodo_inicio }} – {{ point.periodo_fin }}</td><td>{{ point.valor === null ? '—' : point.valor }}</td><td><span class="status" [attr.data-state]="point.estado_dato">{{ estadoLabel(point.estado_dato) }}</span></td></tr> }</tbody></table></div>
+      @if (data.advertencias.length) { <ul class="indicator-warnings">@for (warning of data.advertencias; track warning) { <li>{{ warning }}</li> }</ul> }
+    }
+  </section>
+  @if (comparacion(); as comparison) { <section class="comparison"><div><span>Período actual</span><strong>{{ valorVisible(comparison.actual.valor, comparison.actual.estado_dato) }}</strong><small>{{ comparison.periodo_actual[0] }} – {{ comparison.periodo_actual[1] }}</small></div><div><span>Período anterior</span><strong>{{ valorVisible(comparison.anterior.valor, comparison.anterior.estado_dato) }}</strong><small>{{ comparison.periodo_anterior[0] }} – {{ comparison.periodo_anterior[1] }}</small></div><div><span>Variación</span><strong>{{ comparison.variacion_porcentual === null ? 'No calculable' : (comparison.variacion_porcentual | number:'1.0-2') + '%' }}</strong><small>Solo con valores comparables</small></div></section> }
+  @if (indicadorActual(); as item) { @if (item.calificador || item.limitaciones.length) { <aside class="qualifier"><strong>{{ item.calificador || 'Advertencia del indicador' }}</strong><ul>@for (warning of item.limitaciones; track warning) { <li>{{ warning }}</li> }</ul></aside> } }
+  <div class="exports"><span>Exportar selección actual:</span><button type="button" (click)="exportar('csv')" [disabled]="exportando() !== null">CSV</button><button type="button" (click)="exportar('xlsx')" [disabled]="exportando() !== null">Excel</button><button type="button" (click)="exportar('pdf')" [disabled]="exportando() !== null">PDF</button></div>
+</section>

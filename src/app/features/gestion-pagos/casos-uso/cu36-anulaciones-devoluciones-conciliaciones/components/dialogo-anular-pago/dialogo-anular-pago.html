@@ -1,0 +1,158 @@
+<div class="anular" (click)="cerrarAlFondo($event)">
+  <section
+    class="anular__dialogo"
+    role="dialog"
+    aria-modal="true"
+    aria-labelledby="anular-pago-titulo"
+    aria-describedby="anular-pago-descripcion"
+    [attr.aria-busy]="procesando()"
+  >
+    <h2 id="anular-pago-titulo">Anular el pago {{ referenciaVisible(pago().id) }}</h2>
+    <p id="anular-pago-descripcion">
+      La anulación revierte el pago en el libro de ajustes. Por sí sola no devuelve dinero:
+      si el paciente ya pagó, el reintegro se registra como una devolución aparte.
+    </p>
+
+    <dl class="anular__datos">
+      <div>
+        <dt>Referencia</dt>
+        <dd>{{ referenciaVisible(pago().id) }}</dd>
+      </div>
+      <div>
+        <dt>Paciente</dt>
+        <dd>{{ nombrePaciente() }}</dd>
+      </div>
+      <div>
+        <dt>Importe vigente</dt>
+        <dd class="anular__monto">{{ formatear(importeVigente(), pago().moneda) }}</dd>
+      </div>
+      <div>
+        <dt>Estado actual</dt>
+        <dd>{{ etiquetaEstado(pago().estado) }}</dd>
+      </div>
+    </dl>
+
+    <p class="anular__aviso">
+      <strong>Esta operación no se puede deshacer.</strong> El pago quedará anulado en el
+      historial y no admite una segunda anulación.
+    </p>
+
+    <form [formGroup]="formulario" (ngSubmit)="enviar()" novalidate>
+      <label class="anular__campo" for="anular-motivo">
+        <span>Motivo de la anulación</span>
+        <textarea
+          id="anular-motivo"
+          formControlName="motivo"
+          rows="3"
+          [attr.maxlength]="motivoMaximo"
+          [attr.aria-invalid]="errorMotivo() !== null"
+          [attr.aria-describedby]="
+            errorMotivo() ? 'anular-motivo-error anular-motivo-ayuda' : 'anular-motivo-ayuda'
+          "
+          placeholder="Ej. el cobro se registró dos veces para la misma consulta"
+        ></textarea>
+        <small id="anular-motivo-ayuda">
+          Entre {{ motivoMinimo }} y {{ motivoMaximo }} caracteres. Queda en el libro de ajustes.
+        </small>
+      </label>
+      @if (errorMotivo(); as mensaje) {
+        <p class="anular__campo-error" id="anular-motivo-error" role="alert">{{ mensaje }}</p>
+      }
+
+      <label class="anular__campo" for="anular-naturaleza">
+        <span>Naturaleza del ajuste</span>
+        <select
+          id="anular-naturaleza"
+          formControlName="naturaleza"
+          [attr.aria-invalid]="errorNaturaleza() !== null"
+          [attr.aria-describedby]="
+            errorNaturaleza()
+              ? 'anular-naturaleza-error anular-naturaleza-ayuda'
+              : 'anular-naturaleza-ayuda'
+          "
+        >
+          <option value="">Selecciona la naturaleza</option>
+          @for (naturaleza of naturalezas; track naturaleza) {
+            <option [value]="naturaleza">{{ etiquetaNaturaleza(naturaleza) }}</option>
+          }
+        </select>
+        <small id="anular-naturaleza-ayuda">
+          Clasifica el motivo para la conciliación; no cambia el importe.
+        </small>
+      </label>
+      @if (errorNaturaleza(); as mensaje) {
+        <p class="anular__campo-error" id="anular-naturaleza-error" role="alert">{{ mensaje }}</p>
+      }
+
+      <label class="anular__campo" for="anular-evidencia">
+        <span>
+          Evidencia
+          @if (evidenciaObligatoria()) {
+            <strong class="anular__obligatorio">(obligatoria para este pago)</strong>
+          }
+        </span>
+        <textarea
+          id="anular-evidencia"
+          formControlName="evidencia"
+          rows="3"
+          [attr.maxlength]="evidenciaMaxima"
+          [attr.aria-invalid]="errorEvidencia() !== null"
+          [attr.aria-describedby]="
+            errorEvidencia()
+              ? 'anular-evidencia-error anular-evidencia-ayuda'
+              : 'anular-evidencia-ayuda'
+          "
+          placeholder="Ej. verificado con el extracto bancario del 19/10, el abono no ingresó a la clínica"
+        ></textarea>
+        <small id="anular-evidencia-ayuda">
+          @if (evidenciaObligatoria()) {
+            El pago está aprobado: el servidor exige de {{ evidenciaMinima }} a
+            {{ evidenciaMaxima }} caracteres que expliquen por qué el dinero no fue capturado.
+            Sin evidencia, la anulación se rechaza.
+          } @else {
+            Opcional. De {{ evidenciaMinima }} a {{ evidenciaMaxima }} caracteres con el soporte
+            de la verificación.
+          }
+        </small>
+      </label>
+      @if (errorEvidencia(); as mensaje) {
+        <p class="anular__campo-error" id="anular-evidencia-error" role="alert">{{ mensaje }}</p>
+      }
+
+      <p class="anular__nota">
+        Ten en cuenta que el servidor puede rechazar la anulación aunque el formulario sea válido:
+        un pago aprobado ya capturado por la pasarela necesita un reembolso, y un pago con
+        devoluciones confirmadas debe continuar por el flujo de devolución. La interfaz no puede
+        detectar esos dos casos por adelantado; si ocurren, el servidor devuelve el motivo.
+      </p>
+
+      @if (procesando()) {
+        <p class="anular__estado" role="status">
+          Enviando la anulación al servidor. No cierres esta ventana ni reenvíes el formulario.
+        </p>
+      }
+
+      @if (error(); as mensaje) {
+        <p class="anular__error" role="alert">{{ mensaje }}</p>
+      }
+
+      <div class="anular__acciones">
+        <button
+          #botonCancelar
+          type="button"
+          class="anular__btn anular__btn--secundario"
+          [disabled]="procesando()"
+          (click)="cerrar()"
+        >
+          Cancelar
+        </button>
+        <button
+          type="submit"
+          class="anular__btn anular__btn--peligro"
+          [disabled]="!puedeEnviar()"
+        >          {{ procesando() ? 'Anulando…' : 'Anular pago' }}
+        </button>
+      </div>
+    </form>
+  </section>
+</div>

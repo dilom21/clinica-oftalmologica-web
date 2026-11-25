@@ -237,6 +237,8 @@ export class HistorialPagos implements OnInit {
       case 'RECHAZADO':
       case 'ANULADO':
         return 'historial__badge--negativo';
+      case 'REEMBOLSADO':
+        return 'historial__badge--reembolsado';
       default:
         return 'historial__badge--neutro';
     }

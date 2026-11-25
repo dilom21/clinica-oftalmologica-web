@@ -1,0 +1,205 @@
+<div class="conciliar" (click)="cerrarAlFondo($event)">
+  <section
+    class="conciliar__dialogo"
+    role="dialog"
+    aria-modal="true"
+    aria-labelledby="conciliar-ajuste-titulo"
+    aria-describedby="conciliar-ajuste-descripcion"
+    [attr.aria-busy]="procesando()"
+  >
+    <h2 id="conciliar-ajuste-titulo">Conciliar el ajuste #{{ ajuste().id }}</h2>
+    <p id="conciliar-ajuste-descripcion">
+      La conciliación fija el resultado definitivo del ajuste en el libro. No vuelve a ejecutar la
+      operación: sólo registra lo que el operador verificó con el proveedor o con la caja.
+    </p>
+
+    <dl class="conciliar__datos">
+      <div>
+        <dt>Ajuste</dt>
+        <dd>#{{ ajuste().id }}</dd>
+      </div>
+      <div>
+        <dt>Tipo</dt>
+        <dd>{{ etiquetaTipo(ajuste().tipo) }}</dd>
+      </div>
+      <div>
+        <dt>Naturaleza</dt>
+        <dd>{{ etiquetaNaturaleza(ajuste().naturaleza) }}</dd>
+      </div>
+      <div>
+        <dt>Importe</dt>
+        <dd class="conciliar__monto">{{ formatear(ajuste().importe, ajuste().moneda) }}</dd>
+      </div>
+      <div>
+        <dt>Estado actual</dt>
+        <dd>{{ etiquetaEstado(ajuste().estado) }}</dd>
+      </div>
+      @if (ajuste().referencia_externa) {
+        <div>
+          <dt>Referencia externa</dt>
+          <dd>{{ ajuste().referencia_externa }}</dd>
+        </div>
+      }
+    </dl>
+
+    <p class="conciliar__contexto">{{ descripcionEstado(ajuste().estado) }}</p>
+
+    <p class="conciliar__aviso">
+      <strong>Esta conciliación no se puede deshacer.</strong> El ajuste deja de estar abierto y el
+      importe vigente del pago se recalcula con el resultado que elijas.
+    </p>
+
+    <form [formGroup]="formulario" (ngSubmit)="enviar()" novalidate>
+      @if (reembolsoProveedor()) {
+        <p class="conciliar__nota">
+          Este ajuste es una devolución ejecutada por el proveedor de pagos: el servidor
+          <strong>ignora el resultado que envíe la interfaz</strong> y fija el estado final según lo
+          que Stripe reporte. Si el reembolso todavía figura como <em>pending</em> en el proveedor,
+          la conciliación se rechaza con un conflicto (409) hasta que Stripe lo resuelva; en ese caso
+          espera a que el proveedor confirme y vuelve a intentarlo.
+        </p>
+      } @else {
+        <label class="conciliar__campo" for="conciliar-resultado">
+          <span>Resultado de la conciliación</span>
+          <select
+            id="conciliar-resultado"
+            formControlName="resultado"
+            [attr.aria-invalid]="errorResultado() !== null"
+            [attr.aria-describedby]="
+              errorResultado()
+                ? 'conciliar-resultado-error conciliar-resultado-ayuda'
+                : 'conciliar-resultado-ayuda'
+            "
+          >
+            <option value="">Selecciona el resultado</option>
+            @for (resultado of resultados; track resultado) {
+              <option [value]="resultado">{{ etiquetaResultado(resultado) }}</option>
+            }
+          </select>
+          <small id="conciliar-resultado-ayuda">
+            Confirma, marca como fallido o cancela el ajuste según la verificación realizada. El
+            estado desconocido no se puede conciliar como tal: hay que elegir el resultado real.
+          </small>
+        </label>
+        @if (errorResultado(); as mensaje) {
+          <p class="conciliar__campo-error" id="conciliar-resultado-error" role="alert">
+            {{ mensaje }}
+          </p>
+        }
+      }
+
+      <label class="conciliar__campo" for="conciliar-evidencia">
+        <span>
+          Evidencia
+          @if (evidenciaObligatoria()) {
+            <strong class="conciliar__obligatorio">(obligatoria para esta conciliación)</strong>
+          }
+        </span>
+        <textarea
+          id="conciliar-evidencia"
+          formControlName="evidencia"
+          rows="3"
+          [attr.maxlength]="evidenciaMaxima"
+          [attr.aria-invalid]="errorEvidencia() !== null"
+          [attr.aria-describedby]="
+            errorEvidencia()
+              ? 'conciliar-evidencia-error conciliar-evidencia-ayuda'
+              : 'conciliar-evidencia-ayuda'
+          "
+          placeholder="Ej. verificado en el panel de Stripe: el reembolso figura como succeeded"
+        ></textarea>
+        <small id="conciliar-evidencia-ayuda">{{ ayudaEvidencia() }}</small>
+      </label>
+      @if (errorEvidencia(); as mensaje) {
+        <p class="conciliar__campo-error" id="conciliar-evidencia-error" role="alert">
+          {{ mensaje }}
+        </p>
+      }
+
+      <label class="conciliar__campo" for="conciliar-observaciones">
+        <span>Observaciones</span>
+        <textarea
+          id="conciliar-observaciones"
+          formControlName="observaciones"
+          rows="2"
+          [attr.maxlength]="observacionesMaxima"
+          [attr.aria-invalid]="errorObservaciones() !== null"
+          [attr.aria-describedby]="
+            errorObservaciones()
+              ? 'conciliar-observaciones-error conciliar-observaciones-ayuda'
+              : 'conciliar-observaciones-ayuda'
+          "
+          placeholder="Ej. conciliado con el cierre de caja del 19/10"
+        ></textarea>
+        <small id="conciliar-observaciones-ayuda">
+          Opcional, hasta {{ observacionesMaxima }} caracteres. Queda en el libro de ajustes.
+        </small>
+      </label>
+      @if (errorObservaciones(); as mensaje) {
+        <p class="conciliar__campo-error" id="conciliar-observaciones-error" role="alert">
+          {{ mensaje }}
+        </p>
+      }
+
+      <label class="conciliar__campo" for="conciliar-refund">
+        <span>Identificador del reembolso en el proveedor</span>
+        <input
+          id="conciliar-refund"
+          type="text"
+          formControlName="refund_id"
+          autocomplete="off"
+          [attr.maxlength]="referenciaMaxima"
+          [attr.aria-invalid]="errorRefund() !== null"
+          [attr.aria-describedby]="
+            errorRefund()
+              ? 'conciliar-refund-error conciliar-refund-ayuda'
+              : 'conciliar-refund-ayuda'
+          "
+          placeholder="Ej. re_3NqXyZ2eZvKYlo2C"
+        />
+        <small id="conciliar-refund-ayuda">
+          Opcional. De {{ referenciaMinima }} a {{ referenciaMaxima }} caracteres. Si lo registras,
+          la evidencia pasa a ser obligatoria.
+        </small>
+      </label>
+      @if (errorRefund(); as mensaje) {
+        <p class="conciliar__campo-error" id="conciliar-refund-error" role="alert">{{ mensaje }}</p>
+      }
+
+      <p class="conciliar__nota">
+        El servidor puede rechazar la conciliación aunque el formulario sea válido: sólo se
+        concilian ajustes pendientes, desconocidos o fallidos. Si el ajuste ya fue resuelto, la
+        respuesta explica el motivo.
+      </p>
+
+      @if (procesando()) {
+        <p class="conciliar__estado" role="status">
+          Enviando la conciliación al servidor. No cierres esta ventana ni reenvíes el formulario.
+        </p>
+      }
+
+      @if (error(); as mensaje) {
+        <p class="conciliar__error" role="alert">{{ mensaje }}</p>
+      }
+
+      <div class="conciliar__acciones">
+        <button
+          #botonCancelar
+          type="button"
+          class="conciliar__btn conciliar__btn--secundario"
+          [disabled]="procesando()"
+          (click)="cerrar()"
+        >
+          Cancelar
+        </button>
+        <button
+          type="submit"
+          class="conciliar__btn conciliar__btn--primario"
+          [disabled]="!puedeEnviar()"
+        >
+          {{ procesando() ? 'Conciliando…' : 'Conciliar ajuste' }}
+        </button>
+      </div>
+    </form>
+  </section>
+</div>

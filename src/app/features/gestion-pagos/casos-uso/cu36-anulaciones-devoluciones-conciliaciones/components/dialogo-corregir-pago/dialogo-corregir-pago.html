@@ -1,0 +1,293 @@
+<div class="corregir" (click)="cerrarAlFondo($event)">
+  <section
+    class="corregir__dialogo"
+    role="dialog"
+    aria-modal="true"
+    aria-labelledby="corregir-pago-titulo"
+    aria-describedby="corregir-pago-descripcion"
+    [attr.aria-busy]="procesando()"
+  >
+    <h2 id="corregir-pago-titulo">Corregir el importe del pago {{ referenciaVisible(pago().id) }}</h2>
+    <p id="corregir-pago-descripcion">
+      La corrección registra un ajuste en el libro: el pago conserva el estado
+      <strong>{{ etiquetaEstado(pago().estado) }}</strong> y sólo cambia su importe vigente.
+      Una corrección no devuelve dinero al paciente.
+    </p>
+
+    <dl class="corregir__datos">
+      <div>
+        <dt>Referencia</dt>
+        <dd>{{ referenciaVisible(pago().id) }}</dd>
+      </div>
+      <div>
+        <dt>Paciente</dt>
+        <dd>{{ nombrePaciente() }}</dd>
+      </div>
+      <div>
+        <dt>Importe original</dt>
+        <dd>{{ formatear(pago().monto, pago().moneda) }}</dd>
+      </div>
+      <div>
+        <dt>Importe vigente</dt>
+        <dd class="corregir__monto">{{ formatear(importeVigente(), pago().moneda) }}</dd>
+      </div>
+      <div>
+        <dt>Estado actual</dt>
+        <dd>{{ etiquetaEstado(pago().estado) }}</dd>
+      </div>
+    </dl>
+
+    <p class="corregir__aviso">
+      <strong>La corrección no se puede deshacer.</strong> Queda registrada en el libro de
+      ajustes y sólo se compensa con otro ajuste.
+    </p>
+
+    <form [formGroup]="formulario" (ngSubmit)="enviar()" novalidate>
+      <div class="corregir__fila">
+        <label class="corregir__campo" for="corregir-importe">
+          <span>Importe del ajuste (con signo)</span>
+          <input
+            id="corregir-importe"
+            type="text"
+            inputmode="decimal"
+            formControlName="importe"
+            autocomplete="off"
+            (input)="alCambiarImporte($any($event.target).value)"
+            [attr.aria-invalid]="errorImporte() !== null"
+            [attr.aria-describedby]="
+              errorImporte() ? 'corregir-importe-error corregir-importe-ayuda' : 'corregir-importe-ayuda'
+            "
+            placeholder="40.00 o -40.00"
+          />
+          <small id="corregir-importe-ayuda">
+            Positivo para aumentar el importe, negativo para reducirlo. Hasta dos decimales y
+            distinto de cero.
+          </small>
+        </label>
+        <label class="corregir__campo corregir__campo--moneda" for="corregir-moneda">
+          <span>Moneda</span>
+          <input
+            id="corregir-moneda"
+            type="text"
+            formControlName="moneda"
+            autocomplete="off"
+            maxlength="3"
+            [attr.aria-invalid]="errorMoneda() !== null"
+            [attr.aria-describedby]="
+              errorMoneda() ? 'corregir-moneda-error corregir-moneda-ayuda' : 'corregir-moneda-ayuda'
+            "
+          />
+          <small id="corregir-moneda-ayuda">Tres letras mayúsculas.</small>
+        </label>
+      </div>
+      @if (errorImporte(); as mensaje) {
+        <p class="corregir__campo-error" id="corregir-importe-error" role="alert">{{ mensaje }}</p>
+      }
+      @if (errorMoneda(); as mensaje) {
+        <p class="corregir__campo-error" id="corregir-moneda-error" role="alert">{{ mensaje }}</p>
+      }
+
+      <label class="corregir__campo" for="corregir-motivo">
+        <span>Motivo de la corrección</span>
+        <textarea
+          id="corregir-motivo"
+          formControlName="motivo"
+          rows="2"
+          [attr.maxlength]="motivoMaximo"
+          [attr.aria-invalid]="errorMotivo() !== null"
+          [attr.aria-describedby]="
+            errorMotivo() ? 'corregir-motivo-error corregir-motivo-ayuda' : 'corregir-motivo-ayuda'
+          "
+          placeholder="Ej. la consulta se registró con el precio de otro servicio"
+        ></textarea>
+        <small id="corregir-motivo-ayuda">
+          Entre {{ motivoMinimo }} y {{ motivoMaximo }} caracteres. Queda en el libro de ajustes.
+        </small>
+      </label>
+      @if (errorMotivo(); as mensaje) {
+        <p class="corregir__campo-error" id="corregir-motivo-error" role="alert">{{ mensaje }}</p>
+      }
+
+      <label class="corregir__campo" for="corregir-naturaleza">
+        <span>Naturaleza del ajuste</span>
+        <select
+          id="corregir-naturaleza"
+          formControlName="naturaleza"
+          [attr.aria-invalid]="errorNaturaleza() !== null"
+          [attr.aria-describedby]="
+            errorNaturaleza()
+              ? 'corregir-naturaleza-error corregir-naturaleza-ayuda'
+              : 'corregir-naturaleza-ayuda'
+          "
+        >
+          <option value="">Selecciona la naturaleza</option>
+          @for (naturaleza of naturalezasPermitidas(); track naturaleza) {
+            <option [value]="naturaleza">{{ etiquetaNaturaleza(naturaleza) }}</option>
+          }
+        </select>
+        <small id="corregir-naturaleza-ayuda">
+          @if (evidenciaObligatoria()) {
+            Un ajuste al alza sólo admite {{ etiquetaNaturalezasAlAlza }}: aumentar un pago
+            aprobado se acepta únicamente para corregir un registro equivocado.
+          } @else {
+            Clasifica el motivo para la conciliación; no cambia el importe.
+          }
+        </small>
+      </label>
+      @if (errorNaturaleza(); as mensaje) {
+        <p class="corregir__campo-error" id="corregir-naturaleza-error" role="alert">{{ mensaje }}</p>
+      }
+
+      <label class="corregir__campo" for="corregir-evidencia">
+        <span>
+          Evidencia
+          @if (evidenciaObligatoria()) {
+            <strong class="corregir__obligatorio">(obligatoria al alza)</strong>
+          }
+        </span>
+        <textarea
+          id="corregir-evidencia"
+          formControlName="evidencia"
+          rows="2"
+          [attr.maxlength]="evidenciaMaxima"
+          [attr.aria-invalid]="errorEvidencia() !== null"
+          [attr.aria-describedby]="
+            errorEvidencia()
+              ? 'corregir-evidencia-error corregir-evidencia-ayuda'
+              : 'corregir-evidencia-ayuda'
+          "
+          placeholder="Ej. factura del servicio y precio correcto verificado en el expediente"
+        ></textarea>
+        <small id="corregir-evidencia-ayuda">
+          @if (evidenciaObligatoria()) {
+            El importe es positivo: el servidor exige de {{ evidenciaMinima }} a
+            {{ evidenciaMaxima }} caracteres que justifiquen el aumento. Sin evidencia, la
+            corrección se rechaza.
+          } @else {
+            Opcional. De {{ evidenciaMinima }} a {{ evidenciaMaxima }} caracteres con el soporte
+            de la corrección.
+          }
+        </small>
+      </label>
+      @if (errorEvidencia(); as mensaje) {
+        <p class="corregir__campo-error" id="corregir-evidencia-error" role="alert">{{ mensaje }}</p>
+      }
+
+      <fieldset class="corregir__dist">
+        <legend>Distribución por servicio</legend>
+        <p class="corregir__dist-pista">{{ pistaSigno() }}</p>
+
+        <div formArrayName="distribucion">
+          @for (fila of distribucion.controls; track $index; let i = $index) {
+            <div class="corregir__dist-fila" [formGroupName]="i">
+              <label class="corregir__dist-campo">
+                <span>Servicio</span>
+                <select formControlName="servicio_realizado_id">
+                  @for (id of serviciosElegibles(); track id) {
+                    <option [ngValue]="id">Servicio #{{ id }}</option>
+                  }
+                </select>
+              </label>
+              <label class="corregir__dist-campo">
+                <span>Monto</span>
+                <input
+                  type="text"
+                  inputmode="decimal"
+                  formControlName="monto"
+                  autocomplete="off"
+                  [attr.aria-invalid]="errorFila(i) !== null"
+                  (input)="marcarEdicionManual()"
+                />
+              </label>
+              <button
+                type="button"
+                class="corregir__dist-quitar"
+                [disabled]="procesando() || distribucion.length <= 1"
+                (click)="quitarFila(i)"
+              >
+                Quitar
+              </button>
+              @if (errorFila(i); as mensaje) {
+                <p class="corregir__campo-error" role="alert">{{ mensaje }}</p>
+              }
+            </div>
+          }
+        </div>
+
+        <div class="corregir__dist-acciones">
+          <button
+            type="button"
+            class="corregir__btn corregir__btn--secundario"
+            [disabled]="procesando() || !puedeAgregarFila()"
+            (click)="agregarFila()"
+          >
+            Agregar servicio
+          </button>
+          <button
+            type="button"
+            class="corregir__btn corregir__btn--secundario"
+            [disabled]="procesando()"
+            (click)="distribuirTodoEnElPrimero()"
+          >
+            Distribuir todo en el primer servicio
+          </button>
+        </div>
+
+        <dl class="corregir__dist-resumen">
+          <div>
+            <dt>Importe a distribuir</dt>
+            <dd>{{ textoMonto(importeCanonico()) }}</dd>
+          </div>
+          <div>
+            <dt>Distribuido</dt>
+            <dd>{{ textoMonto(distribuido()) }}</dd>
+          </div>
+          <div>
+            <dt>Diferencia</dt>
+            <dd [class.corregir__diferencia--cero]="diferenciaCero()">
+              {{ textoMonto(diferencia()) }}
+            </dd>
+          </div>
+        </dl>
+
+        @if (erroresDistribucion().length > 0) {
+          <ul class="corregir__dist-errores">
+            @for (mensaje of erroresDistribucion(); track mensaje) {
+              <li role="alert">{{ mensaje }}</li>
+            }
+          </ul>
+        }
+      </fieldset>
+
+      <p class="corregir__nota">
+        El servidor registra el ajuste en el libro y recalcula el importe vigente. Nada de esto
+        mueve dinero: si el paciente debe recibir un reintegro, se registra como devolución.
+      </p>
+
+      @if (procesando()) {
+        <p class="corregir__estado" role="status">
+          Enviando la corrección al servidor. No cierres esta ventana ni reenvíes el formulario.
+        </p>
+      }
+
+      @if (error(); as mensaje) {
+        <p class="corregir__error" role="alert">{{ mensaje }}</p>
+      }
+
+      <div class="corregir__acciones">
+        <button
+          #botonCancelar
+          type="button"
+          class="corregir__btn corregir__btn--secundario"
+          [disabled]="procesando()"
+          (click)="cerrar()"
+        >
+          Cancelar
+        </button>
+        <button type="submit" class="corregir__btn corregir__btn--primario" [disabled]="!puedeEnviar()">
+          {{ procesando() ? 'Corrigiendo…' : 'Registrar corrección' }}
+        </button>
+      </div>
+    </form>
+  </section>
+</div>

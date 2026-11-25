@@ -98,6 +98,14 @@ export interface PagoAdministrativo {
   referencia_bancaria: string | null;
   observaciones: string | null;
   servicio_realizado_ids: number[];
+  /**
+   * Campos calculados por el servidor (CU36): importe vigente, importe ya
+   * reembolsado y si existe algún ajuste abierto. Son opcionales porque las
+   * respuestas de versiones anteriores del backend no los incluyen.
+   */
+  importe_vigente?: string | null;
+  importe_reembolsado?: string | null;
+  ajustes_pendientes?: boolean | null;
   notificacion: NotificacionPago | null;
 }
 

@@ -5,195 +5,264 @@ import { saasAuthGuard } from './core/guards/saas-auth.guard';
 export const routes: Routes = [
   {
     path: 'saas/login',
-    loadComponent: () => import('./features/saas/pages/saas-login.component').then((m) => m.SaasLoginComponent),
+    loadComponent: () =>
+      import('./features/saas/pages/saas-login.component').then((m) => m.SaasLoginComponent),
   },
   {
     path: 'saas',
     canActivate: [saasAuthGuard],
-    loadComponent: () => import('./features/saas/layouts/saas-shell.component').then((m) => m.SaasShellComponent),
+    loadComponent: () =>
+      import('./features/saas/layouts/saas-shell.component').then((m) => m.SaasShellComponent),
     children: [
-      { path: '', loadComponent: () => import('./features/saas/pages/saas-dashboard.component').then((m) => m.SaasDashboardComponent) },
-      { path: 'empresas', data: { kind: 'empresas' }, loadComponent: () => import('./features/saas/pages/saas-companies.component').then((m) => m.SaasCompaniesComponent) },
-      { path: 'planes', data: { kind: 'planes' }, loadComponent: () => import('./features/saas/pages/saas-collection.component').then((m) => m.SaasCollectionComponent) },
-      { path: 'suscripciones', data: { kind: 'suscripciones' }, loadComponent: () => import('./features/saas/pages/saas-collection.component').then((m) => m.SaasCollectionComponent) },
-      { path: 'tenants', data: { kind: 'tenants' }, loadComponent: () => import('./features/saas/pages/saas-collection.component').then((m) => m.SaasCollectionComponent) },
-      { path: 'provisionamientos', data: { kind: 'provisionamientos' }, loadComponent: () => import('./features/saas/pages/saas-collection.component').then((m) => m.SaasCollectionComponent) },
-      { path: 'bitacora', data: { kind: 'bitacora' }, loadComponent: () => import('./features/saas/pages/saas-collection.component').then((m) => m.SaasCollectionComponent) },
-      { path: 'backups', loadComponent: () => import('./features/saas/pages/saas-backups.component').then((m) => m.SaasBackupsComponent) },
-      { path: 'backup-policies', loadComponent: () => import('./features/saas/pages/saas-backup-policies.component').then((m) => m.SaasBackupPoliciesComponent) },
-      { path: 'restores', loadComponent: () => import('./features/saas/pages/saas-restores.component').then((m) => m.SaasRestoresComponent) },
+      {
+        path: '',
+        loadComponent: () =>
+          import('./features/saas/pages/saas-dashboard.component').then(
+            (m) => m.SaasDashboardComponent,
+          ),
+      },
+      {
+        path: 'empresas',
+        data: { kind: 'empresas' },
+        loadComponent: () =>
+          import('./features/saas/pages/saas-companies.component').then(
+            (m) => m.SaasCompaniesComponent,
+          ),
+      },
+      {
+        path: 'planes',
+        data: { kind: 'planes' },
+        loadComponent: () =>
+          import('./features/saas/pages/saas-collection.component').then(
+            (m) => m.SaasCollectionComponent,
+          ),
+      },
+      {
+        path: 'suscripciones',
+        data: { kind: 'suscripciones' },
+        loadComponent: () =>
+          import('./features/saas/pages/saas-collection.component').then(
+            (m) => m.SaasCollectionComponent,
+          ),
+      },
+      {
+        path: 'tenants',
+        data: { kind: 'tenants' },
+        loadComponent: () =>
+          import('./features/saas/pages/saas-collection.component').then(
+            (m) => m.SaasCollectionComponent,
+          ),
+      },
+      {
+        path: 'provisionamientos',
+        data: { kind: 'provisionamientos' },
+        loadComponent: () =>
+          import('./features/saas/pages/saas-collection.component').then(
+            (m) => m.SaasCollectionComponent,
+          ),
+      },
+      {
+        path: 'bitacora',
+        data: { kind: 'bitacora' },
+        loadComponent: () =>
+          import('./features/saas/pages/saas-collection.component').then(
+            (m) => m.SaasCollectionComponent,
+          ),
+      },
+      {
+        path: 'backups',
+        loadComponent: () =>
+          import('./features/saas/pages/saas-backups.component').then(
+            (m) => m.SaasBackupsComponent,
+          ),
+      },
+      {
+        path: 'backup-policies',
+        loadComponent: () =>
+          import('./features/saas/pages/saas-backup-policies.component').then(
+            (m) => m.SaasBackupPoliciesComponent,
+          ),
+      },
+      {
+        path: 'restores',
+        loadComponent: () =>
+          import('./features/saas/pages/saas-restores.component').then(
+            (m) => m.SaasRestoresComponent,
+          ),
+      },
     ],
   },
   {
     path: '',
-    loadComponent: () =>
-      import('./features/home/pages/home/home').then((m) => m.Home),
+    loadComponent: () => import('./features/home/pages/home/home').then((m) => m.Home),
   },
   {
     path: 'login',
     loadComponent: () =>
-      import('./features/autenticacion-seguridad/Auth/pages/login/login').then(
-        (m) => m.Login,
-      ),
+      import('./features/autenticacion-seguridad/Auth/pages/login/login').then((m) => m.Login),
   },
   {
     path: 'password/recuperar',
     loadComponent: () =>
-      import(
-        './features/autenticacion-seguridad/Auth/pages/recuperar-password/recuperar-password'
-      ).then((m) => m.RecuperarPassword),
+      import('./features/autenticacion-seguridad/Auth/pages/recuperar-password/recuperar-password').then(
+        (m) => m.RecuperarPassword,
+      ),
   },
   {
     path: 'password/restablecer',
     loadComponent: () =>
-      import(
-        './features/autenticacion-seguridad/Auth/pages/restablecer-password/restablecer-password'
-      ).then((m) => m.RestablecerPassword),
+      import('./features/autenticacion-seguridad/Auth/pages/restablecer-password/restablecer-password').then(
+        (m) => m.RestablecerPassword,
+      ),
   },
   {
     path: 'inicio',
     loadComponent: () =>
-      import('./features/autenticacion-seguridad/Auth/pages/inicio/inicio').then(
-        (m) => m.Inicio,
-      ),
+      import('./features/autenticacion-seguridad/Auth/pages/inicio/inicio').then((m) => m.Inicio),
     canActivate: [authGuard],
   },
   {
     path: 'roles',
     loadComponent: () =>
-      import(
-        './features/autenticacion-seguridad/casos-uso/cu05-gestionar-roles/pages/gestion-roles/gestion-roles'
-      ).then((m) => m.GestionRoles),
+      import('./features/autenticacion-seguridad/casos-uso/cu05-gestionar-roles/pages/gestion-roles/gestion-roles').then(
+        (m) => m.GestionRoles,
+      ),
     canActivate: [authGuard],
   },
   {
     path: 'usuarios',
     loadComponent: () =>
-      import(
-        './features/autenticacion-seguridad/casos-uso/cu04-gestionar-usuarios/pages/gestion-usuarios/gestion-usuarios'
-      ).then((m) => m.GestionUsuarios),
+      import('./features/autenticacion-seguridad/casos-uso/cu04-gestionar-usuarios/pages/gestion-usuarios/gestion-usuarios').then(
+        (m) => m.GestionUsuarios,
+      ),
     canActivate: [authGuard],
   },
- {
-  path: 'pacientes',
-  loadComponent: () =>
-    import(
-  './features/gestion-pacientes/casos-uso/cu07-gestionar-pacientes/pages/gestion-pacientes/gestion-pacientes'
-    ).then((m) => m.GestionPacientes),
-  canActivate: [authGuard],
-},
+  {
+    path: 'pacientes',
+    loadComponent: () =>
+      import('./features/gestion-pacientes/casos-uso/cu07-gestionar-pacientes/pages/gestion-pacientes/gestion-pacientes').then(
+        (m) => m.GestionPacientes,
+      ),
+    canActivate: [authGuard],
+  },
   {
     path: 'historial-clinico',
     loadComponent: () =>
-      import(
-        './features/gestion-historial-clinico/casos-uso/cu13-consultar-historial-clinico/pages/consultar-historial-clinico/consultar-historial-clinico'
-      ).then((m) => m.ConsultarHistorialClinico),
+      import('./features/gestion-historial-clinico/casos-uso/cu13-consultar-historial-clinico/pages/consultar-historial-clinico/consultar-historial-clinico').then(
+        (m) => m.ConsultarHistorialClinico,
+      ),
     canActivate: [authGuard],
   },
   {
     path: 'registrar-consulta-clinica',
     loadComponent: () =>
-      import(
-        './features/gestion-historial-clinico/casos-uso/cu15-registrar-consulta-clinica/pages/registrar-consulta/registrar-consulta'
-      ).then((m) => m.RegistrarConsulta),
+      import('./features/gestion-historial-clinico/casos-uso/cu15-registrar-consulta-clinica/pages/registrar-consulta/registrar-consulta').then(
+        (m) => m.RegistrarConsulta,
+      ),
     canActivate: [authGuard],
   },
   {
     path: 'registrar-diagnostico',
     loadComponent: () =>
-      import(
-        './features/gestion-historial-clinico/casos-uso/cu16-registrar-diagnostico/pages/registrar-diagnostico/registrar-diagnostico'
-      ).then((m) => m.RegistrarDiagnostico),
+      import('./features/gestion-historial-clinico/casos-uso/cu16-registrar-diagnostico/pages/registrar-diagnostico/registrar-diagnostico').then(
+        (m) => m.RegistrarDiagnostico,
+      ),
     canActivate: [authGuard],
   },
   {
     path: 'tratamientos-recetas',
     loadComponent: () =>
-      import(
-        './features/gestion-historial-clinico/casos-uso/cu17-registrar-tratamientos-recetas/pages/registrar-tratamientos-recetas/registrar-tratamientos-recetas'
-      ).then((m) => m.RegistrarTratamientosRecetas),
+      import('./features/gestion-historial-clinico/casos-uso/cu17-registrar-tratamientos-recetas/pages/registrar-tratamientos-recetas/registrar-tratamientos-recetas').then(
+        (m) => m.RegistrarTratamientosRecetas,
+      ),
     canActivate: [authGuard],
   },
   {
     path: 'examenes-oftalmologicos',
     loadComponent: () =>
-      import(
-        './features/gestion-historial-clinico/casos-uso/cu18-registrar-examenes/pages/registrar-examenes/registrar-examenes'
-      ).then((m) => m.RegistrarExamenes),
+      import('./features/gestion-historial-clinico/casos-uso/cu18-registrar-examenes/pages/registrar-examenes/registrar-examenes').then(
+        (m) => m.RegistrarExamenes,
+      ),
     canActivate: [authGuard],
   },
   {
     path: 'programar-controles-medicos',
     loadComponent: () =>
-      import(
-        './features/gestion-historial-clinico/casos-uso/cu19-programar-controles-medicos/pages/programar-controles/programar-controles'
-      ).then((m) => m.ProgramarControles),
+      import('./features/gestion-historial-clinico/casos-uso/cu19-programar-controles-medicos/pages/programar-controles/programar-controles').then(
+        (m) => m.ProgramarControles,
+      ),
     canActivate: [authGuard],
   },
   {
     path: 'bitacora',
     loadComponent: () =>
-      import(
-        './features/autenticacion-seguridad/casos-uso/cu06-consultar-bitacora/pages/consultar-bitacora/consultar-bitacora'
-      ).then((m) => m.ConsultarBitacora),
+      import('./features/autenticacion-seguridad/casos-uso/cu06-consultar-bitacora/pages/consultar-bitacora/consultar-bitacora').then(
+        (m) => m.ConsultarBitacora,
+      ),
     canActivate: [authGuard],
   },
   {
     path: 'agenda-disponibilidad',
     loadComponent: () =>
-      import(
-        './features/agenda-citas/casos-uso/cu09-consultar-agenda-disponibilidad/pages/consultar-agenda-disponibilidad/consultar-agenda-disponibilidad'
-      ).then((m) => m.ConsultarAgendaDisponibilidad),
+      import('./features/agenda-citas/casos-uso/cu09-consultar-agenda-disponibilidad/pages/consultar-agenda-disponibilidad/consultar-agenda-disponibilidad').then(
+        (m) => m.ConsultarAgendaDisponibilidad,
+      ),
     canActivate: [authGuard],
   },
   {
     path: 'configurar-disponibilidad',
     loadComponent: () =>
-      import(
-        './features/agenda-citas/casos-uso/cu11-configurar-disponibilidad/pages/configurar-disponibilidad/configurar-disponibilidad'
-      ).then((m) => m.ConfigurarDisponibilidad),
+      import('./features/agenda-citas/casos-uso/cu11-configurar-disponibilidad/pages/configurar-disponibilidad/configurar-disponibilidad').then(
+        (m) => m.ConfigurarDisponibilidad,
+      ),
     canActivate: [authGuard],
   },
   {
     path: 'gestionar-citas',
     loadComponent: () =>
-      import(
-        './features/agenda-citas/casos-uso/cu10-gestionar-citas/pages/gestionar-citas/gestionar-citas'
-      ).then((m) => m.GestionarCitas),
+      import('./features/agenda-citas/casos-uso/cu10-gestionar-citas/pages/gestionar-citas/gestionar-citas').then(
+        (m) => m.GestionarCitas,
+      ),
     canActivate: [authGuard],
   },
   {
     path: 'historial-citas',
-  loadComponent: () =>
-    import(
-      './features/gestion-agenda-citas/casos-uso/cu12-consultar-historial-citas/pages/consultar-historial-citas/consultar-historial-citas'
-    ).then((m) => m.ConsultarHistorialCitas),
-  canActivate: [authGuard],
+    loadComponent: () =>
+      import('./features/gestion-agenda-citas/casos-uso/cu12-consultar-historial-citas/pages/consultar-historial-citas/consultar-historial-citas').then(
+        (m) => m.ConsultarHistorialCitas,
+      ),
+    canActivate: [authGuard],
   },
   {
     path: 'gestion-servicios',
     loadComponent: () =>
-      import(
-        './features/gestion-servicios/casos-uso/cu21-gestionar-servicios/pages/gestion-servicios/gestion-servicios'
-      ).then((m) => m.GestionServicios),
+      import('./features/gestion-servicios/casos-uso/cu21-gestionar-servicios/pages/gestion-servicios/gestion-servicios').then(
+        (m) => m.GestionServicios,
+      ),
     canActivate: [authGuard],
   },
   {
     path: 'gestion-inventario-proveedores',
-    loadComponent: () => import('./features/gestion-inventario-proveedores/casos-uso/cu26-gestionar-productos-categorias-lotes/pages/gestion-catalogo/gestion-catalogo').then((m) => m.GestionCatalogo),
+    loadComponent: () =>
+      import('./features/gestion-inventario-proveedores/casos-uso/cu26-gestionar-productos-categorias-lotes/pages/gestion-catalogo/gestion-catalogo').then(
+        (m) => m.GestionCatalogo,
+      ),
     canActivate: [authGuard],
   },
   {
     path: 'gestion-movimientos-inventario',
-    loadComponent: () => import('./features/gestion-inventario-proveedores/casos-uso/cu27-gestionar-movimientos-inventario/pages/gestionar-movimientos/gestionar-movimientos').then((m) => m.GestionarMovimientos),
+    loadComponent: () =>
+      import('./features/gestion-inventario-proveedores/casos-uso/cu27-gestionar-movimientos-inventario/pages/gestionar-movimientos/gestionar-movimientos').then(
+        (m) => m.GestionarMovimientos,
+      ),
     canActivate: [authGuard],
   },
   {
     path: 'proveedores',
     loadComponent: () =>
-      import(
-        './features/gestion-inventario-proveedores/casos-uso/casos-uso/cu25_gestionar_proveedores/gestion-proveedores'
-      ).then((m) => m.GestionProveedores),
+      import('./features/gestion-inventario-proveedores/casos-uso/casos-uso/cu25_gestionar_proveedores/gestion-proveedores').then(
+        (m) => m.GestionProveedores,
+      ),
     canActivate: [authGuard],
   },
   {
@@ -205,15 +274,17 @@ export const routes: Routes = [
   {
     path: 'registrar-servicios-realizados',
     loadComponent: () =>
-      import('./features/gestion-historial-clinico/casos-uso/cu22-registrar-servicios-realizados/pages/registrar-servicios-realizados/registrar-servicios-realizados')
-        .then((m) => m.RegistrarServiciosRealizados),
+      import('./features/gestion-historial-clinico/casos-uso/cu22-registrar-servicios-realizados/pages/registrar-servicios-realizados/registrar-servicios-realizados').then(
+        (m) => m.RegistrarServiciosRealizados,
+      ),
     canActivate: [authGuard],
   },
   {
     path: 'inventario-alertas',
     loadComponent: () =>
-      import('./features/gestion-inventario-proveedores/casos-uso/cu30-consultar-inventario-alertas/pages/consultar-inventario-alertas/consultar-inventario-alertas')
-        .then((m) => m.ConsultarInventarioAlertas),
+      import('./features/gestion-inventario-proveedores/casos-uso/cu30-consultar-inventario-alertas/pages/consultar-inventario-alertas/consultar-inventario-alertas').then(
+        (m) => m.ConsultarInventarioAlertas,
+      ),
     canActivate: [authGuard],
   },
   {
@@ -224,50 +295,61 @@ export const routes: Routes = [
         path: '',
         data: { vista: 'registro' },
         loadComponent: () =>
-          import(
-            './features/gestion-pagos/casos-uso/cu31-registrar-pago-comprobante/pages/gestion-pagos/gestion-pagos'
-          ).then((m) => m.GestionPagos),
+          import('./features/gestion-pagos/casos-uso/cu31-registrar-pago-comprobante/pages/gestion-pagos/gestion-pagos').then(
+            (m) => m.GestionPagos,
+          ),
       },
       {
         path: 'historial',
         data: { vista: 'historial' },
         loadComponent: () =>
-          import(
-            './features/gestion-pagos/casos-uso/cu31-registrar-pago-comprobante/pages/gestion-pagos/gestion-pagos'
-          ).then((m) => m.GestionPagos),
+          import('./features/gestion-pagos/casos-uso/cu31-registrar-pago-comprobante/pages/gestion-pagos/gestion-pagos').then(
+            (m) => m.GestionPagos,
+          ),
       },
       {
         path: 'confirmaciones',
         data: { vista: 'confirmaciones' },
         loadComponent: () =>
-          import(
-            './features/gestion-pagos/casos-uso/cu31-registrar-pago-comprobante/pages/gestion-pagos/gestion-pagos'
-          ).then((m) => m.GestionPagos),
+          import('./features/gestion-pagos/casos-uso/cu31-registrar-pago-comprobante/pages/gestion-pagos/gestion-pagos').then(
+            (m) => m.GestionPagos,
+          ),
       },
       {
         path: 'estado-cuenta',
-        loadComponent: () => import('./features/gestion-pagos/casos-uso/cu34-consultar-pagos-saldos/pages/consultar-estado-cuenta/consultar-estado-cuenta').then(m => m.ConsultarEstadoCuenta),
+        loadComponent: () =>
+          import('./features/gestion-pagos/casos-uso/cu34-consultar-pagos-saldos/pages/consultar-estado-cuenta/consultar-estado-cuenta').then(
+            (m) => m.ConsultarEstadoCuenta,
+          ),
+      },
+      {
+        path: 'conciliaciones',
+        canActivate: [authGuard],
+        loadComponent: () =>
+          import('./features/gestion-pagos/casos-uso/cu36-anulaciones-devoluciones-conciliaciones/pages/conciliaciones/conciliaciones').then(
+            (m) => m.Conciliaciones,
+          ),
       },
       {
         path: 'planes',
         loadComponent: () =>
-          import(
-            './features/gestion-pagos/casos-uso/cu32-cu33-gestionar-planes-cuotas/pages/planes-pago/planes-pago'
-          ).then((m) => m.PlanesPago),
+          import('./features/gestion-pagos/casos-uso/cu32-cu33-gestionar-planes-cuotas/pages/planes-pago/planes-pago').then(
+            (m) => m.PlanesPago,
+          ),
       },
       {
         path: 'planes/nuevo',
         loadComponent: () =>
-          import(
-            './features/gestion-pagos/casos-uso/cu32-cu33-gestionar-planes-cuotas/pages/crear-plan-pago/crear-plan-pago'
-          ).then((m) => m.CrearPlanPago),
+          import('./features/gestion-pagos/casos-uso/cu32-cu33-gestionar-planes-cuotas/pages/crear-plan-pago/crear-plan-pago').then(
+            (m) => m.CrearPlanPago,
+          ),
       },
       {
         path: 'planes/:id',
         loadComponent: () =>
-          import(
-            './features/gestion-pagos/casos-uso/cu32-cu33-gestionar-planes-cuotas/pages/plan-pago-detalle/plan-pago-detalle'
-          ).then((m) => m.PlanPagoDetalle),
+          import('./features/gestion-pagos/casos-uso/cu32-cu33-gestionar-planes-cuotas/pages/plan-pago-detalle/plan-pago-detalle').then(
+            (m) => m.PlanPagoDetalle,
+          ),
       },
     ],
   },

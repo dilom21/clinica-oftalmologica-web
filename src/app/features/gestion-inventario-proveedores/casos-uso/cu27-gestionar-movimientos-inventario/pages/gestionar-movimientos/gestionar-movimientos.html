@@ -1,4 +1,20 @@
-<main class="movimientos">
+<div class="movimientos-page">
+  <app-sidebar
+    [mobileOpen]="sidebarMovilAbierto()"
+    (mobileClose)="sidebarMovilAbierto.set(false)"
+  />
+  <div class="movimientos-page__contenido">
+    <header class="movimientos-page__barra">
+      <button
+        type="button"
+        class="movimientos-page__abrir-menu"
+        aria-label="Abrir menú"
+        [attr.aria-expanded]="sidebarMovilAbierto()"
+        (click)="sidebarMovilAbierto.set(true)"
+      >☰</button>
+      <span>Inventario y Proveedores</span>
+    </header>
+    <main class="movimientos">
   <header class="hero"><div><span class="eyebrow">Inventario y proveedores</span><h1>Movimientos de inventario</h1><p>Registra ajustes manuales y consulta el historial por lote.</p></div></header>
   <div *ngIf="error()" class="alert error" role="alert">{{ error() }} <button type="button" (click)="cargarCatalogo()">Reintentar</button></div>
   <div *ngIf="exito()" class="alert success" role="status">{{ exito() }} <button type="button" (click)="exito.set(null)">Cerrar</button></div>
@@ -20,4 +36,14 @@
     <div class="table-wrap" *ngIf="!cargandoHistorial() && historial().length"><table><thead><tr><th>Fecha</th><th>Tipo</th><th>Cantidad</th><th>Anterior</th><th>Posterior</th><th>Observaciones</th></tr></thead><tbody><tr *ngFor="let item of historial()"><td>{{ etiquetaFecha(item.fecha_hora) }}</td><td>{{ etiquetaTipo(item.tipo) }}</td><td>{{ item.cantidad }}</td><td>{{ item.stock_anterior }}</td><td>{{ item.stock_posterior }}</td><td>{{ item.observaciones || '—' }}</td></tr></tbody></table></div>
     <div class="pagination"><button type="button" class="secondary" (click)="cambiarPagina(-1)" [disabled]="skip() === 0 || cargandoHistorial()">Anterior</button><button type="button" class="secondary" (click)="cambiarPagina(1)" [disabled]="historial().length < limite || cargandoHistorial()">Siguiente</button></div>
   </section>
-</main>
+    </main>
+  </div>
+</div>
+@if (sidebarMovilAbierto()) {
+  <button
+    type="button"
+    class="movimientos-page__fondo"
+    aria-label="Cerrar menú"
+    (click)="sidebarMovilAbierto.set(false)"
+  ></button>
+}

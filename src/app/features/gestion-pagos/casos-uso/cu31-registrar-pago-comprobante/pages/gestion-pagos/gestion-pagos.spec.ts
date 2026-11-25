@@ -20,6 +20,7 @@ interface VistaPagina {
   permisos(): PermisosPagos;
   puedeVerVista(vista: VistaPagos): boolean;
   seleccionarVista(vista: VistaPagos): void;
+  irAConciliaciones(): void;
   pacientes(): unknown[];
 }
 
@@ -119,10 +120,12 @@ describe('CU31 — página de gestión de pagos', () => {
   });
 
   it('avisa del contexto tenant ausente en lugar de dejar la vista vacía', async () => {
-    await configurar([], 'listo', 'registro', null);
+    await configurar([MODULO_PAGOS], 'listo', 'registro', null);
 
-    expect(vista.motivoSinAcceso()).toBe('sin-modulo');
+    expect(vista.estadoPermiso()).toBe('denegado');
+    expect(vista.motivoSinAcceso()).toBe('sin-tenant');
     expect(vista.detalleSinAcceso()).toContain('empresa (tenant)');
+    expect(vista.permisos()).toEqual({ ver: false, registrar: false, confirmar: false });
     expect(listarPacientes).not.toHaveBeenCalled();
   });
 
@@ -173,6 +176,22 @@ describe('CU31 — página de gestión de pagos', () => {
 
     vista.seleccionarVista('confirmaciones');
     expect(router.navigate).toHaveBeenCalledWith(['/pagos/confirmaciones']);
+  });
+
+  it('muestra la capacidad de conciliaciones y navega sólo con registrar', async () => {
+    await configurar();
+    expect(vista.permisos().registrar).toBe(true);
+    vista.irAConciliaciones();
+    expect(router.navigate).toHaveBeenCalledWith(['/pagos/conciliaciones']);
+  });
+
+  it('oculta funcionalmente conciliaciones sin permiso registrar', async () => {
+    await configurar([{ id: 8, nombre: 'Pagos', funciones: [
+      { id: 31, nombre: 'Gestionar pagos', accion_id: 1, accion_nombre: 'LECTURA' },
+    ] }]);
+    expect(vista.permisos().registrar).toBe(false);
+    vista.irAConciliaciones();
+    expect(router.navigate).not.toHaveBeenCalled();
   });
 
   it('lleva a confirmaciones a un usuario que sólo puede confirmar', async () => {

@@ -32,6 +32,12 @@ describe('Reportes', () => {
     exportarEstatico: (format: string) => { staticExportCalls.push(format); return of({ body: new Blob(['x']), headers: new Headers() }); },
      enviarEmailDinamico: () => dynamicEmailResponse, enviarEmailEstatico: () => staticEmailResponse,
      interpretarReporte: () => of(voiceResponse),
+     obtenerCatalogoProgresivo: () => of({ version: '2D.1', politica_privacidad: { umbral_k: 5, estados: [] }, indicadores: [] }),
+     obtenerKpis: () => of({ fecha_desde: '', fecha_hasta: '', zona_horaria: '', indicadores: [], distribucion_estados: [], advertencias: [] }),
+     obtenerSerie: () => of({ indicador: '', etiqueta: '', granularidad: 'dia', fecha_desde: '', fecha_hasta: '', zona_horaria: '', puntos: [], advertencias: [] }),
+     obtenerComparacion: () => of({ indicador: '', actual: { valor: 0, estado_dato: 'ZERO' }, anterior: { valor: 0, estado_dato: 'ZERO' }, variacion_absoluta: 0, variacion_porcentual: null, periodo_actual: ['', ''], periodo_anterior: ['', ''], advertencias: [] }),
+     exportarProgresivo: () => of({ body: new Blob(), headers: new Headers() }),
+     obtenerPronosticoDemanda: () => of({}), obtenerEstadoInasistencia: () => of({}),
   };
 
   beforeEach(async () => {
@@ -59,6 +65,7 @@ describe('Reportes', () => {
   });
 
    it('loads catalog, changes dataset and selects columns', () => { expect(component['datasetKey']()).toBe('pacientes'); component.seleccionarDataset('pacientes'); component.alternarColumna('activo', true); expect(component['columnas']()).toEqual(['id', 'activo']); });
+   it('offers classic, progressive and predictive areas in the protected reports page', () => { const text = fixture.nativeElement.textContent; expect(text).toContain('Reportes clásicos'); expect(text).toContain('Dashboard progresivo'); expect(text).toContain('IA predictiva y ML'); });
    it('opens voice dialog with the required accessible action and applies only valid IA configuration', () => {
      expect(fixture.nativeElement.querySelector('[aria-label="Crear reporte por voz"]')).toBeTruthy();
      component['transcriptVoz'].set('Muéstrame pacientes activos');

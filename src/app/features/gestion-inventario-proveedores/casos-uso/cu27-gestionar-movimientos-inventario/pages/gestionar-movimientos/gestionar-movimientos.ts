@@ -1,4 +1,5 @@
 import { CommonModule } from '@angular/common';
+import { Sidebar } from '../../../../../../core/layouts/sidebar/sidebar';
 import { Component, effect, inject, signal } from '@angular/core';
 import { AuthService } from '../../../../../autenticacion-seguridad/Auth/services/auth.service';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
@@ -20,7 +21,7 @@ const TIPOS_MANUALES: readonly { value: TipoManual; label: string }[] = [
 @Component({
   selector: 'app-gestionar-movimientos',
   standalone: true,
-  imports: [CommonModule, ReactiveFormsModule],
+  imports: [CommonModule, ReactiveFormsModule, Sidebar],
   templateUrl: './gestionar-movimientos.html',
   styleUrl: './gestionar-movimientos.css',
 })
@@ -31,6 +32,7 @@ export class GestionarMovimientos {
   private readonly auth = inject(AuthService, { optional: true });
   private tenantKey: number | null = null;
 
+  readonly sidebarMovilAbierto = signal(false);
   readonly tiposManuales = TIPOS_MANUALES;
   readonly productos = signal<ProductoRespuesta[]>([]);
   readonly lotes = signal<LoteRespuesta[]>([]);
@@ -63,6 +65,9 @@ export class GestionarMovimientos {
   }) : undefined;
 
   constructor() {
+    // CU27 es una ruta independiente: al recargar (F5) no hay Sidebar que
+    // inicialice el contexto de empresa. Sin esto el tenantWatcher queda en null.
+    this.auth?.inicializarContextoEmpresa();
     if (!this.auth) this.cargarCatalogo();
     this.form.controls.tipo.valueChanges.subscribe((tipo) => {
       const requiereMotivo = tipo === 'AJUSTE_ENTRADA' || tipo === 'AJUSTE_SALIDA' || tipo === 'SALIDA_VENCIMIENTO';

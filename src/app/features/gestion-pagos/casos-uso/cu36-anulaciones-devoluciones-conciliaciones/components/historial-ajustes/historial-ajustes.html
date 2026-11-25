@@ -1,0 +1,214 @@
+<section class="ajustes" aria-labelledby="ajustes-titulo">
+  <header class="ajustes__head">
+    <div>
+      <h3 id="ajustes-titulo">Ajustes del pago</h3>
+      <p>Libro de anulaciones, correcciones, devoluciones y conciliaciones informado por el servidor.</p>
+    </div>
+  </header>
+
+  @if (cargando() && !historial()) {
+    <p class="ajustes__estado" role="status">Consultando el libro de ajustes…</p>
+  } @else if (error(); as mensaje) {
+    <div class="ajustes__alerta" role="alert">
+      <span>{{ mensaje }}</span>
+      <button type="button" class="ajustes__enlace" (click)="recargar()">Reintentar</button>
+    </div>
+  } @else if (historial(); as libro) {
+    <dl class="ajustes__agregados">
+      <div>
+        <dt>Importe base</dt>
+        <dd>{{ textoMonto(libro.importe_base) }}</dd>
+      </div>
+      <div>
+        <dt>Importe vigente</dt>
+        <dd>{{ textoMonto(libro.importe_vigente) }}</dd>
+      </div>
+      <div>
+        <dt>Reembolsado</dt>
+        <dd>{{ textoMonto(libro.importe_reembolsado) }}</dd>
+      </div>
+    </dl>
+
+    @if (libro.ajuste_abierto) {
+      <p class="ajustes__bloqueo" role="status">
+        <strong>Hay un ajuste abierto.</strong> Una operación está pendiente de confirmación del
+        proveedor o de conciliación manual. Mientras siga abierta, el servidor bloquea nuevas
+        operaciones de dinero sobre este pago.
+      </p>
+    }
+
+    @if (cargando()) {
+      <p class="ajustes__estado" role="status">Actualizando el libro de ajustes…</p>
+    }
+
+    <div class="ajustes__tabla-contenedor">
+      <table class="ajustes__tabla">
+        <caption class="ajustes__oculto">
+          Ajustes registrados sobre este pago
+        </caption>
+        <thead>
+          <tr>
+            <th scope="col">Ajuste</th>
+            <th scope="col">Estado</th>
+            <th scope="col" class="ajustes__col-monto">Importe</th>
+            <th scope="col">Registro</th>
+            <th scope="col"><span class="ajustes__oculto">Acciones</span></th>
+          </tr>
+        </thead>
+        <tbody>
+          @for (ajuste of ajustes(); track ajuste.id) {
+            <tr
+              [class.ajustes__fila--abierta]="estaAbierto(ajuste.estado)"
+              [class.ajustes__fila--seleccionada]="ajusteSeleccionadoId() === ajuste.id"
+            >
+              <td>
+                <strong class="ajustes__tipo">{{ etiquetaTipo(ajuste.tipo) }}</strong>
+                <small class="ajustes__dato">{{ etiquetaNaturaleza(ajuste.naturaleza) }}</small>
+                <small class="ajustes__dato">Ajuste #{{ ajuste.id }}</small>
+              </td>
+              <td>
+                <span [class]="'ajustes__badge ' + claseEstado(ajuste.estado)">
+                  {{ etiquetaEstado(ajuste.estado) }}
+                </span>
+                <small class="ajustes__descripcion">{{ descripcionEstado(ajuste.estado) }}</small>
+              </td>
+              <td class="ajustes__col-monto">
+                <span [class]="'ajustes__monto ' + claseSigno(ajuste.importe)">
+                  {{ textoMonto(ajuste.importe) }}
+                </span>
+                <small class="ajustes__dato">{{ ajuste.moneda }}</small>
+              </td>
+              <td>
+                <small class="ajustes__dato">Creado: {{ fechaHora(ajuste.fecha_creacion) }}</small>
+                @if (ajuste.fecha_confirmacion) {
+                  <small class="ajustes__dato">
+                    Confirmado: {{ fechaHora(ajuste.fecha_confirmacion) }}
+                  </small>
+                }
+                @if (ajuste.fecha_conciliacion) {
+                  <small class="ajustes__dato">
+                    Conciliado: {{ fechaHora(ajuste.fecha_conciliacion) }}
+                  </small>
+                }
+              </td>
+              <td class="ajustes__acciones">
+                <button
+                  type="button"
+                  class="ajustes__btn-detalle"
+                  [attr.aria-expanded]="ajusteSeleccionadoId() === ajuste.id"
+                  [attr.aria-controls]="'detalle-ajuste-' + ajuste.id"
+                  [attr.aria-label]="'Consultar detalle del ajuste #' + ajuste.id"
+                  (click)="consultarDetalle(ajuste.id)"
+                >
+                  Consultar detalle
+                </button>
+                @if (mostrarConciliar(ajuste)) {
+                  <button
+                    type="button"
+                    class="ajustes__btn-accion"
+                    [disabled]="!puedeConciliar()"
+                    [attr.aria-label]="'Conciliar el ajuste #' + ajuste.id"
+                    (click)="solicitarConciliacion(ajuste)"
+                  >
+                    Conciliar
+                  </button>
+                }
+              </td>
+            </tr>
+            @if (ajusteSeleccionadoId() === ajuste.id) {
+              <tr class="ajustes__fila-detalle">
+                <td colspan="5">
+                  <section
+                    class="ajustes__detalle"
+                    [id]="'detalle-ajuste-' + ajuste.id"
+                    [attr.aria-label]="'Detalle del ajuste #' + ajuste.id"
+                  >
+                    @if (cargandoDetalle()) {
+                      <p class="ajustes__estado" role="status">Consultando el detalle del ajuste…</p>
+                    } @else if (errorDetalle(); as mensajeDetalle) {
+                      <div class="ajustes__alerta" role="alert">
+                        <span>
+                          @if (accesoDetalleDenegado()) {
+                            <strong>Acceso denegado.</strong>
+                          }
+                          {{ mensajeDetalle }}
+                        </span>
+                        @if (!accesoDetalleDenegado()) {
+                          <button type="button" class="ajustes__enlace" (click)="reintentarDetalle()">
+                            Reintentar
+                          </button>
+                        }
+                      </div>
+                    } @else if (detalleAjuste(); as detalle) {
+                      <dl class="ajustes__detalle-grid">
+                        <div>
+                          <dt>Motivo</dt>
+                          <dd>{{ detalle.motivo }}</dd>
+                        </div>
+                        <div>
+                          <dt>Efecto en caja</dt>
+                          <dd>{{ etiquetaEfecto(detalle.efecto_caja) }}</dd>
+                        </div>
+                        <div>
+                          <dt>Referencia externa</dt>
+                          <dd>{{ detalle.referencia_externa || '—' }}</dd>
+                        </div>
+                        <div>
+                          <dt>Evidencia</dt>
+                          <dd>{{ detalle.evidencia || '—' }}</dd>
+                        </div>
+                        <div>
+                          <dt>Observaciones</dt>
+                          <dd>{{ detalle.observaciones || '—' }}</dd>
+                        </div>
+                        <div>
+                          <dt>Aplicación a cuota</dt>
+                          <dd>
+                            {{ detalle.revertir_aplicacion_cuota ? 'Se revierte' : 'No se revierte' }}
+                          </dd>
+                        </div>
+                        <div>
+                          <dt>Responsables</dt>
+                          <dd>
+                            Creado: {{ detalle.creado_por === null ? '—' : 'usuario #' + detalle.creado_por }}<br />
+                            Confirmado: {{ detalle.confirmado_por === null ? '—' : 'usuario #' + detalle.confirmado_por }}<br />
+                            Conciliado: {{ detalle.conciliado_por === null ? '—' : 'usuario #' + detalle.conciliado_por }}
+                          </dd>
+                        </div>
+                        <div>
+                          <dt>Distribución por servicio</dt>
+                          <dd>
+                            @if (detalle.detalles.length > 0) {
+                              <ul
+                                class="ajustes__detalles"
+                                [attr.aria-label]="'Distribución por servicio del ajuste #' + detalle.id"
+                              >
+                                @for (item of detalle.detalles; track item.servicio_realizado_id) {
+                                  <li>
+                                    Servicio #{{ item.servicio_realizado_id }} — {{ textoMonto(item.monto) }}
+                                  </li>
+                                }
+                              </ul>
+                            } @else {
+                              Sin desglose por servicio.
+                            }
+                          </dd>
+                        </div>
+                      </dl>
+                    }
+                  </section>
+                </td>
+              </tr>
+            }
+          } @empty {
+            <tr>
+              <td colspan="5" class="ajustes__vacio">
+                Todavía no hay ajustes registrados para este pago.
+              </td>
+            </tr>
+          }
+        </tbody>
+      </table>
+    </div>
+  }
+</section>

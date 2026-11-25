@@ -4,9 +4,9 @@ import { GestionProveedores } from './features/gestion-inventario-proveedores/ca
 
 describe('app.routes — CU30', () => {
   it('expone inventario y alertas con authGuard antes del comodín', () => {
-    const indice = routes.findIndex(ruta => ruta.path === 'inventario-alertas');
+    const indice = routes.findIndex((ruta) => ruta.path === 'inventario-alertas');
     expect(indice).toBeGreaterThanOrEqual(0);
-    expect(indice).toBeLessThan(routes.findIndex(ruta => ruta.path === '**'));
+    expect(indice).toBeLessThan(routes.findIndex((ruta) => ruta.path === '**'));
     expect(routes[indice].canActivate).toContain(authGuard);
     expect(typeof routes[indice].loadComponent).toBe('function');
   });
@@ -117,6 +117,7 @@ describe('app.routes — CU31', () => {
       'historial',
       'confirmaciones',
       'estado-cuenta',
+      'conciliaciones',
       'planes',
       'planes/nuevo',
       'planes/:id',
@@ -129,6 +130,9 @@ describe('app.routes — CU31', () => {
     for (const hijo of hijos) {
       expect(typeof hijo.loadComponent).toBe('function');
     }
+    const conciliaciones = hijos.find((hijo) => hijo.path === 'conciliaciones');
+    expect(conciliaciones?.canActivate).toContain(authGuard);
+    expect(typeof conciliaciones?.loadComponent).toBe('function');
   });
 });
 

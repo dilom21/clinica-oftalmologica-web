@@ -1,0 +1,209 @@
+:host {
+  display: block;
+}
+
+.anular {
+  position: fixed;
+  inset: 0;
+  z-index: 90;
+  display: grid;
+  place-items: center;
+  padding: 1rem;
+  background: var(--color-overlay);
+}
+
+.anular__dialogo {
+  width: min(36rem, 100%);
+  max-height: 90vh;
+  overflow-y: auto;
+  padding: 1.4rem;
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow-lg);
+}
+
+.anular__dialogo h2 {
+  font-size: 1.1rem;
+  margin-bottom: 0.45rem;
+}
+
+.anular__dialogo > p {
+  font-size: 0.85rem;
+  line-height: 1.5;
+}
+
+.anular__datos {
+  display: grid;
+  gap: 0.4rem;
+  margin: 0.9rem 0;
+  padding: 0.75rem;
+  background: var(--color-surface-muted);
+  border: 1px solid var(--color-border-soft);
+  border-radius: var(--radius-sm);
+}
+
+.anular__datos > div {
+  display: flex;
+  justify-content: space-between;
+  gap: 0.75rem;
+  font-size: 0.82rem;
+}
+
+.anular__datos dt {
+  color: var(--color-text-soft);
+}
+
+.anular__datos dd {
+  margin: 0;
+  color: var(--color-heading);
+  font-weight: 700;
+  text-align: right;
+  word-break: break-word;
+}
+
+.anular__monto {
+  font-size: 1rem;
+}
+
+.anular__aviso {
+  padding: 0.6rem 0.7rem;
+  color: var(--color-danger-text);
+  background: var(--color-danger-bg);
+  border: 1px solid var(--color-danger-border);
+  border-radius: var(--radius-sm);
+  font-size: 0.8rem;
+  line-height: 1.45;
+}
+
+.anular__nota {
+  margin-top: 0.75rem;
+  padding: 0.55rem 0.7rem;
+  color: var(--color-info-text);
+  background: var(--color-info-bg);
+  border: 1px solid var(--color-info-border);
+  border-radius: var(--radius-sm);
+  font-size: 0.78rem;
+  line-height: 1.45;
+}
+
+.anular__campo {
+  display: block;
+  margin-top: 0.9rem;
+}
+
+.anular__campo > span {
+  display: block;
+  margin-bottom: 0.3rem;
+  font-size: 0.82rem;
+  font-weight: 700;
+  color: var(--color-heading);
+}
+
+.anular__obligatorio {
+  color: var(--color-danger-text);
+  font-size: 0.78rem;
+}
+
+.anular__campo textarea,
+.anular__campo select {
+  width: 100%;
+  padding: 0.5rem 0.6rem;
+  color: var(--color-text);
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-sm);
+  font: inherit;
+  font-size: 0.85rem;
+}
+
+.anular__campo textarea:focus-visible,
+.anular__campo select:focus-visible {
+  outline: 3px solid color-mix(in srgb, var(--color-primary) 45%, transparent);
+  outline-offset: 1px;
+}
+
+.anular__campo textarea[aria-invalid='true'],
+.anular__campo select[aria-invalid='true'] {
+  border-color: var(--color-danger-border);
+}
+
+.anular__campo small {
+  display: block;
+  margin-top: 0.3rem;
+  color: var(--color-text-soft);
+  font-size: 0.76rem;
+  line-height: 1.4;
+}
+
+.anular__campo-error {
+  margin-top: 0.3rem;
+  color: var(--color-danger-text);
+  font-size: 0.78rem;
+  font-weight: 600;
+}
+
+.anular__estado {
+  margin-top: 0.6rem;
+  color: var(--color-info-text);
+  font-size: 0.8rem;
+}
+
+.anular__error {
+  margin-top: 0.6rem;
+  padding: 0.55rem 0.7rem;
+  color: var(--color-danger-text);
+  background: var(--color-danger-bg);
+  border: 1px solid var(--color-danger-border);
+  border-radius: var(--radius-sm);
+  font-size: 0.8rem;
+}
+
+.anular__acciones {
+  display: flex;
+  justify-content: flex-end;
+  gap: 0.6rem;
+  margin-top: 1rem;
+}
+
+.anular__btn {
+  min-height: 2.5rem;
+  padding: 0.55rem 1rem;
+  border: 1px solid transparent;
+  border-radius: var(--radius-sm);
+  font: inherit;
+  font-size: 0.85rem;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.anular__btn:disabled {
+  cursor: not-allowed;
+  opacity: 0.6;
+}
+
+.anular__btn--peligro {
+  color: var(--color-white);
+  background: var(--color-danger-text);
+}
+
+.anular__btn--secundario {
+  color: var(--color-heading);
+  background: var(--color-surface);
+  border-color: var(--color-border);
+}
+
+.anular__btn:focus-visible {
+  outline: 3px solid color-mix(in srgb, var(--color-primary) 45%, transparent);
+  outline-offset: 2px;
+}
+
+@media (max-width: 480px) {
+  .anular__acciones {
+    flex-direction: column-reverse;
+  }
+
+  .anular__btn {
+    width: 100%;
+  }
+}

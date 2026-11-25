@@ -355,6 +355,13 @@ tbody tr:focus-visible {
   border-color: var(--color-danger-border);
 }
 
+/* Dinero devuelto: distinto del tono negativo de «Anulado». */
+.historial__badge--reembolsado {
+  color: var(--color-info-text);
+  background: var(--color-info-bg);
+  border-color: var(--color-info-border);
+}
+
 .historial__badge--neutro {
   color: var(--color-neutral-text);
   background: var(--color-neutral-bg);
